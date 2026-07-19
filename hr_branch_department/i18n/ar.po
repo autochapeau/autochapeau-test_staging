@@ -1,0 +1,82 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* hr_branch_department
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 17:22+0000\n"
+"PO-Revision-Date: 2026-06-07 17:22+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: hr_branch_department
+#: model:ir.model.fields,field_description:hr_branch_department.field_hr_department__analytic_account_id
+msgid "Analytic Account"
+msgstr "الحساب التحليلي"
+
+#. module: hr_branch_department
+#: model:ir.model.fields,help:hr_branch_department.field_hr_department__analytic_account_id
+msgid "Analytic account related to this department."
+msgstr "الحساب التحليلي المرتبط بهذا القسم."
+
+#. module: hr_branch_department
+#: model:ir.model.fields,field_description:hr_branch_department.field_hr_employee__branch_id
+msgid "Branch"
+msgstr "الفرع"
+
+#. module: hr_branch_department
+#: model:ir.model.fields,help:hr_branch_department.field_hr_employee__branch_id
+msgid "Branch/subsidiary related to the employee"
+msgstr "الفرع / الشركة التابعة المرتبطة بالموظف"
+
+#. module: hr_branch_department
+#: model:ir.model.fields.selection,name:hr_branch_department.selection__hr_department__department_type__branche
+msgid "Branche"
+msgstr "فرع"
+
+#. module: hr_branch_department
+#: model:ir.model.fields.selection,name:hr_branch_department.selection__hr_department__department_type__business_unit
+msgid "Business unit"
+msgstr "وحدة أعمال"
+
+#. module: hr_branch_department
+#: model:ir.model.fields,field_description:hr_branch_department.field_hr_department__code
+msgid "Code"
+msgstr "الرمز"
+
+#. module: hr_branch_department
+#: model:ir.model,name:hr_branch_department.model_hr_department
+#: model:ir.model.fields.selection,name:hr_branch_department.selection__hr_department__department_type__department
+msgid "Department"
+msgstr "القسم"
+
+#. module: hr_branch_department
+#: model:ir.model.fields,field_description:hr_branch_department.field_hr_department__department_type
+msgid "Department Type"
+msgstr "نوع القسم"
+
+#. module: hr_branch_department
+#: model:ir.model.fields.selection,name:hr_branch_department.selection__hr_department__department_type__division
+msgid "Division"
+msgstr "شعبة"
+
+#. module: hr_branch_department
+#: model:ir.model,name:hr_branch_department.model_hr_employee
+msgid "Employee"
+msgstr "الموظف"
+
+#. module: hr_branch_department
+#: model:ir.model.fields.selection,name:hr_branch_department.selection__hr_department__department_type__section
+msgid "Section"
+msgstr "قسم فرعي"
+
+#. module: hr_branch_department
+#: model:ir.model.constraint,message:hr_branch_department.constraint_hr_department_hr_department_code_unique
+msgid "The department code must be unique."
+msgstr "يجب أن يكون رمز القسم فريدًا."

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+        <!-- account.account.type -->
+         <record model="account.account.type" id="data_account_type_revenue">
+            <field name="type">income</field>
+        </record>
+
+        <record model="account.account.type" id="data_account_type_other_income">
+          <field name="type">income_other</field>
+        </record>
+
+       <record model="account.account.type" id="data_account_type_expenses">
+            <field name="type">expense</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_direct_costs">
+          <field name="type">expense_direct_cost</field>
+        </record>
+
+     <record model="account.account.type" id="data_account_type_depreciation">
+          <field name="type">expense_depreciation</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_receivable">
+          <field name="type">asset_receivable</field>
+        </record>
+
+         <record model="account.account.type" id="data_account_type_liquidity">
+          <field name="type">asset_cash</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_current_assets">
+          <field name="type">asset_current</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_non_current_assets">
+          <field name="type">asset_non_current</field>
+        </record>
+
+     <record model="account.account.type" id="data_account_type_prepayments">
+          <field name="type">asset_prepayments</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_fixed_assets">
+          <field name="type">asset_fixed</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_payable">
+          <field name="type">liability_payable</field>
+        </record>
+
+    <record model="account.account.type" id="data_account_type_equity">
+          <field name="type">equity</field>
+        </record>
+
+      <record model="account.account.type" id="data_account_type_current_liabilities">
+          <field name="type">liability_current</field>
+        </record>
+
+     <record model="account.account.type" id="data_account_type_non_current_liabilities">
+          <field name="type">liability_non_current</field>
+        </record>
+</odoo>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="customer_membership_view_tree" model="ir.ui.view">
+        <field name="name">customer.membership.level.tree</field>
+        <field name="model">customer.membership.level</field>
+        <field name="arch" type="xml">
+            <tree string="Memberships" editable="bottom">
+                <field name="name"/>
+                <field name="amount_from"/>
+                <field name="amount_to"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="customer_membership_view_form" model="ir.ui.view">
+        <field name="name">customer.membership.level.form</field>
+        <field name="model">customer.membership.level</field>
+        <field name="arch" type="xml">
+            <form string="Membership">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="amount_from"/>
+                        <field name="amount_to"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="customer_membership_action" model="ir.actions.act_window">
+        <field name="name">Membership</field>
+        <field name="res_model">customer.membership.level</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a membership level</p>
+            <p>Define membership levels by invoiced amount range (e.g. Blue, Silver, Gold).</p>
+        </field>
+    </record>
+
+    <menuitem id="customer_membership_menu"
+              name="Membership"
+              parent="sale.menu_sale_config"
+              action="customer_membership_action"
+              sequence="50"/>
+
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="qitaf_loyalty_url" model="ir.config_parameter">
+        <field name="key">qitaf_loyalty_url</field>
+        <field name="value">https://api-staging.eqitaf.com.sa</field>
+    </record>
+    <record id="qitaf_loyalty_token" model="ir.config_parameter">
+        <field name="key">qitaf_loyalty_token</field>
+        <field
+            name="value"
+        >eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJVc2VySWQiOiJxaXRhZi0xNjM1IiwiQ2xpZW50Q04iOiJxaXRhZi0xNjM1IiwiUGVybWlzc2lvbnMiOiJyZWRlbXB0aW9uLHJld2FyZC1zIiwiQ2xpZW50U2VyaWFsIjoiMTAwMDAwNzAiLCJQYXJ0bmVySWQiOjE2MzUsIkV4cGlyYXRpb25EYXRlIjoxODIzNDM2MzAyMDAwfQ.FKJ9HV5QSEtZpmC0OKRwmmEB3XsgS6lEDZUjRgiVvghih62aXU5nU8lUX1dFM_LmInWHysVjhUrWbz-2yG8Ve-mqEfJwof4G3LiyCGjIIv5Mme5Sa28gj6yeSCHf1ukoZGR0ECNg51AxfS6z4D7q8HamZ16L5wkqBOUfuNRb8mA</field>
+    </record>
+    <record id="qitaf_username" model="ir.config_parameter">
+        <field name="key">qitaf_username</field>
+        <field name="value">o9IAW3SHBLB8UDkc</field>
+    </record>
+    <record id="qitaf_password" model="ir.config_parameter">
+        <field name="key">qitaf_password</field>
+        <field name="value">VHa1ad#2Tx4Z</field>
+    </record>
+    <record id="qitaf_branch_id" model="ir.config_parameter">
+        <field name="key">qitaf_branch_id</field>
+        <field name="value">16350000</field>
+    </record>
+    <record id="qitaf_terminal_id" model="ir.config_parameter">
+        <field name="key">qitaf_terminal_id</field>
+        <field name="value">16350000</field>
+    </record>
+</odoo>

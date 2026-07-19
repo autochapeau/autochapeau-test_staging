@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="email_template_appointment_confirmation" model="mail.template">
+        <field name="name">Appointment Confirmation Email</field>
+        <field name="model_id" ref="appointment_management.model_car_appointment" />
+        <field name="email_from">{{ object.company_id.email or object.company_id.email_formatted }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="subject">Your Appointment Confirmation - {{ object.name }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px; font-family: sans-serif;">
+                <p>
+                    Dear<t t-out="object.partner_id.name or 'Customer'" />,
+                </p>
+
+                <p>
+                    Your appointment
+                    <strong>
+                        <t t-out="object.name" />
+                    </strong>
+                    has been confirmed.
+                </p>
+
+                <p>
+                    <strong>Appointment Details:</strong>
+                </p>
+                <ul>
+                    <li>Date:
+                        <t t-out="format_date(object.start_date)" />
+                    </li>
+                    <li>Time:
+                        <t t-out="format_time(object.start_date)" />
+                    </li>
+                    <li>Agency:
+                        <t t-out="object.company_id.name" />
+                    </li>
+                    <li>Location:
+                        <t t-out="object.company_id.partner_id.contact_address or ''" />
+                    </li>
+                </ul>
+
+                <p>
+                    <strong>Vehicle:</strong>
+                </p>
+                <ul>
+                    <li>Model:
+                        <t t-out="object.vehicle_id.model_id.name or ''" />
+                    </li>
+                    <li>License Plate:
+                        <t t-out="object.vehicle_license_plate" />
+                    </li>
+                    <li>VIN:
+                        <t t-out="object.vehicle_vin_sn" />
+                    </li>
+                    <li>Color:
+                        <t t-out="object.vehicle_color_id.name or 'N/A'" />
+                    </li>
+                    <li>Size:
+                        <t t-out="object.vehicle_size or 'N/A'" />
+                    </li>
+                </ul>
+
+
+                <t t-if="object.sale_order_id">
+                    <p>
+                        <strong>Selected Services:</strong>
+                    </p>
+                    <ul>
+                        <t t-foreach="object.sale_order_id.order_line" t-as="line">
+                            <t t-if="line.product_id.detailed_type == 'service'">
+                                <li>
+                                    <strong>
+                                        <t t-out="line.product_id.name" />
+                                    </strong>
+                                    <br />
+                                    Unit Price:
+                                    <t t-out="line.price_unit" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                    Quantity:
+                                    <t t-out="line.product_uom_qty" />
+                                    <br />
+                                    Discount:<t t-out="line.discount or 0" />%
+                                    <br />
+                                    Taxes:
+                                    <t t-if="line.tax_id">
+                                        <span
+                                            t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"
+                                        />
+
+
+                                    </t>
+                                    <t t-else="">
+                                        No Tax
+                                    </t>
+
+                                    <br />
+                                    Subtotal:
+                                    <t t-out="line.price_subtotal" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                    Total with Tax:
+                                    <t t-out="line.price_total" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                </li>
+                            </t>
+                        </t>
+                    </ul>
+                </t>
+                <t t-if="object.sale_order_id">
+                    <p>
+                        <strong>Products:</strong>
+                    </p>
+                    <ul>
+                        <t t-foreach="object.sale_order_id.order_line" t-as="line">
+                            <t t-if="line.product_id.detailed_type == 'product'">
+                                <li>
+                                    <strong>
+                                        <t t-out="line.product_id.name" />
+                                    </strong>
+                                    <br />
+                                    Unit Price:
+                                    <t t-out="line.price_unit" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                    Quantity:
+                                    <t t-out="line.product_uom_qty" />
+                                    <br />
+                                    Discount:<t t-out="line.discount or 0" />%
+                                    <br />
+                                    Taxes:
+                                    <t t-if="line.tax_id">
+                                        <span
+                                            t-out="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"
+                                        />
+
+
+                                    </t>
+                                    <t t-else="">
+                                        No Tax
+                                    </t>
+
+                                    <br />
+                                    Subtotal:
+                                    <t t-out="line.price_subtotal" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                    Total with Tax:
+                                    <t t-out="line.price_total" />
+                                    <span t-esc="object.sale_order_id.currency_id.name" />
+                                    <br />
+                                </li>
+                            </t>
+                        </t>
+                    </ul>
+                </t>
+                <t t-if="object.sale_order_id">
+                    <p>
+                        <strong>Payment Details:</strong>
+                    </p>
+                    <ul>
+                        <li>Total:
+                            <t t-out="object.sale_order_id.amount_total" />
+                            <span t-esc="object.sale_order_id.currency_id.name" />
+                        </li>
+                        <li>Taxes:
+                            <t t-out="object.sale_order_id.amount_tax" />
+                            <span t-esc="object.sale_order_id.currency_id.name" />
+                        </li>
+
+                        <t t-if="object.sale_order_id.payment_term_id">
+                            <li>Payment Terms:
+                                <t t-out="object.sale_order_id.payment_term_id.name" />
+                            </li>
+                        </t>
+
+                        <t t-if="object.sale_order_id.invoice_ids">
+                            <li>Payments Used:
+                                <ul>
+                                    <t t-foreach="object.sale_order_id.invoice_ids" t-as="pay">
+                                        <li>
+                                            <t t-out="pay.payment_method_id.name or 'Manual'" />
+                                            -
+                                            <t t-out="pay.amount" />
+                                            <span t-esc="object.sale_order_id.currency_id.name" />
+                                        </li>
+                                    </t>
+                                </ul>
+                            </li>
+                        </t>
+
+                        <t t-if="object.partner_id.loyalty_balance">
+                            <li>Loyalty Points Earned:
+                                <t t-out="object.partner_id.loyalty_balance" />
+                            </li>
+                        </t>
+
+                        <t t-if="object.sale_order_id.donation_amount">
+                            <li>Donation:
+                                <t t-out="object.sale_order_id.donation_amount" />
+                            </li>
+                        </t>
+                    </ul>
+                </t>
+
+                <p>Thank you for your trust.<br />We look forward to seeing you soon!
+                </p>
+
+                <p>Best regards,
+                    <br />
+                    <t t-out="object.company_id.name" />
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>

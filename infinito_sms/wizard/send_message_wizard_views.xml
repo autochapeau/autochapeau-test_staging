@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+      <record id="sms_send_form_view" model="ir.ui.view">
+            <field name="name">sms.message.wizard.form</field>
+            <field name="model">sms.message.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Send by SMS">
+                    <group>
+                                        <field name="message_model_id" options="{'no_open': True, 'no_create': True}" />
+                        <field name="message" />
+                        <field name="mobile" />
+                    </group>
+                    <footer>
+                        <button name="send_sms" string="Send SMS" class="btn-primary" type="object" />
+                        <button name="cancel" string="Cancel" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+      <record id="sms_send_message_wizard_action" model="ir.actions.act_window">
+        <field name="name">Send SMS Message</field>
+        <field name="res_model">sms.message.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+</odoo>

@@ -1,0 +1,33 @@
+{
+    "name": "Appointment management",
+    "version": "17.0.1.0.2",
+    "author": "WellKnot",
+    "depends": ["resource", "cars_management", "sale_loyalty", "account", "infinito_sms"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/data.xml",
+        "data/mail_template_data.xml",
+        "data/appointment_confirmation_data.xml",
+        "wizard/car_appointment_generate_slots_views.xml",
+        "views/res_config_settings.xml",
+        "views/res_company_views.xml",
+        "views/product_product_views.xml",
+        "views/car_appointment_slot_views.xml",
+        "views/car_appointment_views.xml",
+        "views/fleet_vehicle_views.xml",
+        "views/message_model_views.xml",
+        "views/loyalty_program_views.xml",
+        "views/product_pricelist_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "appointment_management/static/src/**/*.js",
+            "appointment_management/static/src/**/*.xml",
+        ],
+    },
+    "installable": True,
+    "auto_install": False,
+    "application": True,
+    "license": "LGPL-3",
+}

@@ -1,0 +1,8 @@
+div.o_ar_numerals > input {
+    font-family: "Noto Sans Arabic", sans-serif !important;
+}
+.o_license_plate {
+    border: 1px solid grey !important;
+    max-width: 220px;
+    border-radius: 2px;
+}

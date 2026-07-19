@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="product_normal_form_view_inherit_portal_content" model="ir.ui.view">
+        <field name="name">product.product.view.form.inherit.portal_content</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales']" position="before">
+                <page string="Images">
+                    <group>
+                        <field colspan="2" name="image_ids" widget="many2many_binary" nolabel="1" />
+                    </group>
+                </page>
+                <page string="Rate and Reviews">
+                    <field name="review_ids">
+                        <tree editable="top">
+                            <field name="create_date" />
+                            <field name="partner_id" />
+                            <field name="rate" />
+                            <field name="message" />
+                            <field name="published" />
+                        </tree>
+                    </field>
+                    <group>
+                        <field name="reviews_count" />
+                        <field name="reviews_rate" />
+                    </group>
+                </page>
+                <page string="Question and Answers">
+                    <field name="question_ids">
+                        <tree editable="top">
+                            <field name="question" />
+                            <field name="answer" />
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//page[@name='sales']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+            <!-- Ecommerce shop block removed (kept in product_publish module) -->
+        </field>
+    </record>
+
+</odoo>

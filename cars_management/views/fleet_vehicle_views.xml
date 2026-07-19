@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id='fleet_vehicle_view_form' model='ir.ui.view'>
+        <field name="name">fleet.vehicle.form</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_sms_wizard" string="Send SMS" class="btn-primary" type="object" />
+                </header>
+                <sheet>
+                    <field name="active" invisible="1" />
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="return_action_to_open"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-tachometer"
+                            context="{'xml_id':'fleet_vehicle_odometer_action'}"
+                            help="show the odometer logs for this vehicle"
+                        >
+                            <field name="odometer_count" widget="statinfo" string="Odometer" />
+                        </button>
+                        <button
+                            name="action_view_available_services"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-cogs"
+                            help="Available Services"
+                        >
+                            <field name="available_services_count" widget="statinfo" string="Available Services" />
+                        </button>
+                        <button
+                            name="action_view_checkins"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-cogs"
+                            help="Check-ins"
+                        >
+                            <field name="checkin_count" widget="statinfo" string="Check-ins" />
+                        </button>
+                        <button
+                            name="action_view_checkouts"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-cogs"
+                            help="Checkouts"
+                        >
+                            <field name="checkout_count" widget="statinfo" string="Checkouts" />
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <field name="image_128" widget='image' class="oe_avatar" />
+                    <div class="oe_title">
+                        <label for="model_id" />
+                        <h1>
+                            <field name="model_id" placeholder="e.g. Model S" class="w-100" />
+                        </h1>
+                         <label for="title" />
+                        <h2>
+                            <field name="title" class="oe_inline" />
+                        </h2>
+                         <div class="o_row">
+                            <b>License Plate</b>
+                        </div>
+
+                        <div class="o_row">
+                            <field
+                                name="plate_numbers_ar"
+                                class="oe_inline ml-3 o_ar_numerals o_license_plate"
+                                nolabel="1"
+                                style="font-family: 'Noto Sans Arabic', sans-serif;"
+                                placeholder="٥ ٦ ٧"
+                            />
+                            <field
+                                name="plate_numbers"
+                                class="oe_inline mr-5 o_license_plate"
+                                nolabel="1"
+                                placeholder="7 6 5"
+                            />
+                        </div>
+                        <div class="o_row" />
+                        <div class="o_row">
+                            <field
+                                name="plate_letters_ar"
+                                class="oe_inline ml-3 o_license_plate"
+                                nolabel="1"
+                                placeholder="م ل ل"
+                            />
+                            <field
+                                name="plate_letters"
+                                class="oe_inline mr-5 o_license_plate"
+                                nolabel="1"
+                                placeholder="LLZ"
+                            />
+                        </div>
+                        <div class="o_row">
+                            <field name="owner_type" widget="radio" options="{'horizontal': True}" nolabel="1" />
+                        </div>
+                        <label for="partner_id" />
+                        <h2>
+                            <field name="partner_id" class="oe_inline" />
+                        </h2>
+                        <label for="tag_ids" class="me-3" />
+                        <field
+                            name="tag_ids"
+                            widget="many2many_tags"
+                            options="{'color_field': 'color', 'no_create_edit': True}"
+                        />
+                    </div>
+                    <group col="2">
+                        <group string="Vehicle">
+                            <field name="company_id" />
+                            <field name="category_id" />
+                            <field name="vin_sn" />
+                            <field name="location" />
+                        </group>
+                        <group string="Car Owner" name="car_owner" invisible="owner_type != 'company'">
+                            <field name="car_owner_name" />
+                            <field name="car_owner_mobile" />
+                            <field name="car_owner_email" />
+                            <field name="car_owner_address" />
+                        </group>
+                    </group>
+                    <field name="vehicle_properties" columns="2" />
+                    <notebook>
+                        <page string="Model" name="page_model">
+                            <group>
+                                <group string="Model">
+                                    <field name="model_year" required="1" />
+                                    <field name="transmission" />
+                                    <field name="vehicle_color_id" />
+                                    <field name="size" />
+                                    <field name="seats" />
+                                    <field name="doors" />
+                                    <div class="o_row">
+                                        <field name="frame_size" /><span>cm</span>
+                                    </div>
+                                </group>
+                                <group string="Engine">
+                                    <field name="horsepower" />
+                                    <label for="power" />
+                                    <div class="o_row">
+                                        <field name="power" /><span>kW</span>
+                                    </div>
+                                    <field name="fuel_type" />
+                                    <label for="co2" />
+                                    <div class="o_row" name="co2">
+                                        <field name="co2" /><span>g/km</span>
+                                    </div>
+                                    <field name="co2_standard" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Note" name="note">
+                            <field
+                                name="description"
+                                nolabel="1"
+                                placeholder="Write here any other information related to this vehicle"
+                            />
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" />
+                    <field name="activity_ids" />
+                    <field name="message_ids" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id='fleet_vehicle_view_tree' model='ir.ui.view'>
+        <field name="name">fleet.vehicle.tree</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <tree sample="1">
+                <field name="active" column_invisible="True" />
+                <field name="license_plate" readonly="1" />
+                <field name="model_id" widget="many2one_avatar" readonly="1" />
+                <field name="category_id" />
+                <field name="partner_id" widget="many2one_avatar" readonly="1" optional="show" />
+                <field name="vin_sn" readonly="1" optional="hide" />
+                <field name="company_id" readonly="1" />
+                <field name="size" readonly="1" />
+                <field name="vehicle_color_id" options="{'color_field': 'color'}" readonly="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="fleet_vehicle_view_search_inherit" model="ir.ui.view">
+        <field name="name">fleet.vehicle.search.phone</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_search"/>
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="filter_domain">['|', '|', ('name', 'ilike', self), ('license_plate', 'ilike', self), ('partner_phone_search', 'ilike', self)]</attribute>
+            </field>
+            <field name="name" position="after">
+                <field
+                    name="partner_phone_search"
+                    string="Phone / Mobile"
+                    filter_domain="[('partner_phone_search', 'ilike', self)]"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id='fleet_vehicle_action' model='ir.actions.act_window'>
+        <field name="name">Vehicles</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">tree,form,activity</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('cars_management.fleet_vehicle_view_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('cars_management.fleet_vehicle_view_form')})]"
+        />
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Ready to manage your fleet more efficiently?
+          </p><p>
+            Let's create your first vehicle.
+          </p>
+        </field>
+    </record>
+
+    <record id="fleet_vehicle_odometer_view_tree" model="ir.ui.view">
+        <field name="name">fleet.vehicle.odometer.view.tree.inherit</field>
+        <field name="model">fleet.vehicle.odometer</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_odometer_view_tree" />
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <field name="driver_id" position="replace" />
+        </field>
+    </record>
+
+    <menuitem
+        action="fleet_vehicle_action"
+        parent="cars_management_menu_root"
+        name="Cars"
+        id="fleet_vehicle_menu"
+        sequence="0"
+    />
+
+    <menuitem
+        name="Vehicle"
+        parent="cars_configuration"
+        id="fleet_vehicles_configuration"
+        sequence="30"
+        groups="base.group_no_one"
+    />
+
+
+    <menuitem
+        id="fleet_vehicle_tag_menu"
+        parent="fleet_vehicles_configuration"
+        action="fleet.fleet_vehicle_tag_action"
+        sequence="20"
+        groups="base.group_no_one"
+    />
+
+</odoo>

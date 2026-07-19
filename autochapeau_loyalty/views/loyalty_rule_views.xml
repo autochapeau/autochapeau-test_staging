@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="loyalty_rule_view_form_membership" model="ir.ui.view">
+        <field name="name">loyalty.rule.view.form.membership</field>
+        <field name="model">loyalty.rule</field>
+        <field name="inherit_id" ref="loyalty.loyalty_rule_view_form"/>
+        <field name="arch" type="xml">
+            <field name="product_tag_id" position="after">
+                <separator string="Membership Rules" colspan="2"/>
+                <field name="membership_point_ids" string="" >
+                    <tree editable="bottom">
+                        <field name="membership_id"/>
+                        <field name="reward_point_amount"/>
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+</odoo>

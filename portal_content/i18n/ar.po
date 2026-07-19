@@ -1,0 +1,441 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* portal_content
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-19 15:44+0000\n"
+"PO-Revision-Date: 2024-12-19 15:44+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_aboutus_action
+#: model:ir.ui.menu,name:portal_content.portal_aboutus_menu
+msgid "About us page"
+msgstr "صفحة من نحن"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__active
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__active
+msgid "Active"
+msgstr "نشط"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__address
+msgid "Address"
+msgstr "العنوان"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__answer
+msgid "Answer"
+msgstr "الإجابة "
+
+#. module: portal_content
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_aboutus_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_branch_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_faq_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_loyalty_program_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_news_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_offer_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_partner_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_statistic_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_testimony_view_search
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_warranty_view_search
+msgid "Archived"
+msgstr "مؤرشف"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_branch_action
+#: model:ir.ui.menu,name:portal_content.portal_branch_menu
+msgid "Branches"
+msgstr "الفروع"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__color
+msgid "Color Index"
+msgstr "مؤشر اللون "
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__create_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__create_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__date
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__date
+msgid "Date"
+msgstr "التاريخ"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__details
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__details
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__details
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__details
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__details
+msgid "Details"
+msgstr "التفاصيل"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__display_name
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__display_name
+msgid "Display Name"
+msgstr "اسم العرض "
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_faq_action
+#: model:ir.ui.menu,name:portal_content.portal_faq_menu
+msgid "FAQ"
+msgstr "الأسئلة الشائعة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__id
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__id
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__image_1920
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__image_1920
+msgid "Image"
+msgstr "صورة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__image_1024
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__image_1024
+msgid "Image 1024"
+msgstr "صورة 1024"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__image_128
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__image_128
+msgid "Image 128"
+msgstr "صورة 128"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__image_256
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__image_256
+msgid "Image 256"
+msgstr "صورة 256"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__image_512
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__image_512
+msgid "Image 512"
+msgstr "صورة 512"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__write_uid
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__write_date
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: portal_content
+#: model_terms:ir.ui.view,arch_db:portal_content.portal_partner_view_form
+msgid "Logo"
+msgstr "الشعار"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_loyalty_program_action
+#: model:ir.ui.menu,name:portal_content.portal_loyalty_program_menu
+msgid "Loyalty Program Details"
+msgstr "تفاصيل برنامج الولاء"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__map_url
+msgid "Map Url"
+msgstr "رابط الخريطة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_news_action
+#: model:ir.ui.menu,name:portal_content.portal_news_menu
+#: model:ir.ui.menu,name:portal_content.portal_news_menu_root
+msgid "News"
+msgstr "الأخبار "
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_offer_action
+#: model:ir.ui.menu,name:portal_content.portal_offer_menu
+msgid "Offers"
+msgstr "العروض"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_partner_action
+#: model:ir.ui.menu,name:portal_content.portal_partner_menu
+msgid "Partners list"
+msgstr "قائمة الشركاء"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_aboutus
+msgid "Portal About us"
+msgstr "بوابة من نحن"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_branch
+msgid "Portal Branch"
+msgstr "فرع البوابة"
+
+#. module: portal_content
+#: model:ir.module.category,name:portal_content.module_category_portal_content
+msgid "Portal Content"
+msgstr "محتوى البوابة"
+
+#. module: portal_content
+#: model:res.groups,name:portal_content.group_portal_content_manager
+msgid "Portal Content Manager"
+msgstr "مدير محتوى البوابة"
+
+#. module: portal_content
+#: model:ir.ui.menu,name:portal_content.portal_content_menu_root
+msgid "Portal Contents"
+msgstr "محتويات البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_faq
+msgid "Portal FAQ"
+msgstr "الأسئلة الشائعة للبوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_loyalty_program
+msgid "Portal Loyalty Program"
+msgstr "برنامج ولاء البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_news
+msgid "Portal News"
+msgstr "أخبار البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_news_tag
+msgid "Portal News Tag"
+msgstr "علامة أخبار البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_offer
+msgid "Portal Offer"
+msgstr "عرض البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_partner
+msgid "Portal Partner"
+msgstr "شريك البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_statistic
+msgid "Portal Statistic"
+msgstr "إحصائية البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_testimony
+msgid "Portal Testimony"
+msgstr "شهادة البوابة"
+
+#. module: portal_content
+#: model:ir.model,name:portal_content.model_portal_warranty
+msgid "Portal Warranty"
+msgstr "ضمان البوابة"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__question
+msgid "Question"
+msgstr "السؤال"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__sequence
+#: model:ir.model.fields,field_description:portal_content.field_portal_faq__sequence
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__sequence
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__sequence
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__sequence
+msgid "Sequence"
+msgstr "تسلسل "
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_statistic_action
+#: model:ir.ui.menu,name:portal_content.portal_statistic_menu
+msgid "Statistics"
+msgstr "الإحصائيات"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__summary
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__summary
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__summary
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__summary
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__summary
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__summary
+msgid "Summary"
+msgstr "الملخص"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_news_tag__name
+msgid "Tag Name"
+msgstr "اسم علامة التصنيف "
+
+#. module: portal_content
+#: model:ir.model.constraint,message:portal_content.constraint_portal_news_tag_name_uniq
+msgid "Tag name already exists!"
+msgstr "اسم علامة التصنيف مستخدم بالفعل! "
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_news_tag_action
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__tag_ids
+#: model:ir.ui.menu,name:portal_content.portal_tag_news_menu
+msgid "Tags"
+msgstr "علامات التصنيف "
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_testimony_action
+#: model:ir.ui.menu,name:portal_content.portal_testimony_menu
+msgid "Testimonies"
+msgstr "الشهادات"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_aboutus__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_branch__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_loyalty_program__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_news__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_offer__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_partner__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_testimony__name
+#: model:ir.model.fields,field_description:portal_content.field_portal_warranty__name
+msgid "Title"
+msgstr "العنوان"
+
+#. module: portal_content
+#: model:ir.model.fields,field_description:portal_content.field_portal_statistic__value
+msgid "Value"
+msgstr "القيمة"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_warranty_action
+#: model:ir.ui.menu,name:portal_content.portal_warranty_menu
+msgid "Warranty"
+msgstr "الضمان"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_return_change_policy_action
+#: model:ir.ui.menu,name:portal_content.portal_return_change_policy_menu
+msgid "Return And Change Policy"
+msgstr "سياسة الإسترجاع و الإستبدال"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_terms_conditions_action
+#: model:ir.ui.menu,name:portal_content.portal_terms_conditions_menu
+msgid "Terms & Conditions page"
+msgstr "الشروط والأحكام"
+
+#. module: portal_content
+#: model:ir.actions.act_window,name:portal_content.portal_privacy_policy_action
+#: model:ir.ui.menu,name:portal_content.portal_privacy_policy_menu
+msgid "Privacy Policy page"
+msgstr "سياسة الخصوصية"

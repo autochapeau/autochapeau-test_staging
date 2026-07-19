@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="loyalty_program_gift_ewallet_view_form_inherit_appointment_management" model="ir.ui.view">
+        <field name="name">loyalty.program.gift.ewallet.view.form</field>
+        <field name="model">loyalty.program</field>
+        <field name="inherit_id" ref="loyalty.loyalty_program_gift_ewallet_view_form" />
+        <field name="arch" type="xml">
+            <field name="program_type" position="attributes">
+                <attribute name="options">{}</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_template_otp_profile" model="mail.template">
+        <field name="name">OTP - Profile Verification</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="email_from">no-reply@autochapeau.com</field>
+        <field name="subject">رمز التحقق</field>
+        <field name="body_html" type="html">
+            <p>رمز التحقق الخاص بك هو: <t t-out="object.last_otp or ''"/></p>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

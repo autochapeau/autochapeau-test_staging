@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_appointment_slot_view_search" model="ir.ui.view">
+        <field name="name">car.appointment.slot.search</field>
+        <field name="model">car.appointment.slot</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="date" />
+                <group expand="0" string="Group By">
+                    <filter string="Date" context="{'group_by':'date:day'}" name="group_by_day" />
+                    <filter string="Agency" name="company_id" context="{'group_by':'company_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id='car_appointment_slot_view_form' model='ir.ui.view'>
+        <field name="name">car.appointment.slot.form</field>
+        <field name="model">car.appointment.slot</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="1">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date" />
+                            <field name="start_hour" widget="float_time" />
+                            <field name="finish_hour" widget="float_time" />
+                            <field name="department_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="capacity" />
+                            <field name="is_available" widget="boolean_toggle" />
+                            <field name="company_id" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="car_appointment_slot_view_calendar" model="ir.ui.view">
+        <field name="name">car.appointment.slot.calendar</field>
+        <field name="model">car.appointment.slot</field>
+        <field name="arch" type="xml">
+            <calendar
+                create="false"
+                event_open_popup="false"
+                string="Appointment Slots"
+                date_start="start_date"
+                date_stop="finish_date"
+                color="calendar_color"
+            >
+                <field name="department_ids" widget="many2many_tags"/>
+                <field name="is_available" />
+                <field name="start_date" />
+                <field name="finish_date" />
+            </calendar>
+        </field>
+    </record>
+
+    <record id='car_appointment_slot_view_tree' model='ir.ui.view'>
+        <field name="name">car.appointment.slot.tree</field>
+        <field name="model">car.appointment.slot</field>
+        <field name="arch" type="xml">
+            <tree create="0">
+                <field name="date" />
+                <field name="start_hour" widget="float_time" sum="false" />
+                <field name="finish_hour" widget="float_time" />
+                <field name="capacity" />
+                <field name="car_appointment_ids" widget="many2many_tags" />
+                <field name="car_appointment_count" />
+                <field name="is_available" widget="boolean_toggle" />
+                <field name="start_date" />
+                <field name="finish_date" />
+                <field name="company_id" readonly="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record id='car_appointment_slot_action' model='ir.actions.act_window'>
+        <field name="name">Appointment slots</field>
+        <field name="res_model">car.appointment.slot</field>
+        <field name="view_mode">calendar,tree</field>
+        <field name="context">{'group_by': ['date:day', 'company_id']}</field>
+    </record>
+
+    <menuitem
+        id="car_appointment_menu_root"
+        groups="group_appointment_officer,group_appointment_viewer_all"
+        name="Appointments"
+        sequence="2"
+        web_icon="appointment_management,static/description/icon.png"
+    />
+
+    <menuitem
+        id="car_appointment_slot_menu_root"
+        name="Appointment slots"
+        parent="car_appointment_menu_root"
+        sequence="1"
+    />
+    <menuitem
+        id="car_appointment_slot_menu"
+        parent="car_appointment_slot_menu_root"
+        action="car_appointment_slot_action"
+        sequence="1"
+    />
+    <record id="action_generate_slots" model="ir.actions.act_window">
+        <field name="name">Generate Appointment Slots</field>
+        <field name="res_model">car.appointment.generate.slots</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem
+        id="generate_slots_menu"
+        parent="car_appointment_slot_menu_root"
+        action="action_generate_slots"
+        sequence="2"
+    />
+
+</odoo>

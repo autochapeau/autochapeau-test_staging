@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+     <menuitem
+        id="cars_management_menu_root"
+        name="Cars management"
+        web_icon="cars_management,static/description/icon.png"
+        sequence="1"
+    />
+    <menuitem
+        action="fleet.fleet_vehicle_model_brand_action"
+        parent="cars_management_menu_root"
+        id="fleet_vehicle_model_brand_menu"
+        sequence="4"
+    />
+    <menuitem
+        action="fleet.fleet_vehicle_model_action"
+        parent="cars_management_menu_root"
+        id="fleet_vehicle_model_menu"
+        sequence="5"
+    />
+    <menuitem name="Configuration" parent="cars_management_menu_root" id="cars_configuration" />
+    <menuitem
+        action="fleet.fleet_vehicle_model_category_action"
+        parent="cars_configuration"
+        id="fleet_vehicle_model_category_menu"
+        sequence="2"
+    />
+
+</odoo>

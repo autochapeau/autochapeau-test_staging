@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem
+        id="car_work_order_menu_root"
+        name="Work Orders"
+        sequence="3"
+        web_icon="work_orders,static/description/icon.png"
+    />
+
+    <record id="car_work_order_view_search" model="ir.ui.view">
+        <field name="name">car.work.order.search</field>
+        <field name="model">car.work.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field
+                    name="name"
+                    filter_domain="['|', ('name', 'ilike', self), ('partner_phone_search', 'ilike', self)]"
+                />
+                <field name="partner_id" />
+                <field name="vehicle_id" />
+                <field
+                    name="partner_phone_search"
+                    string="Phone / Mobile"
+                    filter_domain="[('partner_phone_search', 'ilike', self)]"
+                />
+                <filter
+                    name="waiting_workorders"
+                    string="Waiting Work orders"
+                    domain="[('state', 'in', ('new','confirmed'))]"
+                />
+                <filter
+                    name="confirmed_workorders"
+                    string="Confirmed Work orders"
+                    domain="[('state', 'in', ('progress','quality', 'quality_confirmed'))]"
+                />
+                <filter name="done_workorders" string="Done Work orders" domain="[('state', '=', 'done')]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="car_work_order_view_tree" model="ir.ui.view">
+        <field name="name">car.work.order.tree</field>
+        <field name="model">car.work.order</field>
+        <field name="arch" type="xml">
+            <tree js_class="workorder_dashboard_list">
+                <field name="name" />
+                <field name="branch_id" readonly="1"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id" />
+                <field name="vehicle_id" />
+                <field name="vehicle_color_id" />
+                <field name="vehicle_size" />
+                <!-- Champs retirés, on garde seulement les dates -->
+                <field name="date_appointment" string="Appointment Date"/>
+                <field name="date_checkin" string="Check-in Date"/>
+                <field name="checkin_state" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'new'"
+                    decoration-muted="state == 'cancelled'"
+                    decoration-success="state == 'done'"
+                />
+            </tree>
+        </field>
+    </record>
+
+    <record id='car_work_order_view_form' model='ir.ui.view'>
+        <field name="name">car.work.order.form</field>
+        <field name="model">car.work.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_confirm"
+                        string="Confirm"
+                        confirm="Are you sure you want to confirm this work order? this action will create a stock transfert!"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'new'"
+                    />
+                    <button
+                        name="action_progress"
+                        string="Start"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'confirmed'"
+                    />
+                    <button
+                        name="action_cancel"
+                        string="Cancel"
+                        type="object"
+                        class="btn-secondary"
+                        confirm="Are you sure you want to proceed?"
+                        invisible="state != 'new'"
+                    />
+                    <button
+                        name="action_quality"
+                        string="Check Quality"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'progress'"
+                    />
+                    <button
+                        name="action_confirm_quality"
+                        string="Confirm QA"
+                        type="object"
+                        class="btn-success"
+                        invisible="state != 'quality'"
+                    />
+                    <button
+                        name="action_refuse_quality"
+                        string="Refuse QA"
+                        type="object"
+                        class="btn-danger"
+                        invisible="state != 'quality'"
+                    />
+                    <button
+                        name="action_done"
+                        string="Mark as done"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'quality_confirmed'"
+                    />
+                    <button
+                        name="action_create_invoice"
+                        string="Create Invoice"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_create_sub_order"
+                        string="Create Sub Order"
+                        type="object"
+                        class="btn-secondary"
+                    />
+
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="new,progress,quality,quality_confirmed,done"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_sale_order"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-shopping-cart"
+                            invisible="sale_order_id == False"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Sale Order</span>
+                            </div>
+                        </button>
+                        <field name="sale_order_id" invisible="1"/>
+                        <button
+                            name="action_view_invoices"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-file-invoice"
+                            invisible="sale_order_id == False"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Invoices</span>
+                            </div>
+                        </button>
+                        <button
+                            name="action_view_car_checkin_id"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-angle-down"
+                            invisible="not appointment_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Check-In</span>
+                            </div>
+                        </button>
+                        <field name="car_checkin_id" invisible="1" />
+
+                        <button
+                            name="action_view_car_checkout_id"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-angle-up"
+                            invisible="not car_checkout_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Checkout</span>
+                            </div>
+                        </button>
+                        <field name="car_checkout_id" invisible="1" />
+
+                        <button
+                            name="action_view_appointment"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-calendar"
+                            invisible="not appointment_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Appointment</span>
+                            </div>
+                        </button>
+                        <field name="appointment_id" invisible="1" />
+
+                        <button
+                            name="action_view_picking"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-list"
+                            invisible="not picking_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Stock Transfert</span>
+                            </div>
+                        </button>
+                        <field name="picking_id" invisible="1" />
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" invisible="id == False" />
+                        </group>
+                        <group>
+                            <field name="checkin_state" widget="badge" />
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Customer information">
+                            <field name="partner_id" />
+                            <field name="branch_id" readonly="1"/>
+                            <field name="sale_order_id"/>
+                            <field name="partner_phone" />
+                            <field name="partner_email" />
+                        </group>
+                        <group string="Car information">
+                            <field
+                                name="vehicle_id"
+                                context="{'form_view_ref': 'cars_management.fleet_vehicle_view_form'}"
+                            />
+                            <field name="vehicle_license_plate" />
+                            <field name="vehicle_vin_sn" />
+                            <field name="vehicle_color_id" />
+                            <field name="vehicle_size" />
+                        </group>
+                        <field name="notes" placeholder="Notes ..." readonly="state != 'new'" />
+                    </group>
+                    <notebook>
+                        <page name="services" string="Services">
+                            <group>
+                                <field colspan="2" nolabel="1" name="service_ids">
+                                    <tree editable="top">
+                                        <field name="product_id" options='{"no_open": True, "no_create": True}' />
+                                        <field name="workshop_id" options='{"no_open": True, "no_create": True}' />
+                                        <field name="workcenter_id" options='{"no_open": True, "no_create": True}' />
+                                        <field name="branch_id" column_invisible="1"/>
+                                        <field name="staff_ids" widget="many2many_tags"
+                                            domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id)]"/>
+                                        <field name="expected_duration" />
+                                        <field name="expected_finish_date" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page name="products" string="Products">
+                            <group>
+                                <field colspan="2" nolabel="1" name="product_ids" readonly="state != 'new'">
+                                    <tree editable="top">
+                                        <field name="product_id" options='{"no_open": True, "no_create": True}' />
+                                        <field name="quantity" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary" readonly="state != 'new'" />
+                        </page>
+                        <page name="qa_checklist" string="QA List" groups="work_orders.group_quality_officer" invisible="state not in ('quality','quality_confirmed','done')">
+                            <group>
+                                <label for="qa_check_item_ids" string="" />
+                                <field nolabel="1" name="qa_check_item_ids" readonly="state == 'done'">
+                                    <tree editable="top">
+                                        <field name="qa_check_item_id"/>
+                                        <field name="checked" widget="boolean_toggle" string="Required"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" />
+                    <field name="activity_ids" />
+                    <field name="message_ids" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id='car_work_order_action' model='ir.actions.act_window'>
+        <field name="name">Work orders</field>
+        <field name="res_model">car.work.order</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="car_work_order_menu" parent="car_work_order_menu_root" action="car_work_order_action" sequence="10" />
+
+</odoo>

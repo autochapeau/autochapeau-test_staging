@@ -1,0 +1,1867 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* cars_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-09 12:07+0000\n"
+"PO-Revision-Date: 2026-06-09 12:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: cars_management
+#: model:ir.actions.report,print_report_name:cars_management.action_report_checkin
+#: model:ir.actions.report,print_report_name:cars_management.action_report_checkout
+msgid "'Checkin - %s' % (object.name)"
+msgstr "'إستلام - %s' % (object.name)"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "7 6 5"
+msgstr "7 6 5"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "<b>License Plate</b>"
+msgstr "<b>لوحة السيارة</b>"
+
+#. module: cars_management
+#: model:mail.template,body_html:cars_management.email_template_car_checkin
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    Hello,\n"
+"                    <br>\n"
+"                    Your car check-in\n"
+"                    <span style=\"font-weight: bold;\" t-out=\"object.name or ''\"></span>\n"
+"                    is ready for\n"
+"                    review.\n"
+"                    <br>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    مرحبًا,\n"
+"                    <br>\n"
+"                    إستلام سيارتك\n"
+"                    <span style=\"font-weight: bold;\" t-out=\"object.name or ''\"></span>\n"
+"                    جاهز للمراجعة\n"
+"                    <br>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+
+#. module: cars_management
+#: model:mail.template,body_html:cars_management.email_template_car_checkout
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    Hello,\n"
+"                    <br>\n"
+"                    Your car check-out\n"
+"                    <span style=\"font-weight: bold;\" t-out=\"object.name or ''\"></span>\n"
+"                    is ready for\n"
+"                    review.\n"
+"                    <br>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    مرحبًا,\n"
+"                    <br>\n"
+"                    تسليم سيارتك\n"
+"                    <span style=\"font-weight: bold;\" t-out=\"object.name or ''\"></span>\n"
+"                    جاهز للمراجعة\n"
+"                    <br>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "<i class=\"fa fa-check\"/>Accept &amp; Sign"
+msgstr "<i class=\"fa fa-check\"/>القبول والتوقيع"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid ""
+"<i class=\"fa fa-times\"/>\n"
+"                                    Reject"
+msgstr ""
+"<i class=\"fa fa-times\"/>\n"
+"                                    رفض"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "<i class=\"fa fa-times\"/> Reject"
+msgstr "<i class=\"fa fa-times\"/> رفض"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.res_config_settings_view_form_inherit_cars_management
+msgid "<span class=\"o_form_label\">Donation Accounts</span>"
+msgstr "<span class=\"o_form_label\">حسابات التبرعات</span>"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "<span>By signing this proposal, I agree to the following terms:</span>"
+msgstr "<span>بالتوقيع على هذا المقترح، أوافق على الشروط التالية:</span>"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "<span>cm</span>"
+msgstr "<span>سم</span>"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "<span>g/km</span>"
+msgstr "<span>جم/كجم</span>"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "<span>kW</span>"
+msgstr "<span>كيلوواط</span>"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid ""
+"<strong>Thank You!</strong>\n"
+"                        <br/>"
+msgstr ""
+"<strong>شكرا لك!</strong>\n"
+"                        <br/>"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__access_warning
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__access_warning
+msgid "Access warning"
+msgstr "تحذير من خطأ بالوصول"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_needaction
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_needaction
+msgid "Action Needed"
+msgstr "إجراء مطلوب"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__active
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__active
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__active
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__active
+msgid "Active"
+msgstr "نشط"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_ids
+msgid "Activities"
+msgstr "الأنشطة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_exception_decoration
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "زخرفة استثناء النشاط"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_state
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_state
+msgid "Activity State"
+msgstr "حالة النشاط"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_type_icon
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "أيقونة نوع النشاط"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__company_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__company_id
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__company_id
+msgid "Agency"
+msgstr "الوكالة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__agency_id
+msgid "Agency Name"
+msgstr "اسم الوكالة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__agency_salesperson_id
+msgid "Agency Salesperson"
+msgstr "مندوب مبيعات الوكالة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__plate_letters_ar
+msgid "Arabic Letters"
+msgstr "الحروف العربية"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__plate_numbers_ar
+msgid "Arabic Numbers"
+msgstr "الأرقام العربية"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_search
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_search
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Archived"
+msgstr "مؤرشف"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_attachment_count
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_attachment_count
+msgid "Attachment Count"
+msgstr "عدد المرفقات"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_product_attribute_value
+msgid "Attribute Value"
+msgstr "قيمة الخاصية"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/controllers/main.py:0
+#, python-format
+msgid "AutoChapeau Live Support"
+msgstr "دعم أوتوشابو المباشر"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Available Services"
+msgstr "الخدمات المتاحة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__available_services_count
+msgid "Available Services Count"
+msgstr "عدد الخدمات المتاحة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_avatar_mixin
+msgid "Avatar Mixin"
+msgstr "مجموعة مخصصات الصورة الرمزية "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__birthdate
+#: model:ir.model.fields,field_description:cars_management.field_res_users__birthdate
+msgid "Birthdate"
+msgstr "تاريخ الميلاد"
+
+#. module: cars_management
+#: model:customer.membership.level,name:cars_management.membership_blue
+msgid "Blue"
+msgstr "أزرق"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__branch_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__branch_id
+msgid "Branch"
+msgstr "الفرع"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_sale_order__branch_id
+msgid "Branch related to the order."
+msgstr "الفرع المرتبط بالطلب."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__branch_id
+msgid "Branch selected during the appointment."
+msgstr "الفرع المحدد أثناء الموعد."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkout__branch_id
+msgid "Branch selected in the main work order."
+msgstr "الفرع المحدد في أمر العمل الرئيسي."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__branch_id
+msgid "Branche"
+msgstr "الفرع"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__company_ids
+#: model:ir.model.fields,field_description:cars_management.field_product_template__company_ids
+msgid "Branches"
+msgstr "الفروع"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Cancel"
+msgstr "إلغاء"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkin__state__canceled
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkout__state__canceled
+msgid "Canceled"
+msgstr "تم الإلغاء "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.view_partner_form
+msgid "Car"
+msgstr "السيارة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__car_check_item_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__car_check_item_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__car_check_item_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__car_check_item_id
+msgid "Car Check Item"
+msgstr "عنصر فحص السيارة"
+
+#. module: cars_management
+#: model:mail.template,subject:cars_management.email_template_car_checkout
+msgid "Car Check-in Ref {{ object.name or 'n/a' }}"
+msgstr "مرجع إستلام السيارة {{ object.name or 'n/a' }}"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__car_checkin_id
+msgid "Car Checkin"
+msgstr "إستلام السيارة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__car_checkout_id
+msgid "Car Checkout"
+msgstr "تسليم السيارة"
+
+#. module: cars_management
+#: model:mail.template,subject:cars_management.email_template_car_checkin
+msgid "Car Checkout Ref {{ object.name or 'n/a' }}"
+msgstr "مرجع تسليم السيارة {{ object.name or 'n/a' }}"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "Car Image"
+msgstr "صورة السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_check_item
+msgid "Car check Item"
+msgstr "عنصر فحص السيارة"
+
+#. module: cars_management
+#: model:mail.template,name:cars_management.email_template_car_checkin
+#: model:mail.template,name:cars_management.email_template_car_checkout
+msgid "Car check-in"
+msgstr "إستلام السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_checkin
+msgid "Car checkin"
+msgstr "إستلام السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_checkin_check_item
+msgid "Car checkin check Item"
+msgstr "عنصر فحص السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_checkout
+msgid "Car checkout"
+msgstr "تسليم السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_checkout_check_item
+msgid "Car checkout check Item"
+msgstr "عنصر فحص تسليم السيارة"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Car information"
+msgstr "معلومات السيارة"
+
+#. module: cars_management
+#: model:mail.activity.type,name:cars_management.mail_act_car_model_verification
+msgid "Car model verification"
+msgstr "التحقق من طراز السيارة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__vehicle_ids
+#: model:ir.model.fields,field_description:cars_management.field_res_users__vehicle_ids
+#: model:ir.ui.menu,name:cars_management.fleet_vehicle_menu
+msgid "Cars"
+msgstr "السيارات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__cars_count
+#: model:ir.model.fields,field_description:cars_management.field_res_users__cars_count
+msgid "Cars Count"
+msgstr "عدد السيارات"
+
+#. module: cars_management
+#: model:res.groups,name:cars_management.group_cars_management_branch_employee
+msgid "Cars Management Branch Employee"
+msgstr "موظف فرع إدارة السيارات"
+
+#. module: cars_management
+#: model:ir.module.category,name:cars_management.module_category_cars_management
+#: model:ir.ui.menu,name:cars_management.cars_management_menu_root
+msgid "Cars management"
+msgstr "إدارة السيارات"
+
+#. module: cars_management
+#: model:ir.ui.menu,name:cars_management.fleet_vehicle_model_category_menu
+msgid "Categories"
+msgstr "الفئات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_category__category_type
+msgid "Category Type"
+msgstr "نوع الفئة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__vehicle_vin_sn
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__vehicle_vin_sn
+msgid "Chassis Number"
+msgstr "رقم الشاسيه"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.car_check_item_action
+#: model:ir.ui.menu,name:cars_management.car_check_item_menu
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Check items"
+msgstr "عناصر التحقق"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__check_in
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+msgid "Check-in"
+msgstr "إستلام"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.car_checkin_action
+#: model:ir.ui.menu,name:cars_management.car_checkin_menu
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Check-ins"
+msgstr "الاستلامات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__check_out
+msgid "Check-out"
+msgstr "تسليم"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__checked
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__checked
+msgid "Checked"
+msgstr "تم تحديده"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__checkin_count
+msgid "Checkin Count"
+msgstr "عدد الاستلامات"
+
+#. module: cars_management
+#: model:ir.actions.report,name:cars_management.action_report_checkin
+#: model:ir.actions.report,name:cars_management.action_report_checkout
+msgid "Checkin Report"
+msgstr "تقرير التسليم"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/controllers/checkin_portal.py:0
+#, python-format
+msgid "Checkin signed by %s"
+msgstr "تم توقيع الاستلام بواسطة %s"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Checkout"
+msgstr "تسليم"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__checkout_count
+msgid "Checkout Count"
+msgstr "عدد التسليمات"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/controllers/checkout_portal.py:0
+#, python-format
+msgid "Checkout signed by %s"
+msgstr "تم توقيع التسليم بواسطة %s"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.car_checkout_action
+#: model:ir.ui.menu,name:cars_management.car_checkout_menu
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Checkouts"
+msgstr "التسليمات"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Close"
+msgstr "إغلاق"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__code
+#: model:ir.model.fields,field_description:cars_management.field_product_attribute_value__code
+msgid "Code"
+msgstr "رمز "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__color
+msgid "Color"
+msgstr "اللون"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.vehicle_color_action
+#: model:ir.ui.menu,name:cars_management.vehicle_color_menu
+msgid "Colors"
+msgstr "الألوان"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__commission_amount
+msgid "Commission Amount"
+msgstr "مبلغ العمولة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_res_company
+msgid "Companies"
+msgstr "الشركات"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_res_config_settings
+msgid "Config Settings"
+msgstr "تهيئة الإعدادات "
+
+#. module: cars_management
+#: model:ir.ui.menu,name:cars_management.cars_configuration
+msgid "Configuration"
+msgstr "التهيئة "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Confirm"
+msgstr "تأكيد"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_res_partner
+msgid "Contact"
+msgstr "جهة الاتصال"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__sale_order__order_type__contract
+msgid "Contract"
+msgstr "عقد"
+
+#. module: cars_management
+#: model_terms:ir.actions.act_window,help:cars_management.customer_membership_action
+msgid "Create a membership level"
+msgstr "إنشاء مستوى عضوية"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__create_uid
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__create_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__create_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__create_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__create_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__create_date
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__create_date
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__create_date
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__create_date
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__partner_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__partner_id
+msgid "Customer"
+msgstr "العميل"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_customer_membership_level
+msgid "Customer Membership Level"
+msgstr "مستوى عضوية العميل"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__access_url
+#: model:ir.model.fields,help:cars_management.field_car_checkout__access_url
+msgid "Customer Portal URL"
+msgstr "رابط بوابة العميل"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Customer Signature"
+msgstr "توقيع العميل"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Customer information"
+msgstr "معلومات العميل"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__date
+msgid "Date"
+msgstr "التاريخ"
+
+#. module: cars_management
+#: model_terms:ir.actions.act_window,help:cars_management.customer_membership_action
+msgid ""
+"Define membership levels by invoiced amount range (e.g. Blue, Silver, Gold)."
+msgstr ""
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__display_name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__display_name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__display_name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__display_name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__display_name
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__display_name
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__display_name
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__display_name
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__display_name
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__display_name
+msgid "Display Name"
+msgstr "اسم العرض"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_payment_transaction__donation_amount
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__donation_amount
+msgid "Donation Amount"
+msgstr "مبلغ التبرع"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_company__donation_credit_account_id
+#: model:ir.model.fields,field_description:cars_management.field_res_config_settings__donation_credit_account_id
+msgid "Donation Credit Account"
+msgstr "حساب التبرعات الدائن"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_company__donation_debit_account_id
+#: model:ir.model.fields,field_description:cars_management.field_res_config_settings__donation_debit_account_id
+msgid "Donation Debit Account"
+msgstr "حساب التبرعات المدين"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.transaction_form_inherit_cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.view_order_form_inherit_cars_management
+msgid "Donation Details"
+msgstr "تفاصيل التبرع"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_company__donation_journal_id
+#: model:ir.model.fields,field_description:cars_management.field_res_config_settings__donation_journal_id
+msgid "Donation Journal"
+msgstr "دفتر يومية التبرعات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_payment_transaction__donation_move_id
+msgid "Donation Journal Entry"
+msgstr "قيد يومية التبرعات"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkin__state__done
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkout__state__done
+msgid "Done"
+msgstr "منتهي"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkin__state__draft
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkout__state__draft
+msgid "Draft"
+msgstr "مسودة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__partner_email
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__partner_email
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__car_owner_email
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__employee_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__employee_id
+msgid "Employee"
+msgstr "الموظف"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Engine"
+msgstr "المحرك"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__otp_code_input
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__otp_code_input
+msgid "Enter OTP"
+msgstr "أدخل رمز التحقق"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__sale_order__order_type__extern
+msgid "Extern"
+msgstr "خارجي"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/res_partner.py:0
+#: model:ir.model.fields.selection,name:cars_management.selection__res_partner__partner_type__external
+#, python-format
+msgid "External"
+msgstr "خارجي"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "Failed to send SMS: %s"
+msgstr "فشل إرسال الرسالة النصية: %s"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__feature_ids
+#: model:ir.model.fields,field_description:cars_management.field_product_template__feature_ids
+#: model_terms:ir.ui.view,arch_db:cars_management.product_template_only_form_view
+msgid "Features"
+msgstr "الخصائص"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__features_description
+#: model:ir.model.fields,field_description:cars_management.field_product_template__features_description
+#: model_terms:ir.ui.view,arch_db:cars_management.product_template_only_form_view
+msgid "Features Description"
+msgstr "الميزات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_follower_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_follower_ids
+msgid "Followers"
+msgstr "المتابعين"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_partner_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "المتابعين (الشركاء) "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__activity_type_icon
+#: model:ir.model.fields,help:cars_management.field_car_checkout__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "أيقونة من Font awesome مثال: fa-tasks "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "General information"
+msgstr "معلومات عامة"
+
+#. module: cars_management
+#: model:customer.membership.level,name:cars_management.membership_gold
+msgid "Gold"
+msgstr "ذهبي"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_mail_guest
+msgid "Guest"
+msgstr "ضيف "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__has_message
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__has_message
+msgid "Has Message"
+msgstr "يحتوي على رسالة "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__id
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__id
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__id
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__id
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__id
+#: model_terms:ir.ui.view,arch_db:cars_management.car_check_item_view_tree
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_exception_icon
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_exception_icon
+msgid "Icon"
+msgstr "الأيقونة"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__activity_exception_icon
+#: model:ir.model.fields,help:cars_management.field_car_checkout__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "الأيقونة للإشارة إلى النشاط المستثنى. "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__message_needaction
+#: model:ir.model.fields,help:cars_management.field_car_checkout__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "إذا كان محددًا، فهناك رسائل جديدة عليك رؤيتها. "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__message_has_error
+#: model:ir.model.fields,help:cars_management.field_car_checkin__message_has_sms_error
+#: model:ir.model.fields,help:cars_management.field_car_checkout__message_has_error
+#: model:ir.model.fields,help:cars_management.field_car_checkout__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "إذا كان محددًا، فقد حدث خطأ في تسليم بعض الرسائل."
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "Incorrect OTP code."
+msgstr "رمز التحقق غير صحيح."
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__sale_order__order_type__intern
+msgid "Intern"
+msgstr "داخلي"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/res_partner.py:0
+#: model:ir.model.fields.selection,name:cars_management.selection__res_partner__partner_type__internal
+#, python-format
+msgid "Internal"
+msgstr "داخلي"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/controllers/checkin_portal.py:0
+#: code:addons/cars_management/controllers/checkout_portal.py:0
+#, python-format
+msgid "Invalid signature data."
+msgstr "بيانات التوقيع غير صالحة."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__amount_from
+msgid "Invoiced Amount From"
+msgstr "المبلغ المفوتر من"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__amount_to
+msgid "Invoiced Amount To"
+msgstr "المبلغ المفوتر إلى"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_is_follower
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_is_follower
+msgid "Is Follower"
+msgstr "متابع"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__is_large
+#: model:ir.model.fields,field_description:cars_management.field_product_template__is_large
+msgid "Is Large"
+msgstr "حجم كبير"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__is_medium
+#: model:ir.model.fields,field_description:cars_management.field_product_template__is_medium
+msgid "Is Medium"
+msgstr "حجم متوسط"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__is_small
+#: model:ir.model.fields,field_description:cars_management.field_product_template__is_small
+msgid "Is Small"
+msgstr "حجم صغير"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "LLZ"
+msgstr "م ل ل"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle_model__size__large
+msgid "Large"
+msgstr "كبير"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__write_uid
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__write_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__write_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin_check_item__write_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__write_date
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__write_date
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__write_date
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__write_date
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__write_date
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__plate_letters
+msgid "Latin Letters"
+msgstr "الحروف اللاتينية"
+
+#. module: cars_management
+#: model_terms:ir.actions.act_window,help:cars_management.fleet_vehicle_action
+msgid "Let's create your first vehicle."
+msgstr "فلنقم بإنشاء مركبتك الأولى."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__vehicle_license_plate
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__vehicle_license_plate
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__license_plate
+msgid "License Plate"
+msgstr "لوحة السيارة "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__vehicle_license_plate
+#: model:ir.model.fields,help:cars_management.field_car_checkout__vehicle_license_plate
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__license_plate
+msgid "License plate number of the vehicle (i = plate number for a car)"
+msgstr "رقم لوحة المركبة (i = رقم لوحة لسيارة) "
+
+#. module: cars_management
+#: model:ir.ui.menu,name:cars_management.fleet_vehicle_model_brand_menu
+msgid "Manufacturers"
+msgstr "المصنّعين "
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle_model__size__medium
+msgid "Medium"
+msgstr "وسط"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.customer_membership_action
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__membership_id
+#: model:ir.model.fields,field_description:cars_management.field_res_users__membership_id
+#: model:ir.ui.menu,name:cars_management.customer_membership_menu
+#: model_terms:ir.ui.view,arch_db:cars_management.customer_membership_view_form
+msgid "Membership"
+msgstr "العضوية"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__membership_badge
+#: model:ir.model.fields,field_description:cars_management.field_res_users__membership_badge
+msgid "Membership Badge"
+msgstr "شارة العضوية"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_res_partner__membership_id
+#: model:ir.model.fields,help:cars_management.field_res_users__membership_id
+msgid "Membership level computed from the customer's total invoiced amount."
+msgstr "مستوى العضوية المحسوب من إجمالي المبلغ المفوتر للعميل."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.customer_membership_view_tree
+msgid "Memberships"
+msgstr "العضويات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_has_error
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_has_error
+msgid "Message Delivery error"
+msgstr "خطأ في تسليم الرسائل"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_ids
+msgid "Messages"
+msgstr "الرسائل"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__car_owner_mobile
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__partner_mobile
+msgid "Mobile"
+msgstr "الجوال"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Model"
+msgstr "النموذج"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle_model__model_year
+msgid "Model Year"
+msgstr "سنة الموديل "
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_fleet_vehicle_model
+msgid "Model of a vehicle"
+msgstr "موديل مركبة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_car_model_year
+msgid "Model year"
+msgstr "سنة الطراز"
+
+#. module: cars_management
+#: model:ir.ui.menu,name:cars_management.fleet_vehicle_model_menu
+msgid "Models"
+msgstr "النماذج"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__my_activity_date_deadline
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "الموعد النهائي لنشاطاتي "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__name
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__name
+#: model:ir.model.fields,field_description:cars_management.field_customer_membership_level__name
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__car_owner_name
+#: model:ir.model.fields,field_description:cars_management.field_mail_guest__name
+#: model:ir.model.fields,field_description:cars_management.field_product_category__name
+#: model:ir.model.fields,field_description:cars_management.field_product_feature__name
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__name
+#: model:ir.model.fields,field_description:cars_management.field_res_users__name
+#: model:ir.model.fields,field_description:cars_management.field_vehicle_color__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_calendar_event_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "الفعالية التالية في تقويم الأنشطة "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_date_deadline
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "الموعد النهائي للنشاط التالي"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_summary
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_summary
+msgid "Next Activity Summary"
+msgstr "ملخص النشاط التالي"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_type_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_type_id
+msgid "Next Activity Type"
+msgstr "نوع النشاط التالي"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Note"
+msgstr "الملاحظات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__notes
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__notes
+msgid "Notes"
+msgstr "الملاحظات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_needaction_counter
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_needaction_counter
+msgid "Number of Actions"
+msgstr "عدد الإجراءات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_has_error_counter
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_has_error_counter
+msgid "Number of errors"
+msgstr "عدد الأخطاء "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__message_needaction_counter
+#: model:ir.model.fields,help:cars_management.field_car_checkout__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__message_has_error_counter
+#: model:ir.model.fields,help:cars_management.field_car_checkout__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "عدد الرسائل الحادث بها خطأ في التسليم"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "OTP Verification"
+msgstr "التحقق من الرمز"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__odometer
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__odometer
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Odometer"
+msgstr "عداد المسافات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__old_sales_count
+msgid "Old Sales Count"
+msgstr "عدد المبيعات القديمة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__order_type
+#: model_terms:ir.ui.view,arch_db:cars_management.view_order_form_inherit_cars_management
+msgid "Order Type"
+msgstr "نوع الطلب"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/product_template.py:0
+#: model:ir.model.fields.selection,name:cars_management.selection__product_category__category_type__other
+#, python-format
+msgid "Other"
+msgstr "غير ذلك"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__partner_id
+msgid "Owner"
+msgstr "المالك"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__partner_type
+#: model:ir.model.fields,field_description:cars_management.field_res_users__partner_type
+msgid "Partner Type"
+msgstr "نوع الشريك"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_payment_transaction
+msgid "Payment Transaction"
+msgstr "معاملة الدفع "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__partner_phone
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__partner_phone
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__partner_phone
+msgid "Phone"
+msgstr "رقم الهاتف"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_search
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_search
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_search_inherit
+msgid "Phone / Mobile"
+msgstr "هاتف / جوال"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__partner_phone_search
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__partner_phone_search
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__partner_phone_search
+msgid "Phone Search"
+msgstr "بحث بالهاتف"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__photo_attachment_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__photo_attachment_ids
+msgid "Photos"
+msgstr "المرفقات"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Pickup"
+msgstr "استلام"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "Please add the car odometer"
+msgstr "الرجاء إضافة عداد المسافات للسيارة"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#, python-format
+msgid "Please add the check-in time"
+msgstr "الرجاء إضافة وقت الاستلام"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "Please add the checkout time"
+msgstr "الرجاء إضافة وقت التسليم"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "Please enter the OTP."
+msgstr "الرجاء إدخال رمز التحقق."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__access_url
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__access_url
+msgid "Portal Access URL"
+msgstr "رابط الوصول لبوابة العملاء"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Preview & Sign"
+msgstr "معاينة وتوقيع"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_product_template
+msgid "Product"
+msgstr "المنتج"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_product_category
+msgid "Product Category"
+msgstr "فئة المنتج"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.product_normal_form_view_inherit_cars_management
+msgid "Product Details"
+msgstr "تفاصيل المنتج"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_product_product
+msgid "Product Variant"
+msgstr "متغير المنتج "
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_product_feature
+msgid "Products Features"
+msgstr "ميزات المنتجات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__rating_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__rating_ids
+msgid "Ratings"
+msgstr "التقييمات "
+
+#. module: cars_management
+#: model_terms:ir.actions.act_window,help:cars_management.fleet_vehicle_action
+msgid "Ready to manage your fleet more efficiently?"
+msgstr "أانت جاهز لإدارة أسطولك بفعالية أكبر؟"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+msgid "Reject This Check-in"
+msgstr "رفض  الإستلام هذا"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Reject This Checkout"
+msgstr "رفض هذا التسليم"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/res_partner.py:0
+#, python-format
+msgid "Related Cars"
+msgstr "السيارات المرتبطة"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Request approval"
+msgstr "طلب الموافقة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_check_item__required
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout_check_item__required
+#: model_terms:ir.ui.view,arch_db:cars_management.car_check_item_view_tree
+msgid "Required"
+msgstr "مطلوب"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__activity_user_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__activity_user_id
+msgid "Responsible User"
+msgstr "المستخدم المسؤول"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__message_has_sms_error
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "خطأ في تسليم الرسائل النصية القصيرة "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.crm_lead_partner_kanban_view_inherit_cars_management
+msgid "Sale Icon"
+msgstr "أيقونة البيع"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__sale_order_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__sale_order_id
+msgid "Sale Order"
+msgstr "أمر البيع"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_sale_order
+msgid "Sales Order"
+msgstr "أمر البيع"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.product_normal_form_view_inherit_cars_management
+msgid "Sales Statistics"
+msgstr "إحصائيات المبيعات"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__access_token
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__access_token
+#: model:ir.model.fields,field_description:cars_management.field_sale_order__access_token
+msgid "Security Token"
+msgstr "رمز الحماية"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Send SMS"
+msgstr "إرسال رسالة نصية قصيرة"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_view_form
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Send by Email"
+msgstr "الإرسال عبر البريد الإلكتروني"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/product_template.py:0
+#: model:ir.model.fields.selection,name:cars_management.selection__product_category__category_type__service
+#, python-format
+msgid "Service"
+msgstr "الخدمة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__service_product_ids
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_view_form
+msgid "Services"
+msgstr "الخدمات"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_check_item__check_in
+msgid "Show this item during check-in"
+msgstr "إظهار هذا العنصر أثناء الاستلام"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_check_item__check_out
+msgid "Show this item during check-out"
+msgstr "إظهار هذا العنصر أثناء التسليم"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__signature
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__signature
+msgid "Signature"
+msgstr "التوقيع"
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/controllers/checkin_portal.py:0
+#: code:addons/cars_management/controllers/checkout_portal.py:0
+#, python-format
+msgid "Signature is missing."
+msgstr "التوقيع مفقود."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__signed_by
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__signed_by
+msgid "Signed By"
+msgstr "تم التوقيع من قِبَل "
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__signed_on
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__signed_on
+msgid "Signed On"
+msgstr "تم التوقيع في "
+
+#. module: cars_management
+#: model:customer.membership.level,name:cars_management.membership_silver
+msgid "Silver"
+msgstr "فضي"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__vehicle_size
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__vehicle_size
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__size
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle_model__size
+msgid "Size"
+msgstr "الحجم"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle_model__size__small
+msgid "Small"
+msgstr "صغير"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_res_partner__source_id
+#: model:ir.model.fields,field_description:cars_management.field_res_users__source_id
+msgid "Source"
+msgstr "المصدر"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__state
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__state
+msgid "State"
+msgstr "الولاية "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__activity_state
+#: model:ir.model.fields,help:cars_management.field_car_checkout__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"الأنشطة المعتمدة على الحالة\n"
+"المتأخرة: تاريخ الاستحقاق مر\n"
+"اليوم: تاريخ النشاط هو اليوم\n"
+"المخطط: الأنشطة المستقبلية."
+
+#. module: cars_management
+#: model:ir.ui.menu,name:cars_management.fleet_vehicle_tag_menu
+msgid "Tags"
+msgstr "علامات التصنيف "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+msgid ""
+"Tell us why you are refusing this check-in, this will help us improve our "
+"services."
+msgstr "أخبرنا بسبب رفضك لإستلام، سيساعدنا هذا على تحسين خدماتنا."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid ""
+"Tell us why you are refusing this checkout, this will help us improve our "
+"services."
+msgstr "أخبرنا لماذا ترفض هذا التسليم، سيساعدنا هذا على تحسين خدماتنا"
+
+#. module: cars_management
+#: model:ir.model.constraint,message:cars_management.constraint_customer_membership_level_amount_range_check
+msgid "The 'To' amount must be greater than or equal to the 'From' amount."
+msgstr "يجب أن يكون المبلغ 'إلى' أكبر من أو يساوي المبلغ 'من'."
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/fleet_vehicle.py:0
+#, python-format
+msgid "The Chassis Number should be 17 characters."
+msgstr "يجب أن يتكون رقم الهيكل من 17 حرفًا."
+
+#. module: cars_management
+#. odoo-python
+#: code:addons/cars_management/models/car_checkin.py:0
+#: code:addons/cars_management/models/car_checkout.py:0
+#, python-format
+msgid "The item '%s' should be checked, it is required."
+msgstr "يجب فحص العنصر '%s'، فهو مطلوب."
+
+#. module: cars_management
+#: model:ir.model.constraint,message:cars_management.constraint_car_model_year_unique_year
+msgid "The model year must be unique"
+msgstr "يجب أن يكون سنة الموديل فريدة"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__plate_numbers_ar
+msgid "The numeric part in Arabic numerals (Hindi)."
+msgstr "الجزء الرقمي بالأرقام العربية (الهندية)."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__plate_numbers
+msgid "The numeric part in Western Arabic numerals."
+msgstr "الجزء الرقمي بالأرقام العربية الغربية."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__plate_letters_ar
+msgid "The three-letter part in Arabic."
+msgstr "الجزء المكون من ثلاثة أحرف باللغة العربية."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__plate_letters
+msgid "The three-letter part in Latin."
+msgstr "الجزء المكون من ثلاثة أحرف بالخط اللاتيني."
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_check_item__required
+#: model:ir.model.fields,help:cars_management.field_car_checkout_check_item__required
+msgid "This item is required if checked, otherwise optional."
+msgstr "هذا العنصر مطلوب إذا تم تحديده، وإلا فهو اختياري."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__title
+msgid "Title"
+msgstr "العنوان"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__total_sales_count
+msgid "Total Sales Count"
+msgstr "إجمالي عدد المبيعات"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__activity_exception_decoration
+#: model:ir.model.fields,help:cars_management.field_car_checkout__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "نوع النشاط المستثنى في السجل. "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__vehicle_vin_sn
+#: model:ir.model.fields,help:cars_management.field_car_checkout__vehicle_vin_sn
+msgid "Unique number written on the vehicle motor (VIN/SN number)"
+msgstr "رقم فريد مسجل على محرك المركبة (رقم VIN/SN)"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__unverified_model_name
+msgid "Unverified Model Name"
+msgstr "اسم الطراز غير المؤكد"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_fleet_vehicle__unverified_model_name
+msgid "Useful when the portal customer car brand doesn't exist in the system."
+msgstr "مفيد عندما لا تكون ماركة سيارة عميل البوابة موجودة في النظام."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Validate Check-In"
+msgstr "تصديق الإستلام"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_fleet_vehicle
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__vehicle_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__vehicle_id
+#: model:ir.ui.menu,name:cars_management.fleet_vehicles_configuration
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Vehicle"
+msgstr "المركبة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__vehicle_color_id
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__vehicle_color_id
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__vehicle_color_id
+msgid "Vehicle Color"
+msgstr "لون السيارة"
+
+#. module: cars_management
+#: model:ir.model,name:cars_management.model_vehicle_color
+msgid "Vehicle color"
+msgstr "لون السيارة"
+
+#. module: cars_management
+#: model:ir.actions.act_window,name:cars_management.fleet_vehicle_action
+msgid "Vehicles"
+msgstr "المركبات"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle_model__size__x-large
+msgid "Very large"
+msgstr "كبير جدًا"
+
+#. module: cars_management
+#: model:res.groups,name:cars_management.group_cars_management_viewer_all
+msgid "View All Car Orders"
+msgstr "عرض جميع طلبات السيارات"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkin__state__progress
+#: model:ir.model.fields.selection,name:cars_management.selection__car_checkout__state__progress
+msgid "Waiting for customer approval"
+msgstr "في انتظار موافقة العميل"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_payment_transaction__wallet_amount
+msgid "Wallet Amount"
+msgstr "مبلغ المحفظة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_product_product__description_website
+#: model:ir.model.fields,field_description:cars_management.field_product_template__description_website
+msgid "Website Description"
+msgstr "وصف الموقع الإلكتروني"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__website_message_ids
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__website_message_ids
+msgid "Website Messages"
+msgstr "رسائل الموقع الإلكتروني "
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_car_checkin__website_message_ids
+#: model:ir.model.fields,help:cars_management.field_car_checkout__website_message_ids
+msgid "Website communication history"
+msgstr "سجل تواصل الموقع الإلكتروني "
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.product_template_only_form_view
+msgid "Website description"
+msgstr "وصف الموقع الإلكتروني"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__plate_numbers
+msgid "Western Arabic Numbers"
+msgstr "الأرقام العربية الغربية"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Write here any other information related to this vehicle"
+msgstr "اكتب هنا أي معلومات أخرى متعلقة بهذه المركبة."
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_model_year__year
+msgid "Year"
+msgstr "السنة"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+msgid "Your Check-in is not in a state to be rejected."
+msgstr "إن إستلامك ليس في حالة يمكن رفضها."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Your Checkout is not in a state to be rejected."
+msgstr "إن تسليمك ليس في حالة يمكن رفضها."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkin
+#: model_terms:ir.ui.view,arch_db:cars_management.portal_my_checkout
+msgid "Your feedback..."
+msgstr "ملاحظاتك..."
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "e.g. Model S"
+msgstr "مثلًا: الموديل S"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "show the odometer logs for this vehicle"
+msgstr "عرض سجلات عداد المسافات لهذه المركبة"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_car_checkin__otp_code
+#: model:ir.model.fields,field_description:cars_management.field_car_checkout__otp_code
+msgid "temporary password"
+msgstr "كلمة مرور مؤقتة"
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+msgid ""
+"أقر أنا الواردة بياناتي أعلاه بأنني سلمت المركبة الواردة بياناتها أعلاه "
+"للشركة"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "إقرار استلام المركبة"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+msgid "إقرار تسليم المركبة للمركز"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "التوقيع"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "الطــــــــــراز:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "العداد:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "الفرع:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "اللـــــــــون:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "المــــــاركة:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "المــــــــالك:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "بيانات المركبة"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "تاريخ التسليم:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "رقــم الهيــكل:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "رقم الطلب:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "رقم اللوحة:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "سنــة الصـنع:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "قائمة التدقيق"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "قائمة الخدمات"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "قائمة الفحص"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid ""
+"قر أنا الواردة بياناتي أعلاه بأنني استلمت المركبة الواردة بياناتها أعلاه من "
+"الشركة"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "م ل ل"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+msgid "محضر استلام سيارة من العميل"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "محضر تسليم سيارة للعميل"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "مسئول الورشة:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkin_report
+#: model_terms:ir.ui.view,arch_db:cars_management.car_checkout_report
+msgid "ملاحظات أخرى:"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "٥ ٦ ٧"
+msgstr ""
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__car_owner_address
+msgid "Address"
+msgstr "العنوان"
+
+#. module: cars_management
+#: model:ir.model.fields,help:cars_management.field_customer_membership_level__code
+msgid "Alphanumerical string that represents a unique code"
+msgstr ""
+
+#. module: cars_management
+#: model_terms:ir.ui.view,arch_db:cars_management.fleet_vehicle_view_form
+msgid "Car Owner"
+msgstr "مالك السيارة"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle__owner_type__company
+msgid "Company"
+msgstr "شركة"
+
+#. module: cars_management
+#: model:ir.model.fields.selection,name:cars_management.selection__fleet_vehicle__owner_type__individual
+msgid "Individual"
+msgstr "فرد"
+
+#. module: cars_management
+#: model:ir.model.fields,field_description:cars_management.field_fleet_vehicle__owner_type
+msgid "Owner Type"
+msgstr "نوع المالك"
+
+#. module: cars_management
+#: model:ir.model.constraint,message:cars_management.constraint_customer_membership_level_code_unique
+msgid "The membership code must be unique."
+msgstr ""

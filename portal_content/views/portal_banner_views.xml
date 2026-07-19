@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="portal_banner_view_tree" model="ir.ui.view">
+        <field name="name">portal.banner.tree</field>
+        <field name="model">portal.banner</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="first_title" />
+                <field name="second_title" />
+                <field name="url" />
+            </tree>
+        </field>
+    </record>
+
+    <record id='portal_banner_view_form' model='ir.ui.view'>
+        <field name="name">portal.banner.form</field>
+        <field name="model">portal.banner</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="first_title" />
+                            <field name="second_title" />
+                            <field name="url" widget="CopyClipboardChar" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id='portal_banner_action' model='ir.actions.act_window'>
+        <field name="name">Banners</field>
+        <field name="res_model">portal.banner</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="portal_banner_menu" parent="portal_content_menu_root" action="portal_banner_action" sequence="13" />
+
+</odoo>

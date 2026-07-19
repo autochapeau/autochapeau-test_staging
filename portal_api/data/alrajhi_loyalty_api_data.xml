@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="alrajhi_loyalty_url" model="ir.config_parameter">
+        <field name="key">alrajhi_loyalty_url</field>
+        <field name="value">https://gwt.alrajhibank.com.sa:9443</field>
+    </record>
+    <record id="alrajhi_loyalty_oauth_token" model="ir.config_parameter">
+        <field name="key">alrajhi_loyalty_oauth_token</field>
+        <field
+            name="value"
+        >AAIgNzRhOTFhNzA3MGI0NzBjMjZjNDVlYzBiNThmNWVlZWY6PrYfnorn_nl37naxZpfUGZUf8OT6U7hKFsUhdBay2miPY9qpu5AJkswhmvES_kQzphVVJQVCLhIlgtIQ_QJPl1LfGt-uFOnpoUvuoIhcLnG-y-O256nM4yHpQq7hmpoJlqJ82OGEw5o3FwtTzbRjJtmeomYuu0SUN-0RC1j_7yvFwBCcIRAhhp4piai3A4kh9PxhPGh4pR02UAUau26AU0MhsdjnmpH65aFbq6spvA</field>
+    </record>
+    <record id="alrajhi_loyalty_oauth_token_expire_date" model="ir.config_parameter">
+        <field name="key">alrajhi_loyalty_oauth_token_expire_date</field>
+        <field name="value">2025-01-07 09:10:10</field>
+    </record>
+    <record id="alrajhi_loyalty_merchant_token" model="ir.config_parameter">
+        <field name="key">alrajhi_loyalty_merchant_token</field>
+        <field name="value">Bearer AutoChapeau-SIT@2024</field>
+    </record>
+</odoo>

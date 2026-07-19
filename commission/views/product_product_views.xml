@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="product_normal_form_view_inherit_car" model="ir.ui.view">
+        <field name="name">product.product.view.form.inherit.car</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <field name="detailed_type" position="after">
+                <field name="commission_category_id" />
+                <field name="technicians_commission_amount" invisible="detailed_type != 'service'" />
+            </field>
+        </field>
+    </record>
+
+</odoo>

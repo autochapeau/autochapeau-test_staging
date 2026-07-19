@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <menuitem
+        id="car_work_order_menu_configuration"
+        parent="car_work_order_menu_root"
+        name="Configuration"
+        sequence="50"
+    />
+
+    <record id="car_workcenter_view_tree" model="ir.ui.view">
+        <field name="name">car.workcenter.tree</field>
+        <field name="model">car.workcenter</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="code" />
+                <field name="name" />
+                <field name="branch_id"/>
+                <field name="employee_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="car_workcenter_action" model='ir.actions.act_window'>
+        <field name="name">Work Centers</field>
+        <field name="res_model">car.workcenter</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="car_workcenter_menu"
+        name="Work Centers"
+        parent="car_work_order_menu_configuration"
+        action="car_workcenter_action"
+        sequence="5"
+    />
+
+
+    <record id="car_workshop_view_tree" model="ir.ui.view">
+        <field name="name">car.workshop.tree</field>
+        <field name="model">car.workshop</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="name" />
+                <field name="branch_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="car_workshop_action" model='ir.actions.act_window'>
+        <field name="name">Workshops</field>
+        <field name="res_model">car.workshop</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="car_workshop_menu"
+        name="Workshops"
+        parent="car_work_order_menu_configuration"
+        action="car_workshop_action"
+        sequence="10"
+    />
+
+
+
+
+</odoo>

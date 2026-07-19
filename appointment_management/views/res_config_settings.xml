@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_form_view_inherit_appointment" model="ir.ui.view">
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='coupon_settings']" position="inside">
+                <label for="loyalty_program_id" />
+                <field name="loyalty_program_id" />
+                <label for="wallet_program_id" />
+                <field name="wallet_program_id" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="technicians_commission_settlement_tree_view">
+        <field name="name">Technicians Settlements tree</field>
+        <field name="model">technicians.commission.settlement</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state == 'cancel'">
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="date_from" />
+                <field name="date_to" />
+                <field name="total" sum="Settled total" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+    <record id="technicians_commission_settlement_search_view" model="ir.ui.view">
+        <field name="name">technicians.commission.settlement.search</field>
+        <field name="model">technicians.commission.settlement</field>
+        <field name="arch" type="xml">
+            <search string="Settlement search">
+                <field name="date_from" />
+                <field name="date_to" />
+                <field name="company_id" />
+                <filter
+                    string="This year"
+                    name="thisyear"
+                    domain="[('date_from', '&gt;=', time.strftime('%%Y-01-01')), ('date_to', '&lt;=', time.strftime('%%Y-12-31'))]"
+                />
+                <separator />
+                <group expand="1" string="Group By">
+                    <filter string="Date from month" name="group_date" context="{'group_by': 'date_from:month'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="technicians_commission_settlement_form_view">
+        <field name="name">technicians.commission.settlement.form</field>
+        <field name="model">technicians.commission.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Settlement" create="false">
+                <header>
+                    <button
+                        string="Generate Commissions"
+                        invisible="state != 'draft'"
+                        type="object"
+                        class="btn-primary"
+                        name="generate_commission_lines"
+                    />
+                    <button
+                        string="Settle"
+                        invisible="state != 'draft'"
+                        type="object"
+                        name="action_settle"
+                        class="btn-success"
+                    />
+                    <button
+                        string="Cancel"
+                        invisible="state != 'draft'"
+                        type="object"
+                        name="action_cancel"
+                        class="btn-danger"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="draft" />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date_from" readonly="state != 'draft'" />
+                        </group>
+                        <group>
+                            <field name="date_to" readonly="state != 'draft'" />
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'" />
+                            <field name="currency_id" groups="base.group_multi_currency" readonly="state != 'draft'" />
+                        </group>
+                    </group>
+                    <group string="Commission lines">
+                        <field name="line_ids" nolabel="1" colspan="2" readonly="state != 'draft'">
+                            <tree>
+                                <field name="employee_id" />
+                                <field name="service_ids" widget="many2many_tags" />
+                                <field name="amount" />
+                            </tree>
+                        </field>
+                    </group>
+                    <group>
+                        <group class="oe_subtotal_footer oe_right">
+                            <field
+                                name="total"
+                                class="oe_subtotal_footer_separator"
+                                widget="monetary"
+                                options="{'currency_field': 'currency_id'}"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" />
+                    <field name="activity_ids" />
+                    <field name="message_ids" />
+                </div>
+            </form>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="technicians_commission_settlement_line_tree_view">
+        <field name="name">Settlement lines</field>
+        <field name="model">technicians.commission.settlement.line</field>
+        <field name="arch" type="xml">
+            <tree create="false">
+                <field name="amount" sum="Total Amount" />
+            </tree>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="action_technicians_commission_settlement">
+        <field name="name">Technicians Settlements</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">technicians.commission.settlement</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="menu_technicians_settlement"
+        parent="menu_settlement_parent"
+        action="action_technicians_commission_settlement"
+        sequence="10"
+    />
+</odoo>

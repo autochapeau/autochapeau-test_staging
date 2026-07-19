@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_employee_access_rights" model="ir.module.category">
+        <field name="name">Employee Access Rights</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <record id="group_branch_employee" model="res.groups">
+        <field name="name">Branch Employee</field>
+        <field name="category_id" ref="employee_access_rights.module_category_employee_access_rights"/>
+        <field name="implied_ids" eval="[(4, ref('work_orders.group_workshop_employee')), (4, ref('appointment_management.group_appointment_officer')), (4, ref('cars_management.group_cars_management_branch_employee'))]"/>
+    </record>
+    <record id="group_branch_manager" model="res.groups">
+        <field name="name">Branch Manager</field>
+        <field name="category_id" ref="employee_access_rights.module_category_employee_access_rights"/>
+        <field name="implied_ids" eval="[(4, ref('work_orders.group_workshop_manager')), (4, ref('appointment_management.group_appointment_manager')), (4, ref('cars_management.group_cars_management_viewer_all'))]"/>
+    </record>
+    
+</odoo>

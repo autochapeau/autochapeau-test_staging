@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="car_checkin_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.internal_layout">
+                    <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)" />
+                    <div class="page" style="direction: rtl; text-align: right;">
+                        <h2 style="text-align: center;">محضر استلام سيارة من العميل</h2>
+                        <!-- Table 1: بيانات المركبة -->
+                        <h3>بيانات المركبة</h3>
+                        <div class="row">
+                            <div class="col-6">
+                                <table class="table table-bordered" style="width:100%;">
+                                    <tr>
+                                        <td style="width: 50%;">الفرع:</td>
+                                        <td>
+                                            <t t-if="o.branch_id"><t t-esc="o.branch_id.name"/></t>
+                                            <t t-if="not o.branch_id">-</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 50%;">رقم اللوحة:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_license_plate" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>المــــــاركة:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_id.brand_id.name" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>اللـــــــــون:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_id.vehicle_color_id.name" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>المــــــــالك:</td>
+                                        <td>
+                                            <t t-esc="o.partner_id.name" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>رقم الطلب:</td>
+                                        <td>
+                                            <t t-if="o.sale_order_id"><t t-esc="o.sale_order_id.name"/></t>
+                                            <t t-if="not o.sale_order_id">-</t>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-bordered" style="width:100%; float: right;">
+                                    <tr>
+                                        <td style="width: 50%;">رقــم الهيــكل:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_vin_sn" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>الطــــــــــراز:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_id.model_id.name" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>سنــة الصـنع:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_id.model_year" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>العداد:</td>
+                                        <td>
+                                            <t t-esc="o.vehicle_id.odometer" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Table 2: قائمة الفحص -->
+                        <h3>قائمة الفحص</h3>
+                        <table class="table table-bordered" style="width:100%;">
+                            <tr>
+                                <th>م</th>
+                                <th>قائمة التدقيق</th>
+                                <th />
+                            </tr>
+                            <t t-set="counter" t-value="0" />
+                            <t t-foreach="o.car_check_item_ids" t-as="item">
+                                <t t-set="counter" t-value="counter + 1" />
+                                <tr>
+                                    <td>
+                                        <t t-esc="counter" />
+                                    </td>
+                                    <td>
+                                        <t t-esc="item.car_check_item_id.name" />
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <t t-if="item.checked">
+                                            ✔
+                                        </t>
+                                        <t t-if="not item.checked">
+                                            ✖
+                                        </t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </table>
+
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img
+                                t-att-src="'/cars_management/static/src/img/car_image.png'"
+                                alt="Car Image"
+                                style="width: 500px; height: auto;"
+                            />
+                        </div>
+                        <h4>ملاحظات أخرى:</h4>
+                        <p t-out="o.notes" />
+
+                        <h3>إقرار تسليم المركبة للمركز</h3>
+                        <p>
+                            أقر أنا الواردة بياناتي أعلاه بأنني سلمت المركبة الواردة بياناتها أعلاه للشركة <span
+                                t-out="o.company_id.name"
+                            />
+                        </p>
+
+                        <table class="table table-bordered" style="width:100%;">
+                            <tr>
+                                <td>تاريخ التسليم:</td>
+                                <td>
+                                    <t t-esc="o.date" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>مسئول الورشة:</td>
+                                <td><t t-esc="o.employee_id.name" /></td>
+                            </tr>
+                        </table>
+
+                        <!-- Signature -->
+                        <div t-if="o.signature">
+                            <h3>التوقيع</h3>
+                            <div class="d-inline-block position-relative opacity-trigger-hover">
+                                <img
+                                    loading="lazy"
+                                    class="img img-fluid"
+                                    t-attf-src="/web/image?model=car.checkin&amp;id={{ o.id }}&amp;field=signature"
+                                    name="signature"
+                                    style=""
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

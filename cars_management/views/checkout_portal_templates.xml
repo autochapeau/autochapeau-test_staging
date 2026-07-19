@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="portal_my_checkout" name="My Checkout" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="base.group_user">
+                <!-- Uses backend_url provided in rendering values -->
+                <t t-call="portal.portal_back_in_edit_mode" />
+            </t>
+            <div class="row o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar" id="checkout_portal_sidebar">
+                    <t t-set="classes" t-value="'d-print-none col-lg-3 col-xl-4'" />
+
+                    <t t-set="title">
+                        <h2>Checkout</h2>
+                    </t>
+                    <t t-set="entries">
+                        <div class="d-flex flex-column gap-4">
+                            <div class="d-flex flex-column gap-2" id="checkout_sidebar_button">
+                                <a
+                                    t-if="checkout._has_to_be_signed()"
+                                    role="button"
+                                    class="btn btn-primary d-block"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalaccept"
+                                    href="#"
+                                >
+                                    <i class="fa fa-check" />Accept &amp; Sign
+                                </a>
+                                <div class="o_download_pdf d-flex gap-1 flex-lg-column flex-xl-row">
+                                    <div class="flex-grow-1">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="navspy flex-grow-1 ps-0" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav" />
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="checkout_content" class="col-12 col-lg-9 col-xl-8 mt-5 mt-lg-0">
+                    <!-- modal relative to the actions sign and pay -->
+                    <div role="dialog" class="modal fade" id="modalaccept">
+                        <div class="modal-dialog" t-if="checkout._has_to_be_signed()">
+                            <form
+                                id="accept"
+                                method="POST"
+                                t-att-data-checkout-id="checkout.id"
+                                t-att-data-token="checkout.access_token"
+                                class="js_accept_json modal-content js_website_submit_form"
+                            >
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                <header class="modal-header">
+                                    <h4 class="modal-title">Validate Check-In</h4>
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    />
+                                </header>
+                                <main class="modal-body" id="sign-dialog">
+                                    <p>
+                                        <span>By signing this proposal, I agree to the following terms:</span>
+                                        <ul>
+                                        </ul>
+                                    </p>
+                                    <t t-call="portal.signature_form">
+                                        <t t-set="call_url" t-value="checkout.get_portal_url(suffix='/accept')" />
+                                        <t t-set="default_name" t-value="checkout.partner_id.name" />
+                                    </t>
+                                </main>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- modal relative to the action reject -->
+                    <div role="dialog" class="modal fade" id="modaldecline">
+                        <div class="modal-dialog">
+                            <form
+                                id="decline"
+                                method="POST"
+                                t-attf-action="/my/checkout/#{checkout.id}/decline?access_token=#{checkout.access_token}"
+                                class="modal-content"
+                            >
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                <header class="modal-header">
+                                    <h4 class="modal-title">Reject This Checkout</h4>
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    />
+                                </header>
+                                <main class="modal-body">
+                                    <p>
+                                        Tell us why you are refusing this checkout, this will help us improve our services.
+                                    </p>
+                                    <textarea
+                                        rows="4"
+                                        name="decline_message"
+                                        required=""
+                                        placeholder="Your feedback..."
+                                        class="form-control"
+                                    />
+                                </main>
+                                <footer class="modal-footer">
+                                    <button type="submit" t-att-id="checkout.id" class="btn btn-danger">
+                                        <i class="fa fa-times" /> Reject
+                                    </button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                </footer>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- status messages -->
+                    <div
+                        t-if="message == 'sign_ok'"
+                        class="alert alert-success alert-dismissible d-print-none"
+                        role="status"
+                    >
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" />
+                        <strong>Thank You!</strong>
+                        <br />
+                    </div>
+
+                    <div
+                        t-if="message == 'cant_reject'"
+                        class="alert alert-danger alert-dismissible d-print-none"
+                        role="alert"
+                    >
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" />
+                        Your Checkout is not in a state to be rejected.
+                    </div>
+
+                    <!-- main content -->
+                    <div class="pb-5">
+                        <iframe
+                            t-attf-src="/report/html/cars_management.action_report_checkout/{{ checkout.id }}"
+                            width="100%"
+                            t-attf-height="#{'1400px' if checkout.signature else '1200px'}"
+                            style="border: none;"
+                        >
+                        </iframe>
+                    </div>
+
+                    <!-- bottom actions -->
+                    <div t-if="checkout._has_to_be_signed()" class="d-flex justify-content-center gap-1 d-print-none">
+
+                        <t>
+                            <div class="col-sm-auto mt8">
+                                <a
+                                    role="button"
+                                    class="btn btn-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalaccept"
+                                    href="#"
+                                >
+                                    <i class="fa fa-check" />Accept &amp; Sign
+                                </a>
+                            </div>
+                            <div class="col-sm-auto mt8">
+                                <a
+                                    role="button"
+                                    class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modaldecline"
+                                    href="#"
+                                >
+                                    <i class="fa fa-times" />
+                                    Reject
+                                </a>
+                            </div>
+                        </t>
+                    </div>
+                    <hr />
+                </div>
+            </div>
+
+        </xpath>
+    </template>
+</odoo>

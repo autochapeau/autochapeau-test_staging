@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="action_report_checkin" model="ir.actions.report">
+        <field name="name">Checkin Report</field>
+        <field name="model">car.checkin</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cars_management.car_checkin_report</field>
+        <field name="report_file">cars_management.car_checkin_report</field>
+        <field name="print_report_name">'Checkin - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="cars_management.model_car_checkin" />
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_checkout" model="ir.actions.report">
+        <field name="name">Checkin Report</field>
+        <field name="model">car.checkout</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cars_management.car_checkout_report</field>
+        <field name="report_file">cars_management.car_checkout_report</field>
+        <field name="print_report_name">'Checkin - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="cars_management.model_car_checkout" />
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

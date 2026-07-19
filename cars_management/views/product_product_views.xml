@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="product_normal_form_view_inherit_cars_management" model="ir.ui.view">
+        <field name="name">product.product.view.form.inherit.cars_management</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <group name="sale" position="inside">
+                <group string="Sales Statistics" name="sales_stats">
+                    <field name="old_sales_count" />
+                    <field name="sales_count" />
+                    <field name="total_sales_count" force_save="1" />
+                </group>
+            </group>
+             <page name="general_information" position="inside">
+                <group string="Product Details">
+                    <field colspan="2" name="description_website" nolabel="1" />
+                </group>
+            </page>
+        </field>
+    </record>
+
+</odoo>

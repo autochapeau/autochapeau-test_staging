@@ -1,0 +1,30 @@
+{
+    "name": "Work orders",
+    "version": "17.0.1.0.3",
+    "author": "WellKnot",
+    "depends": ["appointment_management", "stock"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/data.xml",
+        "views/product_views.xml",
+        "views/car_work_order_views.xml",
+        "views/qa_check_item_views.xml",
+        "views/configuration_views.xml",
+        "views/staff_simple_search.xml",
+        "views/staff_simple_view.xml",
+        "views/car_workorder_service_views.xml",
+        "views/fleet_vehicle_views.xml",
+        "views/stock_picking_views.xml",
+        "views/stock_warehouse_views.xml",
+        "views/quality_refuse_reason_wizard_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "work_orders/static/src/**/*.js",
+            "work_orders/static/src/**/*.xml",
+        ],
+    },
+    "application": True,
+    "license": "LGPL-3",
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="custom_security_update" inherit_id="mail.account_security_setting_update">
+
+        <!-- Remove the native blocks -->
+        <xpath expr="//ul[hasclass('o_mail_account_security_suggestions')]" position="replace"/>
+        <xpath expr="//p[4]" position="replace"/>
+        <xpath expr="//p[3]" position="replace"/>
+        <xpath expr="//p[2]" position="replace"/>
+
+        <!-- custom full AutoChapeau content -->
+        <xpath expr="//p[1]" position="replace">
+            <p>Hello <t t-out="user.name"/>,</p>
+
+            <p>
+                A security change was made to your AutoChapeau account on
+                <t t-out="update_datetime" t-options='{"widget": "datetime", "hide_seconds": True}'/>.
+            </p>
+
+            <p>If this was you, there is nothing else to do.</p>
+
+            <p>If you do not recognize this activity, please protect your account now:</p>
+            <ul>
+                <li t-if="suggest_password_reset">
+                    <a t-att-href="password_reset_url">Reset your password</a>
+                </li>
+                <li>Reach our team at <a href="mailto:info@autochapeau.com">info@autochapeau.com</a></li>
+            </ul>
+
+            <p>We are always here to keep your account and your vehicle in good hands.</p>
+            <p style="font-weight: bold;">The AutoChapeau Team</p>
+        </xpath>
+
+    </template>
+</odoo>

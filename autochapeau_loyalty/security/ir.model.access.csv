@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_loyalty_rule_membership_user,loyalty.rule.membership.user,model_loyalty_rule_membership,base.group_user,1,0,0,0
+access_loyalty_rule_membership_manager,loyalty.rule.membership.manager,model_loyalty_rule_membership,sales_team.group_sale_manager,1,1,1,1

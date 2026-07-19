@@ -1,0 +1,31 @@
+<odoo noupdate="1">
+    <record id="car_checkin_seq" model="ir.sequence">
+        <field name="name">Car checkin</field>
+        <field name="code">car.checkin.seq</field>
+        <field name="prefix">IN</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <field name="company_id" eval="False" />
+    </record>
+    <record id="car_checkout_seq" model="ir.sequence">
+        <field name="name">Car checkout</field>
+        <field name="code">car.checkout.seq</field>
+        <field name="prefix">OUT</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <field name="company_id" eval="False" />
+    </record>
+    <!-- Data for unknown Manufacturer  -->
+    <record id="unknown_manufacturer" model="fleet.vehicle.model.brand">
+        <field name="name">Unknown Manufacturer</field>
+    </record>
+
+    <record id="mail_act_car_model_verification" model="mail.activity.type">
+        <field name="name">Car model verification</field>
+        <field name="icon">fa-check</field>
+        <field name="res_model">fleet.vehicle</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,31 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* employee_access_rights
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 18:28+0000\n"
+"PO-Revision-Date: 2026-06-07 18:28+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: employee_access_rights
+#: model:res.groups,name:employee_access_rights.group_branch_employee
+msgid "Branch Employee"
+msgstr "موظف الفرع"
+
+#. module: employee_access_rights
+#: model:res.groups,name:employee_access_rights.group_branch_manager
+msgid "Branch Manager"
+msgstr "مدير الفرع"
+
+#. module: employee_access_rights
+#: model:ir.module.category,name:employee_access_rights.module_category_employee_access_rights
+msgid "Employee Access Rights"
+msgstr "صلاحيات وصول الموظفين"

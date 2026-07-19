@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_qa_check_item_tree" model="ir.ui.view">
+        <field name="name">qa.check.item.tree</field>
+        <field name="model">qa.check.item</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="name" />
+                <field name="active" />
+            </tree>
+        </field>
+    </record>
+    <record id="view_qa_check_item_form" model="ir.ui.view">
+        <field name="name">qa.check.item.form</field>
+        <field name="model">qa.check.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="active" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_qa_check_item" model="ir.actions.act_window">
+        <field name="name">QA Check Items</field>
+        <field name="res_model">qa.check.item</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- Place the QA menu at the same level as Check items under cars_management.cars_configuration -->
+    <menuitem id="menu_qa_check_item" name="QA Check Items" parent="cars_management.cars_configuration" action="action_qa_check_item" sequence="4"/>
+</odoo>

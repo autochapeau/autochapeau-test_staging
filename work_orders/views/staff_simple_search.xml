@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_staff_simple_search" model="ir.ui.view">
+        <field name="name">hr.employee.staff.simple.search</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <search/>
+        </field>
+    </record>
+</odoo>

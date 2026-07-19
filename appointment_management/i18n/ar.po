@@ -1,0 +1,1433 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* appointment_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 19:26+0000\n"
+"PO-Revision-Date: 2026-06-07 19:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/wizard/car_appointment_generate_slots.py:0
+#, python-format
+msgid "'Date from' cannot be in the past."
+msgstr "لا يمكن أن يكون 'التاريخ من' في الماضي."
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/wizard/car_appointment_generate_slots.py:0
+#, python-format
+msgid "'Date from' must be before 'Date to'."
+msgstr "يجب أن يكون 'التاريخ من' قبل 'التاريخ إلى'."
+
+#. module: appointment_management
+#: model:mail.template,body_html:appointment_management.email_template_appointment_confirmation
+msgid ""
+"<div style=\"margin: 0px; padding: 0px; font-family: sans-serif;\">\n"
+"                <p>\n"
+"                    Dear<t t-out=\"object.partner_id.name or 'Customer'\"></t>,\n"
+"                </p>\n"
+"\n"
+"                <p>\n"
+"                    Your appointment\n"
+"                    <strong>\n"
+"                        <t t-out=\"object.name\"></t>\n"
+"                    </strong>\n"
+"                    has been confirmed.\n"
+"                </p>\n"
+"\n"
+"                <p>\n"
+"                    <strong>Appointment Details:</strong>\n"
+"                </p>\n"
+"                <ul>\n"
+"                    <li>Date:\n"
+"                        <t t-out=\"format_date(object.start_date)\"></t>\n"
+"                    </li>\n"
+"                    <li>Time:\n"
+"                        <t t-out=\"format_time(object.start_date)\"></t>\n"
+"                    </li>\n"
+"                    <li>Agency:\n"
+"                        <t t-out=\"object.company_id.name\"></t>\n"
+"                    </li>\n"
+"                    <li>Location:\n"
+"                        <t t-out=\"object.company_id.partner_id.contact_address or ''\"></t>\n"
+"                    </li>\n"
+"                </ul>\n"
+"\n"
+"                <p>\n"
+"                    <strong>Vehicle:</strong>\n"
+"                </p>\n"
+"                <ul>\n"
+"                    <li>Model:\n"
+"                        <t t-out=\"object.vehicle_id.model_id.name or ''\"></t>\n"
+"                    </li>\n"
+"                    <li>License Plate:\n"
+"                        <t t-out=\"object.vehicle_license_plate\"></t>\n"
+"                    </li>\n"
+"                    <li>VIN:\n"
+"                        <t t-out=\"object.vehicle_vin_sn\"></t>\n"
+"                    </li>\n"
+"                    <li>Color:\n"
+"                        <t t-out=\"object.vehicle_color_id.name or 'N/A'\"></t>\n"
+"                    </li>\n"
+"                    <li>Size:\n"
+"                        <t t-out=\"object.vehicle_size or 'N/A'\"></t>\n"
+"                    </li>\n"
+"                </ul>\n"
+"\n"
+"\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>Selected Services:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <t t-foreach=\"object.sale_order_id.order_line\" t-as=\"line\">\n"
+"                            <t t-if=\"line.product_id.detailed_type == 'service'\">\n"
+"                                <li>\n"
+"                                    <strong>\n"
+"                                        <t t-out=\"line.product_id.name\"></t>\n"
+"                                    </strong>\n"
+"                                    <br>\n"
+"                                    Unit Price:\n"
+"                                    <t t-out=\"line.price_unit\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    Quantity:\n"
+"                                    <t t-out=\"line.product_uom_qty\"></t>\n"
+"                                    <br>\n"
+"                                    Discount:<t t-out=\"line.discount or 0\"></t>%\n"
+"                                    <br>\n"
+"                                    Taxes:\n"
+"                                    <t t-if=\"line.tax_id\">\n"
+"                                        <span t-out=\"', '.join(map(lambda x: (x.description or x.name), line.tax_id))\"></span>\n"
+"\n"
+"\n"
+"                                    </t>\n"
+"                                    <t t-else=\"\">\n"
+"                                        No Tax\n"
+"                                    </t>\n"
+"\n"
+"                                    <br>\n"
+"                                    Subtotal:\n"
+"                                    <t t-out=\"line.price_subtotal\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    Total with Tax:\n"
+"                                    <t t-out=\"line.price_total\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                </li>\n"
+"                            </t>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>Products:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <t t-foreach=\"object.sale_order_id.order_line\" t-as=\"line\">\n"
+"                            <t t-if=\"line.product_id.detailed_type == 'product'\">\n"
+"                                <li>\n"
+"                                    <strong>\n"
+"                                        <t t-out=\"line.product_id.name\"></t>\n"
+"                                    </strong>\n"
+"                                    <br>\n"
+"                                    Unit Price:\n"
+"                                    <t t-out=\"line.price_unit\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    Quantity:\n"
+"                                    <t t-out=\"line.product_uom_qty\"></t>\n"
+"                                    <br>\n"
+"                                    Discount:<t t-out=\"line.discount or 0\"></t>%\n"
+"                                    <br>\n"
+"                                    Taxes:\n"
+"                                    <t t-if=\"line.tax_id\">\n"
+"                                        <span t-out=\"', '.join(map(lambda x: (x.description or x.name), line.tax_id))\"></span>\n"
+"\n"
+"\n"
+"                                    </t>\n"
+"                                    <t t-else=\"\">\n"
+"                                        No Tax\n"
+"                                    </t>\n"
+"\n"
+"                                    <br>\n"
+"                                    Subtotal:\n"
+"                                    <t t-out=\"line.price_subtotal\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    Total with Tax:\n"
+"                                    <t t-out=\"line.price_total\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                </li>\n"
+"                            </t>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>Payment Details:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <li>Total:\n"
+"                            <t t-out=\"object.sale_order_id.amount_total\"></t>\n"
+"                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                        </li>\n"
+"                        <li>Taxes:\n"
+"                            <t t-out=\"object.sale_order_id.amount_tax\"></t>\n"
+"                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                        </li>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.payment_term_id\">\n"
+"                            <li>Payment Terms:\n"
+"                                <t t-out=\"object.sale_order_id.payment_term_id.name\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.invoice_ids\">\n"
+"                            <li>Payments Used:\n"
+"                                <ul>\n"
+"                                    <t t-foreach=\"object.sale_order_id.invoice_ids\" t-as=\"pay\">\n"
+"                                        <li>\n"
+"                                            <t t-out=\"pay.payment_method_id.name or 'Manual'\"></t>\n"
+"                                            -\n"
+"                                            <t t-out=\"pay.amount\"></t>\n"
+"                                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                        </li>\n"
+"                                    </t>\n"
+"                                </ul>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.partner_id.loyalty_balance\">\n"
+"                            <li>Loyalty Points Earned:\n"
+"                                <t t-out=\"object.partner_id.loyalty_balance\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.donation_amount\">\n"
+"                            <li>Donation:\n"
+"                                <t t-out=\"object.sale_order_id.donation_amount\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"\n"
+"                <p>Thank you for your trust.<br>We look forward to seeing you soon!\n"
+"                </p>\n"
+"\n"
+"                <p>Best regards,\n"
+"                    <br>\n"
+"                    <t t-out=\"object.company_id.name\"></t>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px; font-family: sans-serif; direction: rtl; text-align: right;\">\n"
+"                <p>\n"
+"                    عزيزي <t t-out=\"object.partner_id.name or 'العميل'\"></t>،\n"
+"                </p>\n"
+"\n"
+"                <p>\n"
+"                    تم تأكيد موعدك\n"
+"                    <strong>\n"
+"                        <t t-out=\"object.name\"></t>\n"
+"                    </strong>\n"
+"                    .\n"
+"                </p>\n"
+"\n"
+"                <p>\n"
+"                    <strong>تفاصيل الموعد:</strong>\n"
+"                </p>\n"
+"                <ul>\n"
+"                    <li>التاريخ:\n"
+"                        <t t-out=\"format_date(object.start_date)\"></t>\n"
+"                    </li>\n"
+"                    <li>الوقت:\n"
+"                        <t t-out=\"format_time(object.start_date)\"></t>\n"
+"                    </li>\n"
+"                    <li>الفرع:\n"
+"                        <t t-out=\"object.company_id.name\"></t>\n"
+"                    </li>\n"
+"                    <li>الموقع:\n"
+"                        <t t-out=\"object.company_id.partner_id.contact_address or ''\"></t>\n"
+"                    </li>\n"
+"                </ul>\n"
+"\n"
+"                <p>\n"
+"                    <strong>السيارة:</strong>\n"
+"                </p>\n"
+"                <ul>\n"
+"                    <li>الموديل:\n"
+"                        <t t-out=\"object.vehicle_id.model_id.name or ''\"></t>\n"
+"                    </li>\n"
+"                    <li>رقم اللوحة:\n"
+"                        <t t-out=\"object.vehicle_license_plate\"></t>\n"
+"                    </li>\n"
+"                    <li>رقم الهيكل (VIN):\n"
+"                        <t t-out=\"object.vehicle_vin_sn\"></t>\n"
+"                    </li>\n"
+"                    <li>اللون:\n"
+"                        <t t-out=\"object.vehicle_color_id.name or 'غير متوفر'\"></t>\n"
+"                    </li>\n"
+"                    <li>الحجم:\n"
+"                        <t t-out=\"object.vehicle_size or 'غير متوفر'\"></t>\n"
+"                    </li>\n"
+"                </ul>\n"
+"\n"
+"\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>الخدمات المختارة:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <t t-foreach=\"object.sale_order_id.order_line\" t-as=\"line\">\n"
+"                            <t t-if=\"line.product_id.detailed_type == 'service'\">\n"
+"                                <li>\n"
+"                                    <strong>\n"
+"                                        <t t-out=\"line.product_id.name\"></t>\n"
+"                                    </strong>\n"
+"                                    <br>\n"
+"                                    سعر الوحدة:\n"
+"                                    <t t-out=\"line.price_unit\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    الكمية:\n"
+"                                    <t t-out=\"line.product_uom_qty\"></t>\n"
+"                                    <br>\n"
+"                                    الخصم:<t t-out=\"line.discount or 0\"></t>%\n"
+"                                    <br>\n"
+"                                    الضرائب:\n"
+"                                    <t t-if=\"line.tax_id\">\n"
+"                                        <span t-out=\"', '.join(map(lambda x: (x.description or x.name), line.tax_id))\"></span>\n"
+"                                    </t>\n"
+"                                    <t t-else=\"\">\n"
+"                                        لا ضرائب\n"
+"                                    </t>\n"
+"                                    <br>\n"
+"                                    المجموع الفرعي:\n"
+"                                    <t t-out=\"line.price_subtotal\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    الإجمالي مع الضرائب:\n"
+"                                    <t t-out=\"line.price_total\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                </li>\n"
+"                            </t>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>المنتجات:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <t t-foreach=\"object.sale_order_id.order_line\" t-as=\"line\">\n"
+"                            <t t-if=\"line.product_id.detailed_type == 'product'\">\n"
+"                                <li>\n"
+"                                    <strong>\n"
+"                                        <t t-out=\"line.product_id.name\"></t>\n"
+"                                    </strong>\n"
+"                                    <br>\n"
+"                                    سعر الوحدة:\n"
+"                                    <t t-out=\"line.price_unit\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    الكمية:\n"
+"                                    <t t-out=\"line.product_uom_qty\"></t>\n"
+"                                    <br>\n"
+"                                    الخصم:<t t-out=\"line.discount or 0\"></t>%\n"
+"                                    <br>\n"
+"                                    الضرائب:\n"
+"                                    <t t-if=\"line.tax_id\">\n"
+"                                        <span t-out=\"', '.join(map(lambda x: (x.description or x.name), line.tax_id))\"></span>\n"
+"                                    </t>\n"
+"                                    <t t-else=\"\">\n"
+"                                        لا ضرائب\n"
+"                                    </t>\n"
+"                                    <br>\n"
+"                                    المجموع الفرعي:\n"
+"                                    <t t-out=\"line.price_subtotal\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                    الإجمالي مع الضرائب:\n"
+"                                    <t t-out=\"line.price_total\"></t>\n"
+"                                    <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                    <br>\n"
+"                                </li>\n"
+"                            </t>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"                <t t-if=\"object.sale_order_id\">\n"
+"                    <p>\n"
+"                        <strong>تفاصيل الدفع:</strong>\n"
+"                    </p>\n"
+"                    <ul>\n"
+"                        <li>الإجمالي:\n"
+"                            <t t-out=\"object.sale_order_id.amount_total\"></t>\n"
+"                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                        </li>\n"
+"                        <li>الضرائب:\n"
+"                            <t t-out=\"object.sale_order_id.amount_tax\"></t>\n"
+"                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                        </li>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.payment_term_id\">\n"
+"                            <li>شروط الدفع:\n"
+"                                <t t-out=\"object.sale_order_id.payment_term_id.name\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.invoice_ids\">\n"
+"                            <li>المدفوعات المستخدمة:\n"
+"                                <ul>\n"
+"                                    <t t-foreach=\"object.sale_order_id.invoice_ids\" t-as=\"pay\">\n"
+"                                        <li>\n"
+"                                            <t t-out=\"pay.payment_method_id.name or 'يدوي'\"></t>\n"
+"                                            -\n"
+"                                            <t t-out=\"pay.amount\"></t>\n"
+"                                            <span t-esc=\"object.sale_order_id.currency_id.name\"></span>\n"
+"                                        </li>\n"
+"                                    </t>\n"
+"                                </ul>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.partner_id.loyalty_balance\">\n"
+"                            <li>نقاط الولاء المكتسبة:\n"
+"                                <t t-out=\"object.partner_id.loyalty_balance\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"\n"
+"                        <t t-if=\"object.sale_order_id.donation_amount\">\n"
+"                            <li>التبرع:\n"
+"                                <t t-out=\"object.sale_order_id.donation_amount\"></t>\n"
+"                            </li>\n"
+"                        </t>\n"
+"                    </ul>\n"
+"                </t>\n"
+"\n"
+"                <p>شكرًا لثقتك بنا.<br>نتطلع لرؤيتك قريبًا!\n"
+"                </p>\n"
+"\n"
+"                <p>مع أطيب التحيات،\n"
+"                    <br>\n"
+"                    <t t-out=\"object.company_id.name\"></t>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+
+#. module: appointment_management
+#: model:mail.template,body_html:appointment_management.email_template_appointment_notify
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    <t t-out=\"ctx.get('email_message')\"></t>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_needaction
+msgid "Action Needed"
+msgstr "إجراء مطلوب"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__active
+msgid "Active"
+msgstr "نشط"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_ids
+msgid "Activities"
+msgstr "الأنشطة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "زخرفة استثناء النشاط"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_state
+msgid "Activity State"
+msgstr "حالة النشاط"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "أيقونة نوع النشاط"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Additional information"
+msgstr "معلومات إضافية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__company_id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__company_id
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_slot_view_search
+msgid "Agency"
+msgstr "شركة"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__alrajhi_loyalty_exchange
+msgid "Alrajhi Loyalty exchange to Wallet"
+msgstr "استبدال ولاء الراجحي إلى المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__amount
+msgid "Amount"
+msgstr "المبلغ"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.product_pricelist_view_view_inherit_appointment_management
+msgid "Apply Pricelist Discount"
+msgstr "تطبيق خصم قائمة الأسعار"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__appointment_id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__appointment_id
+#: model:ir.model.fields,field_description:appointment_management.field_car_checkin__appointment_id
+#: model:ir.model.fields,field_description:appointment_management.field_sale_order__appointment_id
+#: model:mail.template,name:appointment_management.email_template_appointment_notify
+msgid "Appointment"
+msgstr "الموعد"
+
+#. module: appointment_management
+#: model:res.groups,name:appointment_management.group_appointment_officer
+msgid "Appointment Branch Employee"
+msgstr "موظف الفرع"
+
+#. module: appointment_management
+#: model:mail.template,name:appointment_management.email_template_appointment_confirmation
+msgid "Appointment Confirmation Email"
+msgstr "رسالة تأكيد الموعد"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_fleet_vehicle__appointment_count
+msgid "Appointment Count"
+msgstr "عدد المواعيد"
+
+#. module: appointment_management
+#: model:mail.template,subject:appointment_management.email_template_appointment_notify
+msgid "Appointment Ref {{ object.name or 'n/a' }}"
+msgstr "مرجع الموعد {{ object.name or 'غير متوفر' }}"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__appointment_slot_id
+#: model:ir.model.fields,field_description:appointment_management.field_sale_order__appointment_slot_id
+msgid "Appointment Slot"
+msgstr "فترات زمنية للموعد"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_slot_view_calendar
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_calendar
+msgid "Appointment Slots"
+msgstr "فترات زمنية للمواعيد"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid "Appointment cancellation is allowed only within 72 hours"
+msgstr "يُسمح بإلغاء الموعد خلال 72 ساعة فقط"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid "Appointment edition is allowed only within 48 hours"
+msgstr "يُسمح بتعديل الموعد خلال 48 ساعة فقط"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Appointment information"
+msgstr "معلومات الموعد"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment_slot.py:0
+#, python-format
+msgid ""
+"Appointment slot on {slot_date} at {start_hour} conflicts with an existing "
+"appointment."
+msgstr ""
+
+#. module: appointment_management
+#: model:ir.actions.act_window,name:appointment_management.car_appointment_slot_action
+#: model:ir.ui.menu,name:appointment_management.car_appointment_slot_menu
+#: model:ir.ui.menu,name:appointment_management.car_appointment_slot_menu_root
+msgid "Appointment slots"
+msgstr "فترات زمنية للمواعيد"
+
+#. module: appointment_management
+#: model:ir.actions.act_window,name:appointment_management.car_appointment_action
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__car_appointment_ids
+#: model:ir.module.category,name:appointment_management.module_category_appointment_management
+#: model:ir.ui.menu,name:appointment_management.car_appointment_menu
+#: model:ir.ui.menu,name:appointment_management.car_appointment_menu_root
+#: model_terms:ir.ui.view,arch_db:appointment_management.fleet_vehicle_view_form
+msgid "Appointments"
+msgstr "المواعيد"
+
+#. module: appointment_management
+#: model:res.groups,name:appointment_management.group_appointment_manager
+msgid "Appointments Branch Manager"
+msgstr "مسؤول إدارة المواعيد"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__car_appointment_count
+msgid "Appointments number"
+msgstr "عدد المواعيد"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_search
+msgid "Archived"
+msgstr "مؤرشف"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Are you sure you want to proceed?"
+msgstr "هل أنت متأكد أنك تريد المتابعة؟"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_attachment_count
+msgid "Attachment Count"
+msgstr "عدد المرفقات"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__branch_id
+msgid "Branch"
+msgstr "الفرع"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_company__branch_code
+msgid "Branch Code"
+msgstr "رمز الفرع"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__branch_id
+msgid "Branch linked to the appointment."
+msgstr "الفرع المرتبط بالموعد."
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__branch_ids
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__department_ids
+msgid "Branches"
+msgstr "الفروع"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment_slot__department_ids
+msgid "Branches (departments) associated with this slot"
+msgstr "الفروع (الأقسام) المرتبطة بهذه الفترة"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment_generate_slots__branch_ids
+msgid "Branches concernées par la génération des créneaux."
+msgstr "الفروع المعنية بإنشاء الفترات الزمنية."
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_generate_slots_view_form
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Cancel"
+msgstr "الغاء"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Cancel Appointment"
+msgstr "إلغاء الموعد"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__car_appointment__state__canceled
+msgid "Canceled"
+msgstr "ملغى"
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#, python-format
+msgid "Cancelled"
+msgstr "ملغى"
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_search
+#, python-format
+msgid "Cancelled Appointments"
+msgstr "المواعيد الملغاة"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/wizard/car_appointment_generate_slots.py:0
+#, python-format
+msgid ""
+"Cannot generate slots for {date} — this day is either a weekend or not "
+"defined in the calendar's working hours. Please check the calendar settings."
+msgstr ""
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__capacity
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__capacity
+msgid "Capacity"
+msgstr "سعة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_appointment
+msgid "Car Appointment"
+msgstr "حجز موعد للسيارة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_appointment_generate_slots
+msgid "Car Appointment Generate Slots"
+msgstr "إنشاء مواعيد حجز السيارات"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_appointment_product
+msgid "Car Appointment Product"
+msgstr "منتج حجز موعد للسيارة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_appointment_service
+msgid "Car Appointment Service"
+msgstr "خدمة حجز موعد للسيارة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_appointment_slot
+msgid "Car Appointment Slot"
+msgstr "موعد حجز السيارة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__car_checkin_id
+msgid "Car Checkin"
+msgstr "استلام السيارة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__car_transportation_date
+msgid "Car Transportation Date"
+msgstr "تاريخ نقل السيارة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__car_transportation_service
+msgid "Car Transportation Service"
+msgstr "خدمة نقل السيارة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_car_checkin
+msgid "Car checkin"
+msgstr "إستلام السيارة"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Car information"
+msgstr "معلومات السيارة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__card_destination_id
+msgid "Card Destination"
+msgstr "البطاقة الوجهة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__card_source_id
+msgid "Card Source"
+msgstr "البطاقة المصدر"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_sale_order__cart_id
+msgid "Cart"
+msgstr "السلة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__vehicle_vin_sn
+msgid "Chassis Number"
+msgstr "رقم الشاسيه"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__calendar_color
+msgid "Color"
+msgstr "اللون"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_res_company
+msgid "Companies"
+msgstr "الشركات"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_res_config_settings
+msgid "Config Settings"
+msgstr "تهيئة الإعدادات "
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Confirm"
+msgstr "إعتماد"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__confirmation_date
+msgid "Confirmation Date"
+msgstr "تاريخ التأكيد"
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#: model:ir.model.fields.selection,name:appointment_management.selection__car_appointment__state__confirmed
+#, python-format
+msgid "Confirmed"
+msgstr "تم التأكيد "
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_search
+#, python-format
+msgid "Confirmed Appointments"
+msgstr "المواعيد المؤكدة"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_res_partner
+msgid "Contact"
+msgstr "جهة الاتصال"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__create_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__create_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__create_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__create_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__create_uid
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__create_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__create_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__create_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__create_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__create_date
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__partner_id
+msgid "Customer"
+msgstr "العميل"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Customer information"
+msgstr "معلومات العميل"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__date
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_slot_view_search
+msgid "Date"
+msgstr "التاريخ"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__date_from
+msgid "Date From"
+msgstr "من"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__date_to
+msgid "Date To"
+msgstr "إلى"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid ""
+"Dear Customer, this is a reminder about your upcoming appointment. Ref %s. "
+"We look forward to serving you."
+msgstr ""
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_config_settings__loyalty_program_id
+msgid "Default Loyalty Program"
+msgstr "برنامج الولاء الافتراضي"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_config_settings__wallet_program_id
+msgid "Default Wallet Program"
+msgstr "برنامج المحفظة الافتراضي"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__display_name
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__display_name
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__display_name
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__display_name
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__display_name
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__display_name
+msgid "Display Name"
+msgstr "الاسم المعروض"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__duration
+msgid "Duration"
+msgstr "المدة"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Edit Appointment"
+msgstr "تعديل الموعد"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__partner_email
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid "Failed to send SMS : %s"
+msgstr "فشل إرسال الرسالة النصية : %s"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__finish_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__finish_date
+msgid "Finish Date"
+msgstr "تاريخ الانتهاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__finish_hour
+msgid "Finishing Hour"
+msgstr "ساعة الانتهاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_follower_ids
+msgid "Followers"
+msgstr "المتابعون"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "المتابعون (الشركاء)"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "رمز الخط الرائع ، على سبيل المثال FA المهام"
+
+#. module: appointment_management
+#: model:ir.actions.act_window,name:appointment_management.action_generate_slots
+#: model:ir.ui.menu,name:appointment_management.generate_slots_menu
+msgid "Generate Appointment Slots"
+msgstr "توليد مواعيد المواعيد"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_generate_slots_view_form
+msgid "Generate Slots"
+msgstr "إنشاء فترات"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_slot_view_search
+msgid "Group By"
+msgstr "تجميع حسب"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__has_message
+msgid "Has Message"
+msgstr "يحتوي على رسالة "
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__id
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__id
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_exception_icon
+msgid "Icon"
+msgstr "الأيقونة"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "الأيقونة للإشارة إلى استثناء النشاط"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "إذا كان محددًا، فهناك رسائل جديدة تحتاج لرؤيتها."
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__message_has_error
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "إذا كان محددًا، فقد حدث خطأ في تسليم بعض الرسائل."
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__is_available
+msgid "Is Available"
+msgstr "متاح "
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_is_follower
+msgid "Is Follower"
+msgstr "متابع"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_account_move
+msgid "Journal Entry"
+msgstr "قيد اليومية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__write_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__write_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__write_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__write_uid
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__write_uid
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__write_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__write_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__write_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__write_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__write_date
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__vehicle_license_plate
+msgid "License Plate"
+msgstr "لوحة السيارة "
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__vehicle_license_plate
+msgid "License plate number of the vehicle (i = plate number for a car)"
+msgstr "رقم لوحة المركبة (i = رقم لوحة لسيارة) "
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__loyalty_balance
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__loyalty_balance
+msgid "Loyalty Balance"
+msgstr "رصيد الولاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__loyalty_card_id
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__loyalty_card_ids
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__loyalty_card_id
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__loyalty_card_ids
+msgid "Loyalty Card"
+msgstr "بطاقة الولاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__loyalty_exchange_log_ids
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__loyalty_exchange_log_ids
+msgid "Loyalty Exchange Log"
+msgstr "سجل استبدال الولاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_company__loyalty_program_id
+msgid "Loyalty Program"
+msgstr "برنامج الولاء"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_loyalty_exchange_log
+msgid "Loyalty card log"
+msgstr "سجل بطاقة الولاء"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__loyalty_exchange
+msgid "Loyalty exchange to Wallet"
+msgstr "استبدال الولاء إلى المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_has_error
+msgid "Message Delivery error"
+msgstr "خطأ في تسليم الرسائل"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_message_model
+msgid "Message Model"
+msgstr "نموذج الرسالة"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/message_model.py:0
+#: model:ir.actions.server,name:appointment_management.message_model_car_appointment_action
+#: model:ir.ui.menu,name:appointment_management.message_models_appointment_menu
+#, python-format
+msgid "Message Models"
+msgstr "نماذج الرسائل"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_ids
+msgid "Messages"
+msgstr "الرسائل"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "الموعد النهائي لنشاطي"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__mylist_loyalty_exchange
+msgid "MyList Loyalty exchange to Wallet"
+msgstr "استبدال ولاء MyList إلى المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "الفعالية التالية في تقويم الأنشطة "
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "الموعد النهائي للنشاط التالي"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_summary
+msgid "Next Activity Summary"
+msgstr "ملخص النشاط التالي"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_type_id
+msgid "Next Activity Type"
+msgstr "نوع النشاط التالي"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/res_partner.py:0
+#, python-format
+msgid "No Loyalty card found for this customer"
+msgstr "لم يتم العثور على بطاقة ولاء لهذا العميل"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/res_partner.py:0
+#, python-format
+msgid "No eWallet found for this customer"
+msgstr "لم يتم العثور على محفظة إلكترونية لهذا العميل"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/res_partner.py:0
+#, python-format
+msgid "No points to exchange"
+msgstr "لا توجد نقاط للاستبدال"
+
+#. module: appointment_management
+#: model:ir.actions.server,name:appointment_management.ir_cron_notify_customers_upcoming_appointments_ir_actions_server
+msgid "Notify customers about upcoming appointments"
+msgstr "إخطار العملاء بالمواعيد القادمة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_needaction_counter
+msgid "Number of Actions"
+msgstr "عدد الإجراءات"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_has_error_counter
+msgid "Number of errors"
+msgstr "عدد الاخطاء"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "عدد الرسائل الحادث بها خطأ في التسليم"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__order_id
+msgid "Order"
+msgstr "الطلب"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__partner_id
+msgid "Partner"
+msgstr "الشريك"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__payment_by_wallet
+msgid "Payment by Wallet"
+msgstr "الدفع عبر المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__partner_phone
+msgid "Phone"
+msgstr "رقم الهاتف"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_search
+msgid "Phone / Mobile"
+msgstr "هاتف / جوال"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__partner_phone_search
+msgid "Phone Search"
+msgstr "بحث بالهاتف"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__points
+msgid "Points"
+msgstr "النقاط"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_product_product__lst_price_discount
+msgid "Price after discount"
+msgstr "السعر بعد الخصم"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_product_pricelist
+msgid "Pricelist"
+msgstr "قائمه الأسعار"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__product_id
+msgid "Product"
+msgstr "المنتج"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_product_product
+msgid "Product Variant"
+msgstr "متغير المنتج "
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__product_ids
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Products"
+msgstr "المنتج"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__qitaf_loyalty_exchange
+msgid "Qitaf Loyalty exchange to Wallet"
+msgstr "استبدال ولاء قطاف إلى المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_product__quantity
+msgid "Quantity"
+msgstr "الكمية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__rating_ids
+msgid "Ratings"
+msgstr "التقييمات"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__name
+msgid "Ref."
+msgstr "الاسم"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__resource_calendar_id
+msgid "Resource Calendar"
+msgstr "تقويم المورد"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__activity_user_id
+msgid "Responsible User"
+msgstr "المستخدم المسؤول"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "خطأ في تسليم الرسائل القصيرة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__sale_order_id
+msgid "Sale Order"
+msgstr "أمر البيع"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_sale_order
+msgid "Sales Order"
+msgstr "أمر البيع"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__maintenance_slot_id
+msgid "Scheduled maintenance appointment"
+msgstr "موعد الصيانة المجدول"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_account_bank_statement_line__access_token
+#: model:ir.model.fields,field_description:appointment_management.field_account_move__access_token
+#: model:ir.model.fields,field_description:appointment_management.field_account_payment__access_token
+msgid "Security Token"
+msgstr "رمز الحماية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_service__product_id
+msgid "Service"
+msgstr "الخدمة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__service_ids
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_form
+msgid "Services"
+msgstr "الخدمات"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__vehicle_size
+msgid "Size"
+msgstr "الحجم"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid "Slot %s is not available"
+msgstr "الفترة %s غير متاحة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_generate_slots__duration
+msgid "Slot Duration"
+msgstr "مدة الفترة الزمنية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__start_date
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__start_date
+msgid "Start Date"
+msgstr "تاريخ البداية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment_slot__start_hour
+msgid "Starting Hour"
+msgstr "ساعة البداية"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__state
+msgid "State"
+msgstr "الحالة"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"الحالة على أساس الأنشطة\n"
+"المتأخرة: تاريخ الاستحقاق مر\n"
+"اليوم: تاريخ النشاط هو اليوم\n"
+"المخطط: الأنشطة المستقبلية."
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_loyalty_exchange_log__type
+msgid "Type"
+msgstr "النوع"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "نوع النشاط الاستثنائي المسجل."
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__vehicle_vin_sn
+msgid "Unique number written on the vehicle motor (VIN/SN number)"
+msgstr "رقم فريد مسجل على محرك المركبة (رقم VIN/SN)"
+
+#. module: appointment_management
+#: model:ir.model,name:appointment_management.model_fleet_vehicle
+#: model:ir.model.fields,field_description:appointment_management.field_account_bank_statement_line__vehicle_id
+#: model:ir.model.fields,field_description:appointment_management.field_account_move__vehicle_id
+#: model:ir.model.fields,field_description:appointment_management.field_account_payment__vehicle_id
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__vehicle_id
+#: model:ir.model.fields,field_description:appointment_management.field_sale_order__vehicle_id
+msgid "Vehicle"
+msgstr "المركبة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__vehicle_color_id
+msgid "Vehicle Color"
+msgstr "لون السيارة"
+
+#. module: appointment_management
+#: model:res.groups,name:appointment_management.group_appointment_viewer_all
+msgid "View all branches appointments"
+msgstr "الاطلاع على مواعيد كل الفروع"
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#: model:ir.model.fields.selection,name:appointment_management.selection__car_appointment__state__waiting
+#, python-format
+msgid "Waiting"
+msgstr "انتظار"
+
+#. module: appointment_management
+#. odoo-javascript
+#: code:addons/appointment_management/static/src/xml/appointment_dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_view_search
+#, python-format
+msgid "Waiting Appointments"
+msgstr "المواعيد المعلقة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__wallet_balance
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__wallet_balance
+msgid "Wallet Balance"
+msgstr "رصيد المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_partner__wallet_card_id
+#: model:ir.model.fields,field_description:appointment_management.field_res_users__wallet_card_id
+msgid "Wallet Card"
+msgstr "بطاقة المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_res_company__wallet_program_id
+msgid "Wallet Program"
+msgstr "برنامج المحفظة"
+
+#. module: appointment_management
+#: model:ir.model.fields,field_description:appointment_management.field_car_appointment__website_message_ids
+msgid "Website Messages"
+msgstr "رسائل الموقع"
+
+#. module: appointment_management
+#: model:ir.model.fields,help:appointment_management.field_car_appointment__website_message_ids
+msgid "Website communication history"
+msgstr "سجل تواصل الموقع"
+
+#. module: appointment_management
+#: model:ir.model.fields.selection,name:appointment_management.selection__loyalty_exchange_log__type__yougotagift_loyalty_exchange
+msgid "You GotaGift Loyalty exchange to Wallet"
+msgstr "استبدال ولاء YouGotaGift إلى المحفظة"
+
+#. module: appointment_management
+#: model:mail.template,subject:appointment_management.email_template_appointment_confirmation
+msgid "Your Appointment Confirmation - {{ object.name }}"
+msgstr "تأكيد موعدك - {{ object.name }}"
+
+#. module: appointment_management
+#. odoo-python
+#: code:addons/appointment_management/models/car_appointment.py:0
+#, python-format
+msgid "Your appointment has been confirmed"
+msgstr "تم تأكيد موعدك"
+
+#. module: appointment_management
+#: model_terms:ir.ui.view,arch_db:appointment_management.car_appointment_slot_view_tree
+msgid "false"
+msgstr "خاطئ"

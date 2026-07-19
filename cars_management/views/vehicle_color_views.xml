@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id='vehicle_color_view_tree' model='ir.ui.view'>
+        <field name="name">vehicle.color.tree</field>
+        <field name="model">vehicle.color</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="name" />
+                <field name="color" widget="color_picker" />
+            </tree>
+        </field>
+    </record>
+
+    <record id='vehicle_color_action' model='ir.actions.act_window'>
+        <field name="name">Colors</field>
+        <field name="res_model">vehicle.color</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem action="vehicle_color_action" parent="cars_configuration" id="vehicle_color_menu" sequence="2" />
+
+</odoo>

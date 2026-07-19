@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="payment_provider_portal_gateways" model="payment.provider">
+        <field name="name">Portal gateways</field>
+        <field name="sequence">40</field>
+        <field name="image_128" type="base64" file="payment_demo/static/description/icon.png" />
+        <field name="module_id" ref="base.module_payment_demo" />
+    </record>
+
+    <record id="account_payment_method_hyperpay" model="payment.method">
+        <field name="name">Hyper Pay</field>
+        <field name="code">hyperpay</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <record id="account_payment_method_tabby" model="payment.method">
+        <field name="name">Tabby</field>
+        <field name="code">tabby</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <record id="account_payment_method_wallet1" model="payment.method">
+        <field name="name">Wallet</field>
+        <field name="code">wallet</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <record id="account_payment_method_qitaf" model="payment.method">
+        <field name="name">Qitaf points</field>
+        <field name="code">qitaf</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <record id="account_payment_method_rajhi" model="payment.method">
+        <field name="name">My Rajhi Points</field>
+        <field name="code">rajhi</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <record id="account_payment_method_mylist" model="payment.method">
+        <field name="name">myList</field>
+        <field name="code">mylist</field>
+        <field name="provider_ids" eval="[Command.link(ref('portal_api.payment_provider_portal_gateways'))]" />
+    </record>
+    <!--  Portal base url -->
+    <record model="ir.config_parameter" id="ir_config_parameter_portal_url" forcecreate="False">
+        <field name="key">web.base.portal_url</field>
+        <field name="value">https://web-test.autochapeau.com</field>
+    </record>
+
+</odoo>

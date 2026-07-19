@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="portal_privacy_policy_view_tree" model="ir.ui.view">
+        <field name="name">portal.privacy.policy.tree</field>
+        <field name="model">portal.privacy.policy</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="summary" />
+            </tree>
+        </field>
+    </record>
+
+    <record id='portal_privacy_policy_view_form' model='ir.ui.view'>
+        <field name="name">portal.privacy.policy.form</field>
+        <field name="model">portal.privacy.policy</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="summary" />
+                            <field name="details" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id='portal_privacy_policy_action' model='ir.actions.act_window'>
+        <field name="name">Privacy Policy page</field>
+        <field name="res_model">portal.privacy.policy</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="portal_privacy_policy_menu"
+        parent="portal_content_menu_root"
+        action="portal_privacy_policy_action"
+        sequence="11"
+    />
+
+</odoo>

@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_financial_report_accountant,name_account_financial_report_manager,model_account_financial_report,account.group_account_manager,1,1,1,1
+access_accounting_reporting,name_accounting_reporting,model_accounting_reporting,base.group_user,1,1,1,0
+access_account_account_type,name_account_account_type,model_account_account_type,base.group_user,1,1,1,1

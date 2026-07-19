@@ -1,0 +1,1064 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* work_orders
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 17:46+0000\n"
+"PO-Revision-Date: 2026-06-07 17:46+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Appointment</span>"
+msgstr "<span class=\"o_stat_text\">موعد</span>"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Check-In</span>"
+msgstr "<span class=\"o_stat_text\">تسجيل الدخول</span>"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Checkout</span>"
+msgstr "<span class=\"o_stat_text\">تسجيل الخروج</span>"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Invoices</span>"
+msgstr "<span class=\"o_stat_text\">الفواتير</span>"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Sale Order</span>"
+msgstr "<span class=\"o_stat_text\">أمر البيع</span>"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "<span class=\"o_stat_text\">Stock Transfert</span>"
+msgstr "<span class=\"o_stat_text\">نقل المخزون</span>"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_needaction
+msgid "Action Needed"
+msgstr "إجراء مطلوب"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__active
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__active
+msgid "Active"
+msgstr "نشط"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_ids
+msgid "Activities"
+msgstr "الأنشطة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "زخرفة استثناء النشاط"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_state
+msgid "Activity State"
+msgstr "حالة النشاط"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "أيقونة نوع النشاط"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__company_id
+msgid "Agency"
+msgstr "شركة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__appointment_id
+msgid "Appointment"
+msgstr "الموعد"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_tree
+msgid "Appointment Date"
+msgstr "تاريخ الموعد"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid ""
+"Are you sure you want to confirm this work order? this action will create a "
+"stock transfert!"
+msgstr ""
+"هل أنت متأكد أنك تريد تأكيد أمر العمل هذا؟ سيتسبب هذا الإجراء في إنشاء نقل "
+"مخزون!"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Are you sure you want to proceed?"
+msgstr "هل أنت متأكد أنك تريد المتابعة؟"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_attachment_count
+msgid "Attachment Count"
+msgstr "عدد المرفقات"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__attachment_ids
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Attachments"
+msgstr "المرفقات "
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid "Aucune commande liée"
+msgstr "لا يوجد طلب مرتبط"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#: code:addons/work_orders/models/car_work_order.py:0
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid "Aucune sale order n'est liée à cet ordre de travail."
+msgstr "لا يوجد أمر بيع مرتبط بأمر العمل هذا."
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_product_product__bom_ids
+#: model_terms:ir.ui.view,arch_db:work_orders.product_normal_form_view_inherit_car
+msgid "BOM"
+msgstr "قائمة المواد"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_appointment__branch_id
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__branch_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__branch_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__branch_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__branch_id
+#: model:ir.model.fields,field_description:work_orders.field_stock_warehouse__branch_id
+msgid "Branch"
+msgstr "الفرع"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_appointment__branch_id
+msgid "Branch linked to the appointment."
+msgstr "الفرع المرتبط بالموعد."
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_stock_warehouse__branch_id
+msgid "Branch linked to warehouse."
+msgstr "الفرع المرتبط بالمستودع."
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_workcenter__branch_id
+#: model:ir.model.fields,help:work_orders.field_car_workshop__branch_id
+msgid "Branch related to the employee"
+msgstr "الفرع المرتبط بالموظف"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__branch_id
+#: model:ir.model.fields,help:work_orders.field_car_workorder_service__branch_id
+msgid "Branch selected in check-in."
+msgstr "الفرع المحدد في الاستلام."
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_workorderservice_view_form
+msgid "Break"
+msgstr "استراحة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+#: model_terms:ir.ui.view,arch_db:work_orders.view_quality_refuse_reason_wizard
+msgid "Cancel"
+msgstr "إلغاء"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__cancelled
+#: model:ir.model.fields.selection,name:work_orders.selection__car_workorder_service__state__cancel
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__cancelled
+msgid "Cancelled"
+msgstr "تم الإلغاء "
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_appointment
+msgid "Car Appointment"
+msgstr "حجز موعد للسيارة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__car_checkin_id
+msgid "Car Checkin"
+msgstr "إستلام السيارة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__car_checkout_id
+msgid "Car Checkout"
+msgstr "تسليم السيارة"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_work_order
+#: model:ir.model.fields,field_description:work_orders.field_car_appointment__car_work_order_id
+#: model:ir.model.fields,field_description:work_orders.field_car_checkout__car_work_order_id
+msgid "Car Work Order"
+msgstr "أمر عمل السيارة"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_checkout
+msgid "Car checkout"
+msgstr "تسليم السيارة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Car information"
+msgstr "معلومات السيارة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__vehicle_vin_sn
+msgid "Chassis Number"
+msgstr "رقم الشاسيه"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Check Quality"
+msgstr "فحص الجودة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_tree
+msgid "Check-in Date"
+msgstr "تاريخ الاستلام"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__checkin_state
+msgid "Check-in Status"
+msgstr "حالة تسجيل الدخول"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid ""
+"Check-in must be completed (status 'Done') before you can confirm this work "
+"order."
+msgstr ""
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__checked
+msgid "Checked"
+msgstr "تم الفحص"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__code
+msgid "Code"
+msgstr "رمز "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__company_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__company_id
+msgid "Company"
+msgstr "فرع"
+
+#. module: work_orders
+#: model:ir.ui.menu,name:work_orders.car_work_order_menu_configuration
+msgid "Configuration"
+msgstr "التهيئة "
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+#: model_terms:ir.ui.view,arch_db:work_orders.view_quality_refuse_reason_wizard
+msgid "Confirm"
+msgstr "تأكيد"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Confirm QA"
+msgstr "تأكيد مراقبة الجودة"
+
+#. module: work_orders
+#. odoo-javascript
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__confirmed
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__confirmed
+#, python-format
+msgid "Confirmed"
+msgstr "تم التأكيد "
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_search
+msgid "Confirmed Work orders"
+msgstr "أوامر العمل المؤكدة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Create Invoice"
+msgstr "إنشاء فاتورة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Create Sub Order"
+msgstr "إنشاء طلب فرعي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__create_uid
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__create_date
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__create_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__create_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__create_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__create_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__create_date
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__create_date
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__create_date
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__partner_id
+msgid "Customer"
+msgstr "العميل"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Customer information"
+msgstr "معلومات العميل"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__date_checkin
+msgid "Date"
+msgstr "التاريخ"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__date_end
+msgid "Date End"
+msgstr "تاريخ الانتهاء "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__date_start
+msgid "Date Start"
+msgstr "تاريخ البدء"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__display_name
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__display_name
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__display_name
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__display_name
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__display_name
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__display_name
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__display_name
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__display_name
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__display_name
+msgid "Display Name"
+msgstr "اسم العرض "
+
+#. module: work_orders
+#. odoo-javascript
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__done
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__done
+#, python-format
+msgid "Done"
+msgstr "منتهي "
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_search
+msgid "Done Work orders"
+msgstr "أوامر العمل المنجزة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__duration_hours
+msgid "Duration (hours)"
+msgstr "المدة (ساعات)"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__partner_email
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.view_staff_simple_tree
+msgid "Employee Name"
+msgstr "اسم الموظف"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__employee_ids
+msgid "Employees"
+msgstr "الموظفون"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.view_quality_refuse_reason_wizard
+msgid "Enter the reason for refusal..."
+msgstr "أدخل سبب الرفض..."
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__expected_duration
+#: model:ir.model.fields,field_description:work_orders.field_product_product__expected_duration
+msgid "Expected Duration"
+msgstr "المدة المتوقعة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__expected_finish_date
+msgid "Expected Finish Date"
+msgstr "تاريخ الانتهاء المتوقع"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid "Failed to send SMS: %s"
+msgstr "فشل إرسال الرسالة النصية: %s"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_workorderservice_view_form
+msgid "Finish"
+msgstr "إنهاء"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_workorder_service__state__done
+msgid "Finished"
+msgstr "مُنتهي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_follower_ids
+msgid "Followers"
+msgstr "المتابعين"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "المتابعين (الشركاء) "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "أيقونة من Font awesome مثال: fa-tasks "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__has_message
+msgid "Has Message"
+msgstr "يحتوي على رسالة "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__id
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__id
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__id
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__id
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__id
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__id
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__id
+#: model_terms:ir.ui.view,arch_db:work_orders.view_staff_simple_tree
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_exception_icon
+msgid "Icon"
+msgstr "الأيقونة"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "الأيقونة للإشارة إلى النشاط المستثنى. "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "إذا كان محددًا، فهناك رسائل جديدة عليك رؤيتها. "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__message_has_error
+#: model:ir.model.fields,help:work_orders.field_car_work_order__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "إذا كان محددًا، فقد حدث خطأ في تسليم بعض الرسائل."
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_workorder_service__state__progress
+msgid "In Progress"
+msgstr "قيد التنفيذ"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_is_follower
+msgid "Is Follower"
+msgstr "متابع"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__write_uid
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__write_date
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__write_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__write_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__write_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__write_date
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__write_date
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__write_date
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__write_date
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__vehicle_license_plate
+msgid "License Plate"
+msgstr "لوحة السيارة "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__vehicle_license_plate
+msgid "License plate number of the vehicle (i = plate number for a car)"
+msgstr "رقم لوحة المركبة (i = رقم لوحة لسيارة) "
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.view_picking_form_inherit_work_orders
+msgid "Mark To Do"
+msgstr "تعيين كمنتظر التنفيذ"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Mark as done"
+msgstr "التعيين كمنتهي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_has_error
+msgid "Message Delivery error"
+msgstr "خطأ في تسليم الرسائل"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_ids
+msgid "Messages"
+msgstr "الرسائل"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_bom
+msgid "Model year"
+msgstr "قائمة مواد السيارة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "الموعد النهائي لنشاطاتي "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workcenter__name
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__name
+#: model:ir.model.fields,field_description:work_orders.field_qa_check_item__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__new
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__new
+msgid "New"
+msgstr "جديد"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "الفعالية التالية في تقويم الأنشطة "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "الموعد النهائي للنشاط التالي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_summary
+msgid "Next Activity Summary"
+msgstr "ملخص النشاط التالي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_type_id
+msgid "Next Activity Type"
+msgstr "نوع النشاط التالي"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/wizard/quality_refuse_reason_wizard.py:0
+#, python-format
+msgid "No work order found."
+msgstr "لم يتم العثور على أمر عمل."
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__notes
+msgid "Notes"
+msgstr "الملاحظات"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Notes ..."
+msgstr "ملاحظات ..."
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_needaction_counter
+msgid "Number of Actions"
+msgstr "عدد الإجراءات"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_has_error_counter
+msgid "Number of errors"
+msgstr "عدد الأخطاء "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "عدد الرسائل الحادث بها خطأ في التسليم"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_sale_order__order_state
+msgid "Order State"
+msgstr "حالة الطلب"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__parent_id
+msgid "Parent Work Order"
+msgstr "أمر العمل الأصلي"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__pause_duration
+msgid "Pause Duration (seconds)"
+msgstr "مدة الإيقاف المؤقت (ثوانٍ)"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__pause_start
+msgid "Pause Start"
+msgstr "بداية الإيقاف المؤقت"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__partner_phone
+msgid "Phone"
+msgstr "رقم الهاتف"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_search
+msgid "Phone / Mobile"
+msgstr "هاتف / جوال"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__partner_phone_search
+msgid "Phone Search"
+msgstr "بحث بالهاتف"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__product_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__product_id
+msgid "Product"
+msgstr "المنتج"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_product_product
+msgid "Product Variant"
+msgstr "متغير المنتج "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__product_ids
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Products"
+msgstr "المنتجات"
+
+#. module: work_orders
+#. odoo-javascript
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__progress
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__progress
+#, python-format
+msgid "Progress"
+msgstr "مدى التقدم "
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_qa_check_item
+msgid "QA Check Item"
+msgstr "عنصر فحص الجودة"
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.action_qa_check_item
+#: model:ir.ui.menu,name:work_orders.menu_qa_check_item
+msgid "QA Check Items"
+msgstr "عناصر فحص الجودة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__qa_check_item_ids
+msgid "QA Check List"
+msgstr "قائمة فحص الجودة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "QA List"
+msgstr "قائمة الجودة"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/wizard/quality_refuse_reason_wizard.py:0
+#, python-format
+msgid "QA Refusal Reason: %s"
+msgstr "سبب رفض الجودة: %s"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__qa_check_item_id
+msgid "Qa Check Item"
+msgstr "عنصر فحص الجودة"
+
+#. module: work_orders
+#: model:res.groups,name:work_orders.group_quality_manager
+msgid "Quality Manager"
+msgstr "مدير الجودة"
+
+#. module: work_orders
+#: model:res.groups,name:work_orders.group_quality_officer
+msgid "Quality Officer"
+msgstr "مسؤول الجودة"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_quality_refuse_reason_wizard
+msgid "Quality Refuse Reason Wizard"
+msgstr "معالج سبب رفض الجودة"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__quality
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__quality
+msgid "Quality check"
+msgstr "فحص الجودة"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_work_order__state__quality_confirmed
+#: model:ir.model.fields.selection,name:work_orders.selection__sale_order__order_state__quality_confirmed
+msgid "Quality confirmed"
+msgstr "تم تأكيد الجودة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__quantity
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__quantity
+msgid "Quantity"
+msgstr "الكمية"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__rating_ids
+msgid "Ratings"
+msgstr "التقييمات"
+
+#. module: work_orders
+#: model:ir.model.fields.selection,name:work_orders.selection__car_workorder_service__state__ready
+msgid "Ready"
+msgstr "جاهز"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_quality_refuse_reason_wizard__reason
+msgid "Reason for Refusal"
+msgstr "سبب الرفض"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__name
+msgid "Ref."
+msgstr "الاسم"
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.action_quality_refuse_reason_wizard
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__refuse_reason
+#: model_terms:ir.ui.view,arch_db:work_orders.view_quality_refuse_reason_wizard
+msgid "Refusal Reason"
+msgstr "سبب الرفض"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Refuse QA"
+msgstr "رفض مراقبة الجودة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Required"
+msgstr "مطلوب"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__activity_user_id
+msgid "Responsible User"
+msgstr "المستخدم المسؤول"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "خطأ في تسليم الرسائل النصية القصيرة "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__sale_order_id
+msgid "Sale Order"
+msgstr "أمر البيع"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_sale_order
+msgid "Sales Order"
+msgstr "أمر البيع"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_bom__service_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__service_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__product_id
+msgid "Service"
+msgstr "الخدمة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__service_ids
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+msgid "Services"
+msgstr "الخدمات"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__vehicle_size
+msgid "Size"
+msgstr "الحجم"
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.car_workshop_staff_action
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__staff_ids
+#: model:ir.model.fields,field_description:work_orders.field_car_workshop__staff_ids
+#: model:ir.ui.menu,name:work_orders.car_workshop_staff_menu
+msgid "Staff"
+msgstr "الموظفون"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_workshop__staff_ids
+msgid "Staff members for this workshop"
+msgstr "الموظفون في هذه الورشة"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_form
+#: model_terms:ir.ui.view,arch_db:work_orders.car_workorderservice_view_form
+msgid "Start"
+msgstr "بدء"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__date_appointment
+msgid "Start Date"
+msgstr "تاريخ البدء"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__state
+msgid "State"
+msgstr "الولاية "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__state
+msgid "Status"
+msgstr "الحالة"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"الأنشطة المعتمدة على الحالة\n"
+"المتأخرة: تاريخ الاستحقاق مر\n"
+"اليوم: تاريخ النشاط هو اليوم\n"
+"المخطط: الأنشطة المستقبلية."
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__picking_id
+msgid "Stock Transfert"
+msgstr "نقل المخزون"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__child_ids
+msgid "Sub Orders"
+msgstr "الطلبات الفرعية"
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_workorderservice_view_form
+msgid "Task"
+msgstr "مهمة"
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.car_workorder_service_action
+#: model:ir.ui.menu,name:work_orders.car_workorder_service_menu
+msgid "Tasks"
+msgstr "المهام"
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "نوع النشاط المستثنى في السجل. "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__vehicle_vin_sn
+msgid "Unique number written on the vehicle motor (VIN/SN number)"
+msgstr "رقم فريد مسجل على محرك المركبة (رقم VIN/SN)"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_fleet_vehicle
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__vehicle_id
+msgid "Vehicle"
+msgstr "المركبة"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__vehicle_color_id
+msgid "Vehicle Color"
+msgstr "لون السيارة"
+
+#. module: work_orders
+#: model:res.groups,name:work_orders.group_work_order_viewer_all
+msgid "View All Work Orders"
+msgstr "عرض جميع أوامر العمل"
+
+#. module: work_orders
+#. odoo-javascript
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: code:addons/work_orders/static/src/xml/workorder_dashboard.xml:0
+#: model:ir.model.fields.selection,name:work_orders.selection__car_workorder_service__state__waiting
+#, python-format
+msgid "Waiting"
+msgstr "قيد الانتظار "
+
+#. module: work_orders
+#: model_terms:ir.ui.view,arch_db:work_orders.car_work_order_view_search
+msgid "Waiting Work orders"
+msgstr "أوامر العمل المنتظرة"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_stock_warehouse
+msgid "Warehouse"
+msgstr "المستودع "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_product_product__warranty
+msgid "Warranty"
+msgstr "الضمان"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_work_order__website_message_ids
+msgid "Website Messages"
+msgstr "رسائل الموقع الإلكتروني "
+
+#. module: work_orders
+#: model:ir.model.fields,help:work_orders.field_car_work_order__website_message_ids
+msgid "Website communication history"
+msgstr "سجل تواصل الموقع الإلكتروني "
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.car_workcenter_action
+#: model:ir.ui.menu,name:work_orders.car_workcenter_menu
+msgid "Work Centers"
+msgstr "مراكز العمل"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_workorder_qa_check_item
+msgid "Work Order QA Check Item"
+msgstr "عنصر فحص جودة أمر العمل"
+
+#. module: work_orders
+#: model:ir.ui.menu,name:work_orders.car_work_order_menu_root
+msgid "Work Orders"
+msgstr "أوامر العمل "
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_workcenter
+msgid "Work center"
+msgstr "مركز العمل "
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.car_work_order_action
+#: model:ir.module.category,name:work_orders.module_category_work_orders
+#: model:ir.ui.menu,name:work_orders.car_work_order_menu
+#: model_terms:ir.ui.view,arch_db:work_orders.fleet_vehicle_view_form_inherit_workorder
+msgid "Work orders"
+msgstr "أوامر العمل"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__workcenter_id
+msgid "Workcenter"
+msgstr "مركز العمل"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__workorder_id
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__workorder_id
+#: model:ir.model.fields,field_description:work_orders.field_workorder_qa_check_item__workorder_id
+msgid "Workorder"
+msgstr "أمر العمل "
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_fleet_vehicle__workorder_count
+msgid "Workorder Count"
+msgstr "عدد أوامر العمل"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_workorder_service
+msgid "Workorder Service"
+msgstr "خدمة أمر العمل"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_workorder_product
+msgid "Workorder product"
+msgstr "منتج أمر العمل"
+
+#. module: work_orders
+#: model:ir.model,name:work_orders.model_car_workshop
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_service__workshop_id
+msgid "Workshop"
+msgstr "ورشة العمل"
+
+#. module: work_orders
+#: model:res.groups,name:work_orders.group_workshop_employee
+msgid "Workshop Employee"
+msgstr "موظف الورشة"
+
+#. module: work_orders
+#: model:res.groups,name:work_orders.group_workshop_manager
+msgid "Workshop Manager"
+msgstr "مدير الورشة"
+
+#. module: work_orders
+#: model:ir.actions.act_window,name:work_orders.car_workshop_action
+#: model:ir.ui.menu,name:work_orders.car_workshop_menu
+msgid "Workshops"
+msgstr "ورش العمل"
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid "You must add at least one service before confirming the work order."
+msgstr "يجب إضافة خدمة واحدة على الأقل قبل تأكيد أمر العمل."
+
+#. module: work_orders
+#. odoo-python
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid ""
+"You must select at least one staff on a service before confirming the work "
+"order."
+msgstr ""

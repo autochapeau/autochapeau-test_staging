@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_order_form_inherit_cars_management" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.cars_management</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='analytic_account_id']" position="after">
+                <field name="branch_id"/>
+            </xpath>
+            <group name="sale_reporting" position="after">
+                <group name="donation_details" string="Donation Details">
+                    <field name="donation_amount" />
+                </group>
+            </group>
+            <!-- add block Order Type in Other Info tab , under block Tracking -->
+            <xpath expr="//page[@name='other_information']/group/group[field[@name='donation_amount']]" position="after">
+                <group string="Order Type">
+                    <field name="order_type" widget="radio"/>
+                    <field name="agency_id" invisible="order_type != 'extern'"/>
+                    <field name="agency_salesperson_id" context="{'hide_company_name': True}" invisible="order_type != 'extern'"/>
+                    <field name="commission_amount" invisible="order_type != 'extern'"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

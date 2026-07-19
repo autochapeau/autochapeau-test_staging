@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+     <menuitem
+        id="portal_content_menu_root"
+        name="Portal Contents"
+        web_icon="portal_content,static/description/icon.png"
+        sequence="5"
+    />
+
+</odoo>

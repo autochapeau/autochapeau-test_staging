@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_department_form_inherit_branch" model="ir.ui.view">
+        <field name="name">hr.department.form.inherit.branch</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="department_type"/>
+                <field name="analytic_account_id"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="code"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_hr_department_tree_inherit_code" model="ir.ui.view">
+        <field name="name">hr.department.tree.inherit.code</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="code"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

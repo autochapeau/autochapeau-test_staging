@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="product_category_form_view_inherit_car" model="ir.ui.view">
+        <field name="name">product.category.view.form.inherit.car</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view" />
+        <field name="arch" type="xml">
+            <field name="parent_id" position="after">
+                <field name="category_type" required="1" />
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_only_form_view" model="ir.ui.view">
+        <field name="name">product.product.view.form.inherit.cars_management</field>
+        <field name="model">product.template</field>
+        <field name="priority">100</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_standard_price']/field[@name='company_id']" position="replace">
+                <field name="company_id" invisible="1" />
+                <field name="company_ids" widget="many2many_tags" />
+            </xpath>
+            <page name="general_information" position="inside">
+                <group string="Website description">
+                    <field colspan="2" name="description_website" nolabel="1" />
+                </group>
+            </page>
+            <page name="variants" position="after">
+                <page string="Features">
+                    <field name="feature_ids" />
+                    <group string="Features Description">
+                        <field name="features_description" colspan="2" nolabel="1" />
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

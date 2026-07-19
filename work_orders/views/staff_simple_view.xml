@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_staff_simple_tree" model="ir.ui.view">
+        <field name="name">hr.employee.staff.simple.tree</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="id" string="ID" readonly="1"/>
+                <field name="name" string="Employee Name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="car_workshop_staff_action" model="ir.actions.act_window">
+        <field name="name">Staff</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">tree</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('work_orders.view_staff_simple_tree')})]"/>
+    </record>
+    <record id="car_workshop_staff_menu" model="ir.ui.menu">
+        <field name="name">Staff</field>
+        <field name="parent_id" ref="car_work_order_menu_configuration"/>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

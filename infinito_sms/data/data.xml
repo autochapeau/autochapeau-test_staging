@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+
+    <record id="infinito_client_id" model="ir.config_parameter">
+        <field name="key">infinito_client_id</field>
+        <field name="value">autochapeaubjatcyv90svw6</field>
+    </record>
+    <record id="infinito_client_password" model="ir.config_parameter">
+        <field name="key">infinito_client_password</field>
+        <field name="value">4t99y7jjgpa9chkcc9jzuitubrbbz2tv</field>
+    </record>
+
+</odoo>

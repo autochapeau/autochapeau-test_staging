@@ -1,0 +1,621 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_balance_sheet_report
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-13 11:08+0000\n"
+"PO-Revision-Date: 2024-06-13 11:08+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "<strong>Date from :</strong>"
+msgstr "<strong>التاريخ من :</strong>"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "<strong>Date to :</strong>"
+msgstr "<strong>التاريخ إلى:</strong>"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "<strong>Target Moves:</strong>"
+msgstr "<strong>الحركات المستهدفة:</strong>"
+
+#. module: account_balance_sheet_report
+#: model:ir.model,name:account_balance_sheet_report.model_account_financial_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__children_ids
+msgid "Account Report"
+msgstr "تقرير الحساب"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__account_report_id
+msgid "Account Reports"
+msgstr "تقارير الحساب"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__type__account_type
+msgid "Account Type"
+msgstr "نوع الحساب"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__account_type_ids
+msgid "Account Types"
+msgstr "أنواع الحساب"
+
+#. module: account_balance_sheet_report
+#: model:ir.model,name:account_balance_sheet_report.model_accounting_reporting
+msgid "Accounting Reporting"
+msgstr "التقارير المحاسبية"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__account_ids
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__type__accounts
+msgid "Accounts"
+msgstr "الحسابات"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__accounting_reporting__target_move__all
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "All Entries"
+msgstr "كافة القيود"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__accounting_reporting__target_move__posted
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "All Posted Entries"
+msgstr "القيود المرحلة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_assets0
+msgid "Assets"
+msgstr "الأصول"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__0
+msgid "Automatic formatting"
+msgstr "تنسيق تلقائي"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "Balance"
+msgstr "الرصيد"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_balancesheet0
+#: model:ir.actions.act_window,name:account_balance_sheet_report.action_account_report_bs
+#: model:ir.ui.menu,name:account_balance_sheet_report.menu_account_report_bs
+msgid "Balance Sheet"
+msgstr "الميزانية العمومية"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "Balance Sheet Report"
+msgstr "تقرير الميزانية العمومية"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "Balance Sheet Report: from  %s"
+msgstr "تقرير الميزانية العمومية: من %s"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__label_filter
+msgid "Column Label"
+msgstr "تسمية العمود"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__company_id
+msgid "Company"
+msgstr "الشركة"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "Comparison"
+msgstr "مقارنة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__create_uid
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__create_date
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "Credit"
+msgstr "الدائن"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__accounting_reporting__filter_cmp__filter_date
+msgid "Date"
+msgstr "التاريخ"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "Dates"
+msgstr "التواريخ"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "Debit"
+msgstr "المدين"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__debit_credit
+msgid "Display Debit/Credit Columns"
+msgstr "عرض أعمدة الخصم / الائتمان"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__display_name
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__display_name
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_a_b_s_report_financial_xlsx__display_name
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_account_balance_sheet_report_report_financial__display_name
+msgid "Display Name"
+msgstr "الاسم المعروض"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__display_detail__detail_flat
+msgid "Display children flat"
+msgstr "عرض الأبناء مسطح"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__display_detail__detail_with_hierarchy
+msgid "Display children with hierarchy"
+msgstr "عرض الأبناء مع التسلسل الهرمي"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__display_detail
+msgid "Display details"
+msgstr "عرض التفاصيل"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__enable_filter
+msgid "Enable Comparison"
+msgstr "تمكين المقارنة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__date_to
+msgid "End Date"
+msgstr "تاريخ الانتهاء"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__date_to_cmp
+msgid "End Date Compare"
+msgstr "تاريخ الانتهاء للمقارنة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_expense0
+msgid "Expense"
+msgstr "المصروف"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__filter_cmp
+msgid "Filter by"
+msgstr "تصفية حسب:"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__style_overwrite
+msgid "Financial Report Style"
+msgstr "نمط التقرير المالي"
+
+#. module: account_balance_sheet_report
+#: model:ir.actions.report,name:account_balance_sheet_report.action_report_financial_xlsx
+msgid "Financial report (Excel)"
+msgstr "التقرير المالي اكسل"
+
+#. module: account_balance_sheet_report
+#: model:ir.actions.report,name:account_balance_sheet_report.action_report_financial
+msgid "Financial report PDF"
+msgstr "التقرير المالي PDF"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,help:account_balance_sheet_report.field_account_financial_report__sign
+msgid ""
+"For accounts that are typically more debited than credited and that you "
+"would like to print as negative amounts in your reports, you should reverse "
+"the sign of the balance; e.g.: Expense account. The same applies for "
+"accounts that are typically more credited than debited and that you would "
+"like to print as positive amounts in your reports; e.g.: Income account."
+msgstr ""
+"بالنسبة للحسابات التي يتم خصمها عادةً أكثر من الدائن وأنك ترغب في الطباعة "
+"كمبالغ سالبة في تقاريرك ، عليك عكس علامة الرصيد ؛ على سبيل المثال: حساب "
+"المصاريف. وينطبق الشيء نفسه على الحسابات التي يتم إيداعها عادةً أكثر من "
+"الخصم والتي تريدهاأحب أن تطبع كمبالغ موجبة في تقاريرك ، على سبيل المثال: "
+"حساب الدخل."
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial.py:0
+#, python-format
+msgid "Form content is missing, this report cannot be printed."
+msgstr "بعض بيانات النموذج فارغة، لا يمكن طباعة هذا التقرير."
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__id
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__id
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_a_b_s_report_financial_xlsx__id
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_account_balance_sheet_report_report_financial__id
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_income0
+msgid "Income"
+msgstr "الدخل"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__5
+msgid "Italic Text (smaller)"
+msgstr "نص مائل (أصغر)"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__journal_ids
+msgid "Journals"
+msgstr "دفاتر اليومية"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report____last_update
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting____last_update
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_a_b_s_report_financial_xlsx____last_update
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_report_account_balance_sheet_report_report_financial____last_update
+msgid "Last Modified on"
+msgstr "آخر تعديل في"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__write_uid
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__write_date
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__level
+msgid "Level"
+msgstr "مستوى"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_liability0
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_liabilitysum0
+msgid "Liability"
+msgstr "مسؤولية"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__1
+msgid "Main Title 1 (bold, underlined)"
+msgstr "العنوان الرئيسي 1 (غامق ، مسطر)"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
+msgid "Name"
+msgstr "الاسم"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__accounting_reporting__filter_cmp__filter_no
+msgid "No Filters"
+msgstr "لا توجد فلاتر"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__display_detail__no_detail
+msgid "No detail"
+msgstr "بدون تفاصيل"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__4
+msgid "Normal Text"
+msgstr "نص عادي"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__parent_id
+msgid "Parent"
+msgstr "الأصل"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__sign__1
+msgid "Preserve balance sign"
+msgstr "حفظ علامة التوازن"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "Print PDF"
+msgstr "طباعة PDF"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "Print XLSX"
+msgstr "طباعة إكسل"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_profitloss_toreport0
+msgid "Profit (Loss) to report"
+msgstr "الربح (الخسارة) للتقرير"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_profitandloss0
+#: model:ir.actions.act_window,name:account_balance_sheet_report.action_account_report_pl
+#: model:ir.ui.menu,name:account_balance_sheet_report.menu_account_report_pl
+msgid "Profit and Loss"
+msgstr "الأرباح و الخسائر"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "Profit and loss report: from  %s"
+msgstr "تقرير الأرباح و الخسائر: من  %s"
+
+#. module: account_balance_sheet_report
+#: model:ir.model,name:account_balance_sheet_report.model_report_account_balance_sheet_report_report_financial
+msgid "Report Account Balance Sheet"
+msgstr "تقرير الميزانية العمومية"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__name
+msgid "Report Name"
+msgstr "اسم التقرير"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__account_report_id
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__type__account_report
+msgid "Report Value"
+msgstr "قيمة التقرير"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__sign__-1
+msgid "Reverse balance sign"
+msgstr "علامة التوازن العكسي"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__sequence
+msgid "Sequence"
+msgstr "المسلسل"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__sign
+msgid "Sign on Reports"
+msgstr "قم بتسجيل الدخول إلى التقارير"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__6
+msgid "Smallest Text"
+msgstr "أصغر نص"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__date_from
+msgid "Start Date"
+msgstr "تاريخ البداية"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__date_from_cmp
+msgid "Start Date Compare"
+msgstr "تاريخ البداية للمقارنة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__target_move
+msgid "Target Moves"
+msgstr "تحركات الهدف"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,help:account_balance_sheet_report.field_accounting_reporting__label_filter
+msgid ""
+"This label will be displayed on report to show the balance computed for the "
+"given comparison filter."
+msgstr ""
+"سيتم عرض هذه التسمية في التقرير لإظهار الرصيد المحسوب لـمرشح مقارنة معين."
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,help:account_balance_sheet_report.field_accounting_reporting__debit_credit
+msgid ""
+"This option allows you to get more details about the way your balances are "
+"computed. Because it is space consuming, we do not allow to use it while "
+"doing a comparison."
+msgstr ""
+"يتيح لك هذا الخيار الحصول على مزيد من التفاصيل حول الطريقة التي تكون بها "
+"أرصدتك محسوبة. لأنها تستهلك مساحة ، لا نسمح باستخدامها أثناءإجراء مقارنة."
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__2
+msgid "Title 2 (bold)"
+msgstr "العنوان 2 (غامق)"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__style_overwrite__3
+msgid "Title 3 (bold, smaller)"
+msgstr "العنوان 3 (غامق ، أصغر)"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_account_financial_report__type
+msgid "Type"
+msgstr "النوع"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__type__sum
+msgid "View"
+msgstr "أداة العرض"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,help:account_balance_sheet_report.field_account_financial_report__style_overwrite
+msgid ""
+"You can set up here the format you want this record to be displayed. If you "
+"leave the automatic formatting, it will be computed based on the financial "
+"reports hierarchy (auto-computed field 'level')."
+msgstr ""
+"يمكنك إعداد التنسيق الذي تريده لعرض هذا السجل. إذا كنت تركت التنسيق التلقائي"
+" ، سيتم احتسابه على أساس المالي التسلسل الهرمي للتقارير (مستوى الحقل المحسوب"
+" تلقائيًا)."
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "profit and loss report"
+msgstr "تقرير  الأرباح و الخسائر"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "to  %s"
+msgstr "إلى  %s"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "إلى  %s"
+msgstr ""
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "تقرير الأرباح و الخسائر"
+msgstr ""
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "تقرير الأرباح و الخسائر: من %s"
+msgstr ""
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "تقرير الميزانية العمومية"
+msgstr ""
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/report_financial_xlsx.py:0
+#, python-format
+msgid "تقرير الميزانية العمومية: من  %s"
+msgstr ""
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "Cancel"
+msgstr "إلغاء"
+
+#. module: account_balance_sheet_report
+#: model:ir.model,name:account_balance_sheet_report.model_report_a_b_s_report_financial_xlsx
+msgid "Report Financial XLSX"
+msgstr "التقرير المالي XLSX"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__off_balance
+msgid "Off-Balance Sheet"
+msgstr "خارج الميزانية العمومية"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_other_income
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__income_other
+msgid "Other Income"
+msgstr "دخل آخر"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_assets_receivable
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_receivable
+msgid "Receivable"
+msgstr "المدين"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_assets_cash
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_cash
+msgid "Bank and Cash"
+msgstr "البنك والنقد"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_assets_current
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_current
+msgid "Current Assets"
+msgstr "الأصول المتداولة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_asset_non_current
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_non_current
+msgid "Non-current Assets"
+msgstr "الأصول غير المتداولة"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__liability_non_current
+msgid "Non-current Liabilities"
+msgstr "الالتزامات غير المتداولة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_liability_non_current
+msgid "Non-Current Liabilities"
+msgstr "الالتزامات غير المتداولة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_asset_prepayments
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_prepayments
+msgid "Prepayments"
+msgstr "المدفوعات المسددة مقدمًا"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_asset_fixed
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__asset_fixed
+msgid "Fixed Assets"
+msgstr "أصول ثابتة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_liability_payable
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__liability_payable
+msgid "Payable"
+msgstr "الدائن"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__liability_credit_card
+msgid "Credit Card"
+msgstr "البطاقة الائتمانية"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_liability_current
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__liability_current
+msgid "Current Liabilities"
+msgstr "الالتزامات المتداولة"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_equity
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__equity
+msgid "Equity"
+msgstr "رأس المال"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__equity_unaffected
+msgid "Current Year Earnings"
+msgstr "أرباح السنة الجارية"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_expense
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__expense
+msgid "Expenses"
+msgstr "النفقات"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_depreciation
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__expense_depreciation
+msgid "Depreciation"
+msgstr "إهلاك"
+
+#. module: account_balance_sheet_report
+#: model:account.financial.report,name:account_balance_sheet_report.account_financial_report_expense_direct_cost
+#: model:ir.model.fields.selection,name:account_balance_sheet_report.selection__account_financial_report__account_type__expense_direct_cost
+msgid "Cost of Revenue"
+msgstr "تكاليف الإيرادات"
+
+

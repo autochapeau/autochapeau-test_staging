@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vehicle_color,access_vehicle_color,model_vehicle_color,base.group_user,1,1,1,0
+access_car_check_item,access_car_check_item,model_car_check_item,base.group_user,1,1,1,0
+
+access_car_checkin,access_car_checkin,model_car_checkin,base.group_user,1,1,1,0
+access_car_checkin_check_item,access_car_checkin_check_item,model_car_checkin_check_item,base.group_user,1,1,1,1
+
+access_car_checkout,access_car_checkout,model_car_checkout,base.group_user,1,1,1,0
+access_car_checkout_check_item,access_car_checkout_check_item,model_car_checkout_check_item,base.group_user,1,1,1,1
+
+access_car_model_year,access_car_model_year,model_car_model_year,base.group_user,1,1,1,1
+access_product_feature_all,access_product_feature_all,model_product_feature,base.group_user,1,0,0,0
+access_product_feature_sale_salesman,access_product_feature_sale_salesman,model_product_feature,sales_team.group_sale_salesman,1,1,1,0
+access_customer_membership_user,access_customer_membership_user,model_customer_membership_level,base.group_user,1,0,0,0
+access_customer_membership_manager,access_customer_membership_manager,model_customer_membership_level,sales_team.group_sale_manager,1,1,1,1

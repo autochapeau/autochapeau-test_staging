@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id='car_check_item_view_tree' model='ir.ui.view'>
+        <field name="name">car.check.item.tree</field>
+        <field name="model">car.check.item</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="id" string="ID" readonly="1"/>
+                <field name="name" />
+                <field name="check_in" widget="boolean_toggle"/>
+                <field name="check_out" widget="boolean_toggle"/>
+                <field name="required" widget="boolean_toggle" string="Required"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id='car_check_item_action' model='ir.actions.act_window'>
+        <field name="name">Check items</field>
+        <field name="res_model">car.check.item</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem action="car_check_item_action" parent="cars_configuration" id="car_check_item_menu" sequence="3" />
+
+</odoo>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_workorderservice_view_form" model="ir.ui.view">
+        <field name="name">car.workorder.service.form</field>
+        <field name="model">car.workorder.service</field>
+        <field name="arch" type="xml">
+            <form string="Task">
+                <header>
+                    <button name="action_start" type="object" string="Start" class="btn-primary"/>
+                    <button name="action_finish" type="object" string="Finish" class="btn-success"/>
+                    <button name="action_break" type="object" string="Break" class="btn-warning"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="workshop_id"/>
+                        </group>
+                        <group>
+                            <field name="workorder_id"/>
+                            <field name="workcenter_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="expected_duration"/>
+                        </group>
+                        <group>
+                            <field name="expected_finish_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="date_start"/>
+                        </group>
+                        <group>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="duration_hours" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="branch_id" invisible="1"/>
+                            <field name="staff_ids" widget="many2many_tags"
+                                domain="[('branch_id', '!=', False), ('branch_id', '=', workorder_id.branch_id)]"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="car_workorderservice_view_tree" model="ir.ui.view">
+        <field name="name">car.workorder.service.tree</field>
+        <field name="model">car.workorder.service</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id" />
+                <field name="workorder_id" />
+                <field name="workshop_id" />
+                <field name="workcenter_id" />
+                <field name="staff_ids" widget="many2many_tags" optional="show"/>
+                <field name="expected_duration" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state in ('waiting','ready')"
+                    decoration-danger="state == 'cancel'"
+                    decoration-warning="state == 'progress'"
+                    decoration-success="state == 'done'"
+                />
+            </tree>
+		</field>
+        </record>
+
+    <record id="car_workorder_service_action" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">car.workorder.service</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="car_workorder_service_menu"
+        name="Tasks"
+        parent="car_work_order_menu_root"
+        action="car_workorder_service_action"
+        sequence="10"
+    />
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="commission_tree">
+        <field name="name">commissions tree</field>
+        <field name="model">commission</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="commission_form">
+        <field name="name">commissions form</field>
+        <field name="model">commission</field>
+        <field name="arch" type="xml">
+            <form string="Commission">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active" />
+                    <group string="General information">
+                        <group>
+                            <field name="name" />
+                            <field name="active" invisible="1" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="rates_definition" string="Rates definition">
+                            <group string="Rates definition">
+                                <field name="section_ids" colspan="2" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="commission_category_id" string="Category" />
+                                        <field name="amount_from" />
+                                        <field name="amount_to" />
+                                        <field name="percent" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page name="discounts_effects" string="Discounts effects">
+                            <group string="Discounts effects">
+                                <field name="discount_section_ids" colspan="2" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="amount_from" />
+                                        <field name="amount_to" />
+                                        <field name="deduction_percent" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page name="targets" string="Targets">
+                            <group string="Targets by job position">
+                                <field name="job_target_ids" colspan="2" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="job_id" />
+                                        <field name="target" />
+                                    </tree>
+                                </field>
+                            </group>
+                            <group string="Targets by employee">
+                                <field name="employee_target_ids" colspan="2" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="employee_id" />
+                                        <field name="target" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="action_commission">
+        <field name="name">Commissions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">commission</field>
+        <field name="binding_view_types">form,tree</field>
+    </record>
+    <menuitem
+        name="Commissions"
+        id="menu_commission_type"
+        parent="commission.menu_commission_management"
+        action="action_commission"
+    />
+</odoo>

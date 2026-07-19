@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_checkout_view_search" model="ir.ui.view">
+        <field name="name">car.checkout.search</field>
+        <field name="model">car.checkout</field>
+        <field name="arch" type="xml">
+            <search>
+                <field
+                    name="name"
+                    filter_domain="['|', ('name', 'ilike', self), ('partner_phone_search', 'ilike', self)]"
+                />
+                <field name="partner_id" />
+                <field name="vehicle_id" />
+                <field
+                    name="partner_phone_search"
+                    string="Phone / Mobile"
+                    filter_domain="[('partner_phone_search', 'ilike', self)]"
+                />
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="car_checkout_view_tree" model="ir.ui.view">
+        <field name="name">car.checkout.tree</field>
+        <field name="model">car.checkout</field>
+        <field name="arch" type="xml">
+            <tree
+                decoration-info="state == 'draft'"
+                decoration-primary="state == 'progress'"
+                decoration-success="state == 'done'"
+                decoration-muted="state == 'cancelled'"
+            >
+                <field name="name" />
+                <field name="branch_id" readonly="1"/>
+                <field name="sale_order_id" options='{"no_create": True, "no_open": True}'/>
+                <field name="partner_id" />
+                <field name="vehicle_id" />
+                <field name="odometer" />
+                <field name="date" />
+                <field
+                    name="state"
+                    decoration-info="state == 'draft'"
+                    decoration-primary="state == 'progress'"
+                    decoration-success="state == 'done'"
+                    decoration-muted="state == 'cancelled'"
+                    widget="badge"
+                />
+            </tree>
+        </field>
+    </record>
+
+    <record id='car_checkout_view_form' model='ir.ui.view'>
+        <field name="name">car.checkout.form</field>
+        <field name="model">car.checkout</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_progress"
+                        string="Request approval"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'draft'"
+                    />
+                    <button
+                        name="action_checkout_send"
+                        id="send_by_email"
+                        string="Send by Email"
+                        type="object"
+                        invisible="state not in ('progress', 'done')"
+                    />
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'" />
+                    <button
+                        name="action_preview_checkout"
+                        string="Preview &amp; Sign"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="state == 'draft'"
+                    />
+                    <button
+                        name="action_pickup_now"
+                        string="Pickup"
+                        type="object"
+                        class="btn-secondary"
+                    />
+                    <button
+                        name="action_confirm"
+                        string="Confirm"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'progress'"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,progress,done" />
+                </header>
+                <sheet>
+                    <group>
+                            <group string="General information">
+                                <field name="name" invisible="id == False" />
+                                <field name="branch_id" readonly="1"/>
+                                <field name="date" readonly="state != 'draft'" />
+                                <field name="company_id" options="{'no_create': True}" readonly="state != 'draft'" />
+                                <field name="sale_order_id" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="employee_id" options="{'no_create': True}" readonly="state != 'draft'" />
+                            </group>
+                        <group string="OTP Verification" invisible="state != 'progress'">
+                            <field name="otp_code" invisible="1" />
+                            <field name="otp_code_input" invisible="state != 'progress'" />
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Car information">
+                            <field
+                                name="vehicle_id"
+                                context="{'form_view_ref': 'cars_management.fleet_vehicle_view_form'}"
+                                options="{'no_create': True}"
+                                readonly="state != 'draft'"
+                            />
+                            <field name="vehicle_license_plate" />
+                            <field name="vehicle_vin_sn" />
+                            <field name="vehicle_color_id" />
+                            <field name="vehicle_size" />
+                            <field name="odometer" readonly="state != 'draft'" />
+                        </group>
+                        <group string="Customer information">
+                            <field name="partner_id" options="{'no_create': True}" readonly="state != 'draft'" />
+                            <field name="partner_phone" />
+                            <field name="partner_email" />
+                        </group>
+                        <group>
+                            <field name="photo_attachment_ids" widget="many2many_binary" readonly="state != 'draft'" />
+                            <field name="notes" options="{'no_create': True}" readonly="state != 'draft'" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Check items" name="check_items">
+                            <group>
+                                <label for="car_check_item_ids" string="" />
+                                <field nolabel="1" name="car_check_item_ids" readonly="state != 'draft'">
+                                    <tree editable="top">
+                                        <field name="car_check_item_id" />
+                                        <field name="checked" widget="boolean_toggle" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Services" name="services">
+                            <group>
+                                <field name="service_product_ids" widget="many2many_tags" readonly="state != 'draft'" />
+                            </group>
+                        </page>
+                        <page groups="base.group_no_one" string="Customer Signature" name="customer_signature">
+                            <group>
+                                <field name="signed_by" />
+                                <field name="signed_on" />
+                                <field name="signature" widget="image" />
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                     <field name="message_follower_ids" />
+                     <field name="activity_ids" />
+                     <field name="message_ids" />
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id='car_checkout_action' model='ir.actions.act_window'>
+        <field name="name">Checkouts</field>
+        <field name="res_model">car.checkout</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem id="car_checkout_menu" parent="cars_management_menu_root" action="car_checkout_action" sequence="3" />
+
+</odoo>

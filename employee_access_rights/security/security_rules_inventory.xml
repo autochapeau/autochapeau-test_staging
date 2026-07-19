@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+                   <!-- STOCK WAREHOUSE  -->
+
+    <!-- Branch Manager: sees all warehouses -->
+    <record id="rule_branch_manager_stock_warehouse" model="ir.rule">
+        <field name="name"> Branch Manager Warehouse </field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Branch Employee: only the warehouse(s) of his branch -->
+    <record id="rule_branch_employee_stock_warehouse" model="ir.rule">
+        <field name="name"> Branch Employee Warehouse </field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_employee'))]"/>
+        <field name="domain_force">[("branch_id", "in", user.sudo().employee_ids.branch_id.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- GLOBAL rule (no group, AND with all): enforces the branch filter for
+         branch employees only; managers/admins see everything. -->
+    <record id="rule_branch_global_stock_warehouse" model="ir.rule">
+        <field name="name"> Branch Global Warehouse </field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="domain_force">[('branch_id', 'in', user.sudo().employee_ids.branch_id.ids)] if (user.has_group('employee_access_rights.group_branch_employee') and not user.has_group('employee_access_rights.group_branch_manager')) else [(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+                   <!-- STOCK PICKING  -->
+
+    <!-- Branch Manager: sees every transfer -->
+    <record id="rule_branch_manager_stock_picking" model="ir.rule">
+        <field name="name"> Branch Manager Transfer </field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Branch Employee: only the transfers of his branch warehouse -->
+    <record id="rule_branch_employee_stock_picking" model="ir.rule">
+        <field name="name"> Branch Employee Transfer </field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_employee'))]"/>
+        <field name="domain_force">[("picking_type_id.warehouse_id.branch_id", "in", user.sudo().employee_ids.branch_id.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- GLOBAL rule (no group, AND with all) -->
+    <record id="rule_branch_global_stock_picking" model="ir.rule">
+        <field name="name"> Branch Global Transfer </field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="domain_force">[('picking_type_id.warehouse_id.branch_id', 'in', user.sudo().employee_ids.branch_id.ids)] if (user.has_group('employee_access_rights.group_branch_employee') and not user.has_group('employee_access_rights.group_branch_manager')) else [(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+                     <!-- STOCK PICKING TYPE  -->
+
+    <!-- Branch Manager: sees every operation type -->
+    <record id="rule_branch_manager_stock_picking_type" model="ir.rule">
+        <field name="name"> Branch Manager Picking type</field>
+        <field name="model_id" ref="stock.model_stock_picking_type"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Branch Employee: operation types of his branch -->
+    <record id="rule_branch_employee_stock_picking_type" model="ir.rule">
+        <field name="name"> Branch Employee Picking type</field>
+        <field name="model_id" ref="stock.model_stock_picking_type"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_employee'))]"/>
+        <field name="domain_force">['|', ("warehouse_id", "=", False), ("warehouse_id.branch_id", "in", user.sudo().employee_ids.branch_id.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- GLOBAL rule (no group, AND with all) -->
+    <record id="rule_branch_global_stock_picking_type" model="ir.rule">
+        <field name="name"> Branch Global Picking type</field>
+        <field name="model_id" ref="stock.model_stock_picking_type"/>
+        <field name="domain_force">['|', ('warehouse_id', '=', False), ('warehouse_id.branch_id', 'in', user.sudo().employee_ids.branch_id.ids)] if (user.has_group('employee_access_rights.group_branch_employee') and not user.has_group('employee_access_rights.group_branch_manager')) else [(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+</odoo>

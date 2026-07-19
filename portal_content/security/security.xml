@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.module.category" id="module_category_portal_content">
+        <field name="name">Portal Content</field>
+        <field name="sequence">45</field>
+    </record>
+
+    <record id="group_portal_content_manager" model="res.groups">
+        <field name="name">Portal Content Manager</field>
+        <field name="category_id" ref="module_category_portal_content" />
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+    </record>
+
+</odoo>

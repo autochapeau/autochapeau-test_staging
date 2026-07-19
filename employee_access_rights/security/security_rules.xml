@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Branch Manager -->
+
+    <record id="rule_branch_manager_sale_order" model="ir.rule">
+        <field name="name">Sale Order Branch Manager</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_manager'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Branch Employee -->
+
+    <record id="rule_branch_employee_sale_order" model="ir.rule">
+        <field name="name">Sale Order Branch Employee</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="groups" eval="[(4, ref('employee_access_rights.group_branch_employee'))]"/>
+            <field name="domain_force">[("branch_id", "in", user.sudo().employee_ids.branch_id.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- GLOBAL rule (no group): AND is mandatory with all other rules.
+      Enforces the branch filter on sale.order for branch employees. 
+      Other users (managers, admins) can see everything via [(1,'=',1)]. -->
+
+    <record id="rule_branch_global_sale_order" model="ir.rule">
+        <field name="name">Sale Order Branch Global</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="domain_force">[('branch_id', 'in', user.sudo().employee_ids.branch_id.ids)] if (user.has_group('employee_access_rights.group_branch_employee') and not user.has_group('employee_access_rights.group_branch_manager')) else [(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
