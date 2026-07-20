@@ -9,6 +9,7 @@
             <field name="detailed_type" position="after">
                 <field name="expected_duration" />
                 <field name="warranty" />
+                <field name="workshop_id" />
             </field>
             <page name="general_information" position="after">
                 <page string="BOM">

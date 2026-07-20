@@ -18,3 +18,5 @@ class ProductProduct(models.Model):
     bom_ids = fields.One2many("car.bom", "service_id", "BOM")
     expected_duration = fields.Float()
     warranty = fields.Float()
+
+    workshop_id = fields.Many2one("car.workshop", string="WorkShop")
