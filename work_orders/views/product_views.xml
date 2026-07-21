@@ -10,6 +10,7 @@
                 <field name="expected_duration" />
                 <field name="warranty" />
                 <field name="workshop_id" />
+                <field name="is_test" />
             </field>
             <page name="general_information" position="after">
                 <page string="BOM">

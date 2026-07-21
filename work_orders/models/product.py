@@ -21,3 +21,4 @@ class ProductProduct(models.Model):
 
     workshop_id = fields.Many2one("car.workshop", string="WorkShop")
     test = fields.Char(string="Test")
+    is_test = fields.Boolean()
