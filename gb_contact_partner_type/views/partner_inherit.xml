@@ -19,6 +19,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('contact_partner_type', '=', 'customer')]</field>
+        <field name="context">{'default_contact_partner_type': 'customer'}</field>
     </record>
 
     <record id="partner_supplier_action" model="ir.actions.act_window">
@@ -27,6 +28,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('contact_partner_type', '=', 'supplier')]</field>
+        <field name="context">{'default_contact_partner_type': 'supplier'}</field>
     </record>
 
     <record id="partner_employee_action" model="ir.actions.act_window">
@@ -46,7 +48,8 @@
     <menuitem id="menu_item_supplier_menu" name="Supplier"
               parent="contacts.menu_contacts"
               action="partner_supplier_action" sequence="2"
-              groups="gb_contact_partner_type.group_contact_supplier"/>
+              groups="gb_contact_partner_type.group_contact_supplier"
+    />
 
     <menuitem id="menu_item_employee_menu" name="Employee"
               parent="contacts.menu_contacts"
