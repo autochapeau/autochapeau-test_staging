@@ -6,6 +6,7 @@
     "author": "Gulfboost",
     "category": "Base",
     "data": [
+        'security/groups.xml',
         'views/partner_inherit.xml'
     ],
 }

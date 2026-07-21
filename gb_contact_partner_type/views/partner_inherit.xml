@@ -40,13 +40,15 @@
     <!-- This Menu Item must have a parent and an action -->
     <menuitem id="menu_item_client_menu" name="Client"
               parent="contacts.menu_contacts"
-              action="partner_customer_action" sequence="1"/>
+              action="partner_customer_action" sequence="1"
+              groups="gb_contact_partner_type.group_contact_customer"/>
 
-    <menuitem id="menu_item_supplier_menu" name="Client"
+    <menuitem id="menu_item_supplier_menu" name="Supplier"
               parent="contacts.menu_contacts"
-              action="partner_employee_action" sequence="2"/>
+              action="partner_supplier_action" sequence="2"
+              groups="gb_contact_partner_type.group_contact_supplier"/>
 
-    <menuitem id="menu_item_employee_menu" name="Client"
+    <menuitem id="menu_item_employee_menu" name="Employee"
               parent="contacts.menu_contacts"
               action="partner_employee_action" sequence="3"/>
 </odoo>
