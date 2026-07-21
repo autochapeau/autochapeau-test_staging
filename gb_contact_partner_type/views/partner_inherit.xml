@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="partner_view_form_inherit" model="ir.ui.view">
+        <field name="name">add field partner type</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="contact_partner_type"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="partner_customer_action" model="ir.actions.act_window">
+        <field name="name">Client</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('contact_partner_type', '=', 'customer')]</field>
+    </record>
+
+    <record id="partner_supplier_action" model="ir.actions.act_window">
+        <field name="name">Supplier</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('contact_partner_type', '=', 'supplier')]</field>
+    </record>
+
+    <record id="partner_employee_action" model="ir.actions.act_window">
+        <field name="name">Employee</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('contact_partner_type', '=', 'employee')]</field>
+    </record>
+
+    <!-- This Menu Item must have a parent and an action -->
+    <menuitem id="menu_item_client_menu" name="Client"
+              parent="contacts.menu_contacts"
+              action="partner_customer_action" sequence="1"/>
+
+    <menuitem id="menu_item_supplier_menu" name="Client"
+              parent="contacts.menu_contacts"
+              action="partner_employee_action" sequence="2"/>
+
+    <menuitem id="menu_item_employee_menu" name="Client"
+              parent="contacts.menu_contacts"
+              action="partner_employee_action" sequence="3"/>
+</odoo>
