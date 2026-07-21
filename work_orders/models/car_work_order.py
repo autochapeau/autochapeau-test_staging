@@ -767,6 +767,13 @@ class CarWorkOrderService(models.Model):
             else:
                 rec.duration_hours = 0.0
 
+    @api.onchange('product_id')
+    def onchange_method(self):
+        if self.product_id and self.product_id.workshop_id:
+            self.workshop_id = self.product_id.workshop_id.id
+        else:
+            self.workshop_id = False
+
 
 class CarWorkOrderProduct(models.Model):
     _name = "car.workorder.product"
