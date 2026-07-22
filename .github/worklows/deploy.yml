@@ -1,0 +1,94 @@
+name: Deploy Odoo Modules
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy changed modules
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE_SCRIPT'
+          set -e
+
+          PROJECT_PATH="/home/admin/custom_addons"
+          ODOO_DATABASE="autochapeau"
+          ODOO_SERVICE="autochapeau_staging_odoo_odoo"
+          ODOO_CONTAINER_NAME="autochapeau_staging_odoo_odoo"
+
+          cd "$PROJECT_PATH"
+
+          OLD_COMMIT=$(git rev-parse HEAD)
+
+          git pull origin main
+
+          NEW_COMMIT=$(git rev-parse HEAD)
+
+          if [ "$OLD_COMMIT" = "$NEW_COMMIT" ]; then
+            echo "No new changes found."
+            exit 0
+          fi
+
+          MODULES=$(
+            git diff --name-only "$OLD_COMMIT" "$NEW_COMMIT" |
+            awk -F/ '{print $1}' |
+            sort -u |
+            while read -r module; do
+              if [ -f "$module/__manifest__.py" ]; then
+                echo "$module"
+              fi
+            done |
+            paste -sd, -
+          )
+
+          if [ -z "$MODULES" ]; then
+            echo "No changed Odoo modules detected."
+            exit 0
+          fi
+
+          echo "Changed modules: $MODULES"
+
+          ODOO_CONTAINER=$(
+            sudo docker ps \
+              --filter "name=$ODOO_CONTAINER_NAME" \
+              --format '{{.ID}}' |
+              head -1
+          )
+
+          if [ -z "$ODOO_CONTAINER" ]; then
+            echo "Odoo container not found."
+            exit 1
+          fi
+
+          sudo docker exec "$ODOO_CONTAINER" \
+            odoo \
+            -d "$ODOO_DATABASE" \
+            -u "$MODULES" \
+            --stop-after-init \
+            --http-port=8075 \
+            --max-cron-threads=0
+
+          sudo docker service update \
+            --force \
+            "$ODOO_SERVICE"
+
+          echo "Deployment completed successfully."
+          REMOTE_SCRIPT
