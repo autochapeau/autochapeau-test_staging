@@ -7,4 +7,4 @@ class PartnerInheritType(models.Model):
     contact_partner_type = fields.Selection(
         [('customer', 'Customer'),
          ('supplier', 'Supplier'),
-         ('employee', 'Employee')], default='customer', string='Contact **-*0')
+         ('employee', 'Employee')], default='customer', string='Contact **-**0')
