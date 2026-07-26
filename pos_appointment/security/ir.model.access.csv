@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_car_appointment_pos_user,car.appointment pos user,appointment_management.model_car_appointment,point_of_sale.group_pos_user,1,1,1,0
+access_car_appointment_slot_pos_user,car.appointment.slot pos user,appointment_management.model_car_appointment_slot,point_of_sale.group_pos_user,1,0,0,0
+access_car_appointment_service_pos_user,car.appointment.service pos user,appointment_management.model_car_appointment_service,point_of_sale.group_pos_user,1,1,1,0
+access_car_appointment_product_pos_user,car.appointment.product pos user,appointment_management.model_car_appointment_product,point_of_sale.group_pos_user,1,1,1,0

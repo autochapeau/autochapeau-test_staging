@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_new_appointment_from_pos" model="ir.actions.act_window">
+        <field name="name">Book Appointment</field>
+        <field name="res_model">car.appointment</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="appointment_management.car_appointment_view_form"/>
+        <field name="target">current</field>
+    </record>
+</odoo>
