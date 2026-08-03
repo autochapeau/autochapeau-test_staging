@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_window_tint_glass_type_tree" model="ir.ui.view">
+        <field name="name">window.tint.glass.type.tree</field>
+        <field name="model">window.tint.glass.type</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_window_tint_glass_type_form" model="ir.ui.view">
+        <field name="name">window.tint.glass.type.form</field>
+        <field name="model">window.tint.glass.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_window_tint_glass_type" model="ir.actions.act_window">
+        <field name="name">Glass Types</field>
+        <field name="res_model">window.tint.glass.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_window_tint_percentage_tree" model="ir.ui.view">
+        <field name="name">window.tint.percentage.tree</field>
+        <field name="model">window.tint.percentage</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="percentage"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_window_tint_percentage_form" model="ir.ui.view">
+        <field name="name">window.tint.percentage.form</field>
+        <field name="model">window.tint.percentage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="percentage"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_window_tint_percentage" model="ir.actions.act_window">
+        <field name="name">Tint Percentages</field>
+        <field name="res_model">window.tint.percentage</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

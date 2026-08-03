@@ -1,0 +1,25 @@
+{
+    "name": "Window Tinting Sales",
+    "version": "17.0.2.1.1",
+    "summary": "Sell window tinting once and store dynamic glass details per sale line",
+    "category": "Sales",
+    "author": "Custom Development",
+    "license": "LGPL-3",
+    "depends": [
+        "sale_management",
+        "product",
+        "work_orders",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/window_tinting_data.xml",
+        "views/window_tint_configuration_views.xml",
+        "views/product_template_views.xml",
+        "views/sale_order_line_tint_detail_views.xml",
+        "views/sale_order_views.xml",
+        "views/window_tinting_menus.xml",
+        "views/car_workorder_service_views.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

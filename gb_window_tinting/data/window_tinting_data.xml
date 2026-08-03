@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="glass_type_front_windshield" model="window.tint.glass.type">
+        <field name="name">Front Windshield</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="glass_type_driver_window" model="window.tint.glass.type">
+        <field name="name">Driver Window</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="glass_type_front_passenger_window" model="window.tint.glass.type">
+        <field name="name">Front Passenger Window</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="glass_type_rear_side_windows" model="window.tint.glass.type">
+        <field name="name">Rear Side Windows</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <record id="glass_type_rear_windshield" model="window.tint.glass.type">
+        <field name="name">Rear Windshield</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="tint_percentage_40" model="window.tint.percentage">
+        <field name="name">40%</field>
+        <field name="percentage">40</field>
+    </record>
+
+    <record id="tint_percentage_50" model="window.tint.percentage">
+        <field name="name">50%</field>
+        <field name="percentage">50</field>
+    </record>
+
+    <record id="tint_percentage_70" model="window.tint.percentage">
+        <field name="name">70%</field>
+        <field name="percentage">70</field>
+    </record>
+
+    <record id="tint_percentage_90" model="window.tint.percentage">
+        <field name="name">90%</field>
+        <field name="percentage">90</field>
+    </record>
+
+</odoo>

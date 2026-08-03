@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem
+        id="menu_window_tinting_root"
+        name="Window Tinting"
+        parent="sale.menu_sale_config"
+        sequence="60"
+        groups="sales_team.group_sale_manager"
+    />
+
+    <menuitem
+        id="menu_window_tint_glass_types"
+        name="Glass Types"
+        parent="menu_window_tinting_root"
+        action="action_window_tint_glass_type"
+        sequence="10"
+        groups="sales_team.group_sale_manager"
+    />
+
+    <menuitem
+        id="menu_window_tint_percentages"
+        name="Tint Percentages"
+        parent="menu_window_tinting_root"
+        action="action_window_tint_percentage"
+        sequence="20"
+        groups="sales_team.group_sale_manager"
+    />
+
+</odoo>

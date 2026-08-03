@@ -1,7 +1,7 @@
 {
     "name": "Workorder Time Tracking",
     "summary": "Start/pause/resume task time logs with configurable pause reasons",
-    "version": "17.0.1.1.0",
+    "version": "17.0.1.1.2",
     "author": "Wellknot",
     "category": "Services",
     "depends": [

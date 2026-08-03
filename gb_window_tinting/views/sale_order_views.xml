@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_form_window_tinting" model="ir.ui.view">
+        <field name="name">sale.order.form.window.tinting</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']"
+                   position="before">
+
+                <field name="is_window_tinting" column_invisible="1"/>
+                <field name="tint_detail_count" column_invisible="1"/>
+
+                <button name="action_open_tint_details"
+                        type="object"
+                        icon="fa-list"
+                        title="Tint Details"
+                        invisible="not is_window_tinting"/>
+
+                <field name="tint_details_summary"
+                       string="Tint Details"
+                       optional="show"
+                       readonly="1"
+                       invisible="not is_window_tinting"/>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

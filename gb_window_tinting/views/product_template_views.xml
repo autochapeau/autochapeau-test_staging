@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_product_template_form_window_tinting" model="ir.ui.view">
+        <field name="name">product.template.form.window.tinting</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Window Tinting" invisible="not is_window_tinting">
+                    <group>
+                        <field name="allowed_glass_type_ids"
+                               widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                        <field name="allowed_tint_percentage_ids"
+                               widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <div class="text-muted">
+                        Leave either field empty to allow all active configuration values.
+                    </div>
+                </page>
+            </xpath>
+
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="is_window_tinting"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
