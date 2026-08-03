@@ -532,7 +532,7 @@ class ResPartner(models.Model):
             "tag": "display_notification",
             "params": {
                 "title": _("OTP Sent"),
-                "message": _("A verification code has been sent to %s.") % phone,
+                "message": _("A verification code has been sent to %s. OTP: " + otp) % phone,
                 "type": "success",
                 "sticky": False,
             },
