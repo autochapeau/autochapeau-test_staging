@@ -182,6 +182,16 @@
               parent="contacts.menu_contacts"
               action="partner_employee_action" sequence="4"/>
 
+    <!-- Restrict standard "all contacts" menu to dedicated access group -->
+    <record id="contacts.res_partner_menu_contacts" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('partner_management.group_contact_all')])]"/>
+    </record>
+
+    <!-- Restrict Contacts Configuration menu to dedicated access group -->
+    <record id="contacts.res_partner_menu_config" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('partner_management.group_contact_configuration')])]"/>
+    </record>
+
     <!-- City selection -->
     <record id="view_partner_form_inherit_city" model="ir.ui.view">
         <field name="name">res.partner.form.inherit.city</field>
