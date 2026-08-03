@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_order_form_contract_upsell" model="ir.ui.view">
+        <field name="name">sale.order.form.contract.upsell</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="partner_management.view_order_form_inherit_subordinate"/>
+        <field name="arch" type="xml">
+            <!-- Only one extra/upsell sale order per contract -->
+            <xpath expr="//button[@name='action_create_extra_sale_order']" position="attributes">
+                <attribute name="invisible">order_type != 'contract' or state not in ('sale', 'done') or not id or not subordinate_id or child_sale_count &gt; 0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='related_sale_id']" position="before">
+                <field name="contract_appointment_id"
+                       readonly="1"
+                       invisible="order_type != 'contract' and not related_sale_id"/>
+            </xpath>
+            <!-- Extra upsell orders share the contract appointment -->
+            <xpath expr="//button[@name='action_create_appointment']" position="attributes">
+                <attribute name="invisible">state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0 or related_sale_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='related_sale_id']" position="after">
+                <field name="contract_work_order_id"
+                         readonly="1"
+                         invisible="order_type != 'contract' and not related_sale_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_order_form_contract_upsell_hide_collect_payment" model="ir.ui.view">
+        <field name="name">sale.order.form.contract.upsell.hide.collect.payment</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_split_payment.view_order_form_sale_split_payment"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_split_payment_wizard']" position="attributes">
+                <attribute name="invisible">state not in ('sale', 'done') or not id or split_amount_remaining &lt;= 0 or order_type == 'contract'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
