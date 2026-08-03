@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_payment_search" model="ir.ui.view">
+        <field name="name">sale.order.payment.search</field>
+        <field name="model">sale.order.payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
+                <field name="collection_method_id"/>
+                <field name="external_reference"/>
+                <filter name="not_cancelled"
+                        string="Not Cancelled"
+                        domain="[('state', '!=', 'cancelled')]"/>
+                <filter name="pending"
+                        string="Pending"
+                        domain="[('state', 'in', ('processing', 'pending', 'needs_review'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Sale Order"
+                            name="group_sale_order"
+                            context="{'group_by': 'sale_order_id'}"/>
+                    <filter string="Method"
+                            name="group_method"
+                            context="{'group_by': 'collection_method_id'}"/>
+                    <filter string="Status"
+                            name="group_state"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sale_order_payment_tree" model="ir.ui.view">
+        <field name="name">sale.order.payment.tree</field>
+        <field name="model">sale.order.payment</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="state == 'paid'"
+                  decoration-warning="state in ('pending', 'processing', 'needs_review')"
+                  decoration-danger="state == 'failed'"
+                  create="0">
+                <field name="name"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
+                <field name="collection_method_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="company_id" column_invisible="True"/>
+                <field name="journal_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+                <field name="external_reference" optional="show"/>
+                <field name="provider_status" optional="hide"/>
+                <field name="account_payment_id" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sale_order_payment_form" model="ir.ui.view">
+        <field name="name">sale.order.payment.form</field>
+        <field name="model">sale.order.payment</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <header>
+                    <button name="action_process"
+                            type="object"
+                            string="Process"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'failed', 'needs_review')"/>
+                    <button name="action_refresh_status"
+                            type="object"
+                            string="Refresh Status"
+                            class="btn-primary"
+                            invisible="processing_type not in ('terminal', 'tabby') or state not in ('pending', 'processing', 'needs_review')"/>
+                    <button name="action_open_checkout"
+                            type="object"
+                            string="Open Checkout"
+                            invisible="not checkout_url or state != 'pending'"/>
+                    <button name="action_open_account_payment"
+                            type="object"
+                            string="Customer Payment"
+                            invisible="not account_payment_id"/>
+                    <button name="action_reconcile"
+                            type="object"
+                            string="Reconcile Invoice"
+                            invisible="state != 'paid' or not account_payment_id"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            invisible="state in ('paid', 'cancelled')"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,processing,pending,paid,failed,needs_review,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sale_order_id"/>
+                            <field name="partner_id"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="collection_method_id"/>
+                            <field name="processing_type"/>
+                            <field name="journal_id"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="provider_reference"/>
+                            <field name="external_reference"/>
+                            <field name="provider_status"/>
+                            <field name="account_payment_id"/>
+                        </group>
+                    </group>
+                    <group invisible="not checkout_url">
+                        <field name="checkout_url" widget="url"/>
+                    </group>
+                    <group invisible="not error_message">
+                        <field name="error_message"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_order_payment" model="ir.actions.act_window">
+        <field name="name">Sale Order Payments</field>
+        <field name="res_model">sale.order.payment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_sale_order_payment_search"/>
+        <field name="context">{'search_default_not_cancelled': 1}</field>
+    </record>
+</odoo>

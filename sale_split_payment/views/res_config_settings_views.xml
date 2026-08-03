@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sale_split_payment" model="ir.ui.view">
+        <field name="name">res.config.settings.form.sale.split.payment</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='invoicing_setting_container']" position="after">
+                <block title="Sale Collection Payments" name="sale_split_payment_settings">
+                    <setting string="Collection methods"
+                             help="Create Cash, Bank Transfer, Tabby, Card Terminal, or any future method from Sales > Configuration > Collection Methods.">
+                        <div class="content-group">
+                            <a type="action"
+                               name="%(sale_split_payment.action_sale_collection_method)d"
+                               class="oe_link">
+                                <i class="oi oi-arrow-right"/> Configure Collection Methods
+                            </a>
+                        </div>
+                    </setting>
+                    <setting string="Card terminal connector"
+                             help="POST receives reference, amount, currency, sale_order and partner. It must return status and transaction_id as JSON.">
+                        <div class="content-group">
+                            <label for="card_terminal_url" class="col-lg-4 o_light_label"/>
+                            <field name="card_terminal_url" placeholder="https://terminal.example/api/sale"/>
+                            <br/>
+                            <label for="card_terminal_status_url" class="col-lg-4 o_light_label"/>
+                            <field name="card_terminal_status_url"
+                                   placeholder="https://terminal.example/api/status/{reference}"/>
+                            <br/>
+                            <label for="card_terminal_token" class="col-lg-4 o_light_label"/>
+                            <field name="card_terminal_token" password="True"/>
+                            <br/>
+                            <label for="card_terminal_timeout" class="col-lg-4 o_light_label"/>
+                            <field name="card_terminal_timeout"/>
+                        </div>
+                    </setting>
+                    <setting string="Tabby connector"
+                             help="Server-side Tabby credentials. The secret key is never sent to the browser.">
+                        <div class="content-group">
+                            <label for="tabby_environment" class="col-lg-4 o_light_label"/>
+                            <field name="tabby_environment"/>
+                            <br/>
+                            <label for="tabby_checkout_api_url" class="col-lg-4 o_light_label"/>
+                            <field name="tabby_checkout_api_url"/>
+                            <br/>
+                            <label for="tabby_payment_api_url" class="col-lg-4 o_light_label"/>
+                            <field name="tabby_payment_api_url"/>
+                            <br/>
+                            <label for="tabby_merchant_code" class="col-lg-4 o_light_label"/>
+                            <field name="tabby_merchant_code"/>
+                            <br/>
+                            <label for="tabby_secret_key" class="col-lg-4 o_light_label"/>
+                            <field name="tabby_secret_key" password="True"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

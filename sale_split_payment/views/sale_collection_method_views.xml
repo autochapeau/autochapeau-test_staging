@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_collection_method_tree" model="ir.ui.view">
+        <field name="name">sale.collection.method.tree</field>
+        <field name="model">sale.collection.method</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="processing_type"/>
+                <field name="journal_id"/>
+                <field name="require_reference"/>
+                <field name="company_id" column_invisible="True"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sale_collection_method_form" model="ir.ui.view">
+        <field name="name">sale.collection.method.form</field>
+        <field name="model">sale.collection.method</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Bank Transfer"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="processing_type"/>
+                            <field name="require_reference"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="journal_id"/>
+                            <field name="available_payment_method_line_ids" invisible="1"/>
+                            <field name="payment_method_line_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="Internal notes for cashiers"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_collection_method" model="ir.actions.act_window">
+        <field name="name">Collection Methods</field>
+        <field name="res_model">sale.collection.method</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_sale_collection_method"
+              name="Collection Methods"
+              parent="sale.menu_sale_config"
+              action="action_sale_collection_method"
+              sequence="45"
+              groups="sales_team.group_sale_manager"/>
+</odoo>

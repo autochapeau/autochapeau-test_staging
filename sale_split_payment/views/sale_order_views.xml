@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_sale_split_payment" model="ir.ui.view">
+        <field name="name">sale.order.form.sale.split.payment</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_split_payment_wizard"
+                        type="object"
+                        string="Collect Payment"
+                        class="btn-primary"
+                        groups="sale_split_payment.group_split_payment_cashier,sales_team.group_sale_manager"
+                        invisible="state not in ('sale', 'done') or not id or split_amount_remaining &lt;= 0"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_split_payments"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-credit-card"
+                        groups="sale_split_payment.group_split_payment_cashier,sales_team.group_sale_manager"
+                        invisible="split_payment_count == 0">
+                    <field name="split_payment_count"
+                           widget="statinfo"
+                           string="Payments"/>
+                </button>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <field name="split_amount_remaining" invisible="1"/>
+                <field name="split_amount_paid" invisible="1"/>
+                <field name="split_amount_pending" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

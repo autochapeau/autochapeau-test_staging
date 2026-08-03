@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_split_payment_wizard_form" model="ir.ui.view">
+        <field name="name">sale.split.payment.wizard.form</field>
+        <field name="model">sale.split.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Collect Payment">
+                <group>
+                    <group>
+                        <field name="sale_order_id"/>
+                        <field name="amount_total"/>
+                        <field name="amount_paid"/>
+                        <field name="amount_pending"/>
+                        <field name="amount_remaining"/>
+                    </group>
+                    <group>
+                        <field name="company_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="processing_type" invisible="1"/>
+                        <field name="require_reference" invisible="1"/>
+                        <field name="collection_method_id"
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="amount"/>
+                        <field name="journal_id"
+                               options="{'no_create_edit': True}"/>
+                        <field name="provider_reference"
+                               invisible="not require_reference"
+                               required="require_reference"/>
+                    </group>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    Collect one payment at a time. Successful payments are posted as customer
+                    payments and appear on the partner ledger. Repeat for other methods/amounts.
+                    Manual methods post immediately. Terminal and Tabby wait for provider approval.
+                </div>
+                <footer>
+                    <button name="action_collect_payment"
+                            type="object"
+                            string="Collect Payment"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

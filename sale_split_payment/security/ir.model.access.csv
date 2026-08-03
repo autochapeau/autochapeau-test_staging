@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_collection_method_user,sale.collection.method.user,model_sale_collection_method,sale_split_payment.group_split_payment_cashier,1,0,0,0
+access_sale_collection_method_manager,sale.collection.method.manager,model_sale_collection_method,sales_team.group_sale_manager,1,1,1,1
+access_sale_order_payment_user,sale.order.payment.user,model_sale_order_payment,sale_split_payment.group_split_payment_cashier,1,1,1,0
+access_sale_order_payment_manager,sale.order.payment.manager,model_sale_order_payment,sales_team.group_sale_manager,1,1,1,1
+access_sale_split_payment_wizard_user,sale.split.payment.wizard.user,model_sale_split_payment_wizard,sale_split_payment.group_split_payment_cashier,1,1,1,1
+access_sale_split_payment_wizard_manager,sale.split.payment.wizard.manager,model_sale_split_payment_wizard,sales_team.group_sale_manager,1,1,1,1
