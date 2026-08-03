@@ -39,6 +39,7 @@ class SaleOrderAPI(http.Controller):
         if data.get("branch_id"):
             sale_order_vals["branch_id"] = data.get("branch_id")
         sale_order_vals["partner_id"] = request.env.user.partner_id.id
+        sale_order_vals.setdefault("order_type", "intern")
         order_lines = [(5, 0, 0)]
         # Add services with discount support
         order_lines.extend([

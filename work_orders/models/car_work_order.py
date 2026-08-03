@@ -4,6 +4,9 @@ import functools
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command
+from odoo.tools.float_utils import float_compare
+from odoo.tools.misc import formatLang
+_logger = logging.getLogger(__name__)
 
 
 def retry_on_serialization_failure(max_tries=5, delay=0.1, backoff=2.0):
@@ -197,6 +200,65 @@ class CarWorkOrder(models.Model):
         action["res_id"] = self.sale_order_id.id
         return action
 
+    def _get_related_sale_orders_for_invoice(self):
+        """Sale orders whose value limits invoicing from this work order."""
+        self.ensure_one()
+        orders = self.sale_order_id
+        if (
+            orders
+            and "child_sale_ids" in orders._fields
+            and not self.parent_id
+        ):
+            orders |= orders.child_sale_ids.filtered(
+                lambda order: order.state != "cancel"
+            )
+        return orders.filtered(lambda order: order.state in ("sale", "done"))
+
+    def _get_related_invoice_amount_total(self, sale_orders):
+        """Net invoiced amount (invoices - refunds) for the given sale orders."""
+        self.ensure_one()
+        if not sale_orders:
+            return 0.0
+        invoices = self.env["account.move"].search([
+            ("invoice_origin", "in", sale_orders.mapped("name")),
+            ("move_type", "in", ("out_invoice", "out_refund")),
+            ("state", "!=", "cancel"),
+        ])
+        amount = 0.0
+        for invoice in invoices:
+            if invoice.move_type == "out_invoice":
+                amount += invoice.amount_total
+            else:
+                amount -= invoice.amount_total
+        return amount
+
+    def _check_invoice_amount_within_sale_orders(self):
+        """Block invoicing when existing invoices already cover sale order totals."""
+        self.ensure_one()
+        sale_orders = self._get_related_sale_orders_for_invoice()
+        if not sale_orders:
+            raise UserError(_(
+                "No sale order is linked to this work order."
+            ))
+
+        sale_total = sum(sale_orders.mapped("amount_total"))
+        invoiced_total = self._get_related_invoice_amount_total(sale_orders)
+        currency = sale_orders[:1].currency_id
+        rounding = currency.rounding if currency else 0.01
+
+        if float_compare(invoiced_total, sale_total, precision_rounding=rounding) >= 0:
+            raise UserError(_(
+                "You cannot create more invoices for this work order.\n"
+                "Sale order(s) total: %(sale_total)s\n"
+                "Already invoiced: %(invoiced_total)s",
+                sale_total=formatLang(
+                    self.env, sale_total, currency_obj=currency
+                ),
+                invoiced_total=formatLang(
+                    self.env, invoiced_total, currency_obj=currency
+                ),
+            ))
+
     def action_create_invoice(self):
         """Ouvre l'assistant de facturation pour la sale order liée au work order."""
         self.ensure_one()
@@ -212,6 +274,7 @@ class CarWorkOrder(models.Model):
                     'type': 'warning',
                 }
             }
+        self._check_invoice_amount_within_sale_orders()
         action = self.env["ir.actions.actions"]._for_xml_id(
             "sale.action_view_sale_advance_payment_inv")
         action["context"] = {"active_ids": [
@@ -593,6 +656,8 @@ class CarWorkOrder(models.Model):
                 message_text = message_text_ar
             else:
                 message_text = message_text_en
+            _logger.critical('Message Text')
+            _logger.critical(message_text)
             self._send_sms_message(phone, message_text)
 
     def action_cancel(self):
@@ -667,6 +732,7 @@ class CarWorkOrderService(models.Model):
     _name = "car.workorder.service"
     _description = "Workorder Service"
     _rec_name = "product_id"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
     product_id = fields.Many2one(
         "product.product", string="Service", required=True, domain="[('type', '=', 'service')]"
@@ -707,7 +773,7 @@ class CarWorkOrderService(models.Model):
             ("cancel", "Cancelled"),
         ],
         string="Status",
-        default="waiting",
+        default="waiting", tracking=True,
         copy=False,
         readonly=True,
     )

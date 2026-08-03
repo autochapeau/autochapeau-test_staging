@@ -131,27 +131,31 @@ class CarAppointment(models.Model):
 
     car_checkin_id = fields.Many2one("car.checkin", readonly=True)
 
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """Add sequence and sync branch/analytic account to the linked sale order."""
-        # Auto-link sale_order when needed
-        if vals.get("partner_id") and not vals.get("sale_order_id"):
-            sale_order = self.env["sale.order"].search([
-                ("partner_id", "=", vals.get("partner_id"))
-            ], order="id desc", limit=1)
-            if sale_order:
-                vals["sale_order_id"] = sale_order.id
+        for vals in vals_list:
+            # Auto-link sale_order when needed
+            if vals.get("partner_id") and not vals.get("sale_order_id"):
+                sale_order = self.env["sale.order"].search([
+                    ("partner_id", "=", vals.get("partner_id"))
+                ], order="id desc", limit=1)
+                if sale_order:
+                    vals["sale_order_id"] = sale_order.id
 
-        appointment = super().create(vals)
-        if appointment:
+        appointments = super().create(vals_list)
+        for appointment in appointments:
             appointment.name = appointment.env["ir.sequence"].next_by_code(
                 "car.appointment.seq")
             # Sync branch/analytic account to linked sale.order
             if appointment.sale_order_id and appointment.branch_id:
                 update_vals = {"branch_id": appointment.branch_id.id}
                 if appointment.branch_id.analytic_account_id:
-                    update_vals["analytic_account_id"] = appointment.branch_id.analytic_account_id.id
+                    update_vals["analytic_account_id"] = (
+                        appointment.branch_id.analytic_account_id.id
+                    )
                 appointment.sale_order_id.write(update_vals)
-        return appointment
+        return appointments
 
     def write(self, vals):
         res = super().write(vals)
