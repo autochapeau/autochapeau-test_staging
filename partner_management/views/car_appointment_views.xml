@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_appointment_form_future_slots" model="ir.ui.view">
+        <field name="name">car.appointment.form.future.slots</field>
+        <field name="model">car.appointment</field>
+        <field name="inherit_id"
+               ref="appointment_management.car_appointment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_work_order"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-wrench"
+                            invisible="not car_work_order_id">
+                        <div class="o_stat_info">
+                            <span class="o_stat_text">Work Order</span>
+                        </div>
+                    </button>
+                    <field name="car_work_order_id" invisible="1"/>
+                    <button name="action_view_checkin"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-sign-in"
+                            invisible="not car_checkin_id">
+                        <div class="o_stat_info">
+                            <span class="o_stat_text">Check-In</span>
+                        </div>
+                    </button>
+                    <field name="car_checkin_id" invisible="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='appointment_slot_id']"
+                   position="attributes">
+                <attribute name="domain">[
+                    ('date', '&gt;=', context_today())
+                ]</attribute>
+                <attribute name="options">{
+                    'no_create': True,
+                    'no_quick_create': True,
+                    'no_create_edit': True,
+                    'no_open': True
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='maintenance_slot_id']"
+                   position="attributes">
+                <attribute name="domain">[
+                    ('date', '&gt;=', context_today())
+                ]</attribute>
+                <attribute name="options">{
+                    'no_create': True,
+                    'no_quick_create': True,
+                    'no_create_edit': True,
+                    'no_open': True
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'waiting'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vehicle_id']" position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'waiting'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'waiting'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_order_id']" position="attributes">
+                <attribute name="readonly">sale_order_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='service_ids']" position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'waiting'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_ids']" position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'waiting'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

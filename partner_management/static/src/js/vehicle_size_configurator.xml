@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="partner_management.product_locked_quantity"
+       t-inherit="sale_product_configurator.product"
+       t-inherit-mode="extension">
+        <xpath expr="//input[@name='product_quantity']" position="attributes">
+            <attribute name="t-att-readonly">this.env.lockQuantity</attribute>
+        </xpath>
+        <xpath expr="//button[@aria-label='Remove one']" position="attributes">
+            <attribute name="t-if">!this.env.lockQuantity</attribute>
+        </xpath>
+        <xpath expr="//button[@aria-label='Add one']" position="attributes">
+            <attribute name="t-if">!this.env.lockQuantity</attribute>
+        </xpath>
+    </t>
+</templates>

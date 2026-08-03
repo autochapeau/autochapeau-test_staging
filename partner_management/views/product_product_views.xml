@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="product_search_form_view_inherit_partner_management" model="ir.ui.view">
+        <field name="name">product.product.search.partner.management</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <searchpanel>
+                    <field name="workshop_id" string="Workshop" enable_counters="1" select="multi"/>
+                    <field name="commission_category_id" string="Commission Category" enable_counters="1"
+                           select="multi"/>
+                </searchpanel>
+            </search>
+            <xpath expr="//group" position="inside">
+                <filter string="Workshop" name="groupby_workshop" context="{'group_by': 'workshop_id'}"/>
+                <filter string="Commission Category" name="groupby_commission_category"
+                        context="{'group_by': 'commission_category_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Sale Order Catalog (Kanban) search panel -->
+    <record id="product_view_search_catalog_inherit_partner_management" model="ir.ui.view">
+        <field name="name">product.view.search.catalog.partner.management</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_view_search_catalog"/>
+        <field name="arch" type="xml">
+            <xpath expr="//searchpanel/field[@name='product_template_attribute_value_ids']" position="after">
+                <field name="workshop_id"
+                       string="Workshop"
+                       icon="fa-wrench"
+                       enable_counters="1"
+                       expand="1"
+                       hierarchize="0"/>
+                <field name="commission_category_id"
+                       string="Commission Category"
+                       icon="fa-tags"
+                       enable_counters="1"
+                       expand="1"
+                       hierarchize="0"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

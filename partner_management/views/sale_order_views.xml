@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_order_form_inherit_subordinate" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.subordinate</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_appointment"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calendar"
+                        invisible="appointment_count == 0">
+                    <field name="appointment_count"
+                           widget="statinfo"
+                           string="Appointment"/>
+                </button>
+                <button name="action_view_child_sale_orders"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-files-o"
+                        invisible="child_sale_count == 0">
+                    <field name="child_sale_count" widget="statinfo" string="Extra Orders"/>
+                </button>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_create_extra_sale_order"
+                        string="Create Extra Order"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="order_type != 'contract' or not id or not subordinate_id"/>
+                <button name="action_create_appointment"
+                        string="Create Appointment"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0"/>
+            </xpath>
+            <xpath expr="//field[@name='order_type']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                <field name="subordinate_id"
+                         context="{
+                             'default_supervisor_id': partner_id,
+                             'default_partner_type': 'internal',
+                         }"
+                         options="{'no_create_edit': True}"
+                         invisible="order_type != 'contract'"/>
+                <field name="subordinate_mobile"
+                         invisible="order_type != 'contract' or not subordinate_id"/>
+                <field name="subordinate_email"
+                         invisible="order_type != 'contract' or not subordinate_id"/>
+                <field name="related_sale_id"
+                         options="{'no_create': True}"
+                         readonly="1"
+                         invisible="not related_sale_id"/>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="vehicle_id"
+                         options="{'no_create_edit': True}"
+                         context="{
+                             'default_partner_id': subordinate_id if order_type == 'contract' else partner_id,
+                         }"/>
+                <field name="vehicle_size" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="context">{
+                    'default_sale_ok': True,
+                    'vehicle_size_filter': parent.vehicle_size,
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
+                <attribute name="context">{
+                    'default_sale_ok': True,
+                    'vehicle_size_filter': parent.vehicle_size,
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="readonly">parent.vehicle_id != False or product_type == 'service'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_uom_qty']" position="attributes">
+                <attribute name="readonly">parent.vehicle_id != False or product_type == 'service'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_quotation_tree_inherit_related_sale" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherit.related.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="related_sale_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

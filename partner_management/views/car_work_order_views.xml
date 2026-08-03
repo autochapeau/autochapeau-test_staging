@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_work_order_form_sale_order_readonly" model="ir.ui.view">
+        <field name="name">car.work.order.form.sale.order.readonly</field>
+        <field name="model">car.work.order</field>
+        <field name="inherit_id" ref="work_orders.car_work_order_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_tasks"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-tasks">
+                    <field name="task_count"
+                           widget="statinfo"
+                           string="Tasks"/>
+                </button>
+            </xpath>
+            <xpath expr="//group/field[@name='sale_order_id']"
+                   position="attributes">
+                <attribute name="readonly">sale_order_id</attribute>
+            </xpath>
+
+            <!-- Linked to Sale Order: no Add/Delete, Service + Duration locked -->
+            <xpath expr="//page[@name='services']/group/field[@name='service_ids']"
+                   position="replace">
+                <field colspan="2" nolabel="1" name="service_ids"
+                         invisible="not sale_order_id">
+                    <tree editable="top" create="0" delete="0">
+                        <field name="product_id" readonly="1"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="workshop_id"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="workcenter_id"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="branch_id" column_invisible="1"/>
+                        <field name="staff_ids" widget="many2many_tags"
+                                  domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id)]"/>
+                        <field name="expected_duration" readonly="1"/>
+                        <field name="expected_finish_date" readonly="1"/>
+                    </tree>
+                </field>
+                <field colspan="2" nolabel="1" name="service_ids"
+                         invisible="sale_order_id">
+                    <tree editable="top">
+                        <field name="product_id"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="workshop_id"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="workcenter_id"
+                                 options='{"no_open": True, "no_create": True}'/>
+                        <field name="branch_id" column_invisible="1"/>
+                        <field name="staff_ids" widget="many2many_tags"
+                                  domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id)]"/>
+                        <field name="expected_duration"/>
+                        <field name="expected_finish_date"/>
+                    </tree>
+                </field>
+            </xpath>
+
+            <xpath expr="//page[@name='products']/group/field[@name='product_ids']"
+                   position="attributes">
+                <attribute name="readonly">sale_order_id or state != 'new'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="car_work_order_view_tree_checkin_state" model="ir.ui.view">
+        <field name="name">car.work.order.tree.checkin.state</field>
+        <field name="model">car.work.order</field>
+        <field name="inherit_id" ref="work_orders.car_work_order_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='checkin_state']" position="attributes">
+                <attribute name="widget">badge</attribute>
+                <attribute name="decoration-muted">checkin_state == 'draft'</attribute>
+                <attribute name="decoration-warning">checkin_state == 'progress'</attribute>
+                <attribute name="decoration-success">checkin_state == 'done'</attribute>
+                <attribute name="decoration-danger">checkin_state == 'canceled'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
