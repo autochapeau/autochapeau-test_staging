@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_workorderservice_view_form_time_tracking" model="ir.ui.view">
+        <field name="name">car.workorder.service.form.time.tracking</field>
+        <field name="model">car.workorder.service</field>
+        <field name="inherit_id" ref="work_orders.car_workorderservice_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_start']" position="attributes">
+                <attribute name="string">Start / Resume</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Time Logs" name="time_logs">
+                        <field name="time_log_ids" readonly="1">
+                            <tree create="0" delete="0" edit="0">
+                                <field name="date_start"/>
+                                <field name="date_end"/>
+                                <field name="pause_reason_id"/>
+                                <field name="pause_reason_note"/>
+                                <field name="pause_reason" optional="hide"/>
+                                <field name="duration_hours" sum="Total"/>
+                                <field name="is_open" column_invisible="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pause_reason_employee,access.pause.reason.employee,model_workorder_pause_reason,work_orders.group_workshop_employee,1,0,0,0
+access_pause_reason_manager,access.pause.reason.manager,model_workorder_pause_reason,work_orders.group_workshop_manager,1,1,1,1
+access_pause_reason_user,access.pause.reason.user,model_workorder_pause_reason,base.group_user,1,0,0,0
+access_time_log_employee,access.time.log.employee,model_car_workorder_service_time_log,work_orders.group_workshop_employee,1,0,0,0
+access_time_log_manager,access.time.log.manager,model_car_workorder_service_time_log,work_orders.group_workshop_manager,1,1,1,1
+access_time_log_user,access.time.log.user,model_car_workorder_service_time_log,base.group_user,1,1,1,0
+access_pause_reason_wizard,access.pause.reason.wizard,model_workorder_pause_reason_wizard,base.group_user,1,1,1,1

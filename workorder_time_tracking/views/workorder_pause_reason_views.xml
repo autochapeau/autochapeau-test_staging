@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_workorder_pause_reason_list" model="ir.ui.view">
+        <field name="name">workorder.pause.reason.list</field>
+        <field name="model">workorder.pause.reason</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="requires_note"/>
+                <field name="is_finish" optional="hide"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_workorder_pause_reason_form" model="ir.ui.view">
+        <field name="name">workorder.pause.reason.form</field>
+        <field name="model">workorder.pause.reason</field>
+        <field name="arch" type="xml">
+            <form string="Pause Reason">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="requires_note"/>
+                        <field name="is_finish"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_workorder_pause_reason" model="ir.actions.act_window">
+        <field name="name">Pause Reasons</field>
+        <field name="res_model">workorder.pause.reason</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="menu_workorder_pause_reason"
+        name="Pause Reasons"
+        parent="work_orders.car_work_order_menu_configuration"
+        action="action_workorder_pause_reason"
+        sequence="40"
+    />
+</odoo>
