@@ -8,7 +8,10 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     partner_type = fields.Selection(
-        [("internal", _("Internal")), ("external", _("External"))], default="external")
+        [("internal", _("Internal")),
+         ("external", _("External")),
+         ("contract", _("Contract"))],
+        default="external")
     source_id = fields.Many2one("utm.source")
     vehicle_ids = fields.One2many("fleet.vehicle", "partner_id", string="Cars")
     cars_count = fields.Integer(compute="_compute_cars_count")
@@ -59,8 +62,11 @@ class ResPartner(models.Model):
             "name": _("Related Cars"),
             "type": "ir.actions.act_window",
             "res_model": "fleet.vehicle",
-            "view_mode": "list",
+            "view_mode": "list,form",
             "domain": [("partner_id", "=", self.id)],
+            "context": {
+                'default_partner_id': self.id,
+            },
         }
 
     @api.model

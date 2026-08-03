@@ -137,9 +137,11 @@
                             <group>
                                 <label for="car_check_item_ids" string="" />
                                 <field nolabel="1" name="car_check_item_ids" readonly="state != 'draft'">
-                                    <tree editable="top">
-                                        <field name="car_check_item_id" />
-                                        <field name="checked" widget="boolean_toggle" />
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="car_check_item_id" readonly="1"/>
+                                        <field name="image" widget="image" options="{'size': [64, 64]}"/>
+                                        <field name="note" placeholder="Note..."/>
+                                        <field name="checked" widget="boolean_toggle"/>
                                     </tree>
                                 </field>
                             </group>

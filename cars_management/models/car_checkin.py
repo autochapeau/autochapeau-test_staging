@@ -3,6 +3,8 @@ import random
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class CarCheckin(models.Model):
@@ -259,16 +261,27 @@ class CarCheckin(models.Model):
             phone = f"+{country_code}{phone}"
         otp = self._generate_otp_code()
         self.otp_code = otp
-        #  message with OTP
+        sign_url = f"{self.get_base_url().rstrip('/')}{self.get_portal_url()}"
+        # Multi-db setups need ?db=... or portal routes return 404.
+        if "db=" not in sign_url:
+            sign_url = f"{sign_url}&db={self.env.cr.dbname}"
         message_text_en = (
-            "Your verification code to confirm your car check-in is: %s") % otp
-        message_text_ar = ("رمزالتحقق لتأكيد تسليم سيارتك هو: %s") % otp
+            "Your verification code to confirm your car check-in is: %s\n"
+            "Sign here: %s"
+        ) % (otp, sign_url)
+        message_text_ar = (
+            "رمز التحقق لتأكيد تسليم سيارتك هو: %s\n"
+            "للتوقيع الإلكتروني: %s"
+        ) % (otp, sign_url)
         lang = (self.partner_id.lang or "en_US").lower()
 
-        if lang.startswith("ar_001"):
+        if lang.startswith("ar"):
             message_text = message_text_ar
         else:
             message_text = message_text_en
+        _logger.critical('====================== Message ======================')
+        _logger.critical(message_text)
+        _logger.critical('=====================================================')
         self.send_sms_message(phone, message_text)
 
     def action_confirm(self):
@@ -384,5 +397,7 @@ class CarCheckinCheckItem(models.Model):
     _description = "Car checkin check Item"
 
     car_check_item_id = fields.Many2one("car.check.item")
+    image = fields.Binary(string="Image", attachment=True)
+    note = fields.Text(string="Note")
     checked = fields.Boolean(default=False)
     car_checkin_id = fields.Many2one("car.checkin")

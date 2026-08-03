@@ -1,6 +1,7 @@
 from uuid import uuid4
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 
 
@@ -24,7 +25,7 @@ class SaleOrder(models.Model):
         ('intern', 'Intern'),
         ('extern', 'Extern'),
         ('contract', 'Contract'),
-    ], string="Order Type", default='intern', required=True)
+    ], string="Order Type", required=True)
 
     donation_amount = fields.Float(compute="_compute_donation_amount")
     access_token = fields.Char(default=lambda self: str(uuid4()), copy=False)
@@ -33,6 +34,28 @@ class SaleOrder(models.Model):
     def _onchange_agency_id_reset_salesperson(self):
         """Reset the agency salesperson when the agency changes."""
         self.agency_salesperson_id = False
+
+    @api.onchange('order_type')
+    def _onchange_order_type_partner_domain(self):
+        """Clear customer if it does not match Contract partner type."""
+        if (
+            self.order_type == 'contract'
+            and self.partner_id
+            and self.partner_id.partner_type != 'contract'
+        ):
+            self.partner_id = False
+
+    @api.constrains('order_type', 'partner_id')
+    def _check_contract_partner(self):
+        for order in self:
+            if (
+                order.order_type == 'contract'
+                and order.partner_id
+                and order.partner_id.partner_type != 'contract'
+            ):
+                raise ValidationError(_(
+                    "For Contract orders, the customer must be of type Contract."
+                ))
 
     @api.onchange('appointment_id')
     def _onchange_appointment_id_set_branch_and_analytic(self):

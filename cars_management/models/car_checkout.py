@@ -256,13 +256,21 @@ class CarCheckout(models.Model):
             phone = f"+{country_code}{phone}"
         otp = self._generate_otp_code()
         self.otp_code = otp
-        # Arabic message with OTP
+        sign_url = f"{self.get_base_url().rstrip('/')}{self.get_portal_url()}"
+        # Multi-db setups need ?db=... or portal routes return 404.
+        if "db=" not in sign_url:
+            sign_url = f"{sign_url}&db={self.env.cr.dbname}"
         message_text_en = (
-            "Your verification code to confirm picking up your car is: %s") % otp
-        message_text_ar = ("رمزالتحقق لتأكيد استلامك سيارتك هو: %s") % otp
+            "Your verification code to confirm picking up your car is: %s\n"
+            "Sign here: %s"
+        ) % (otp, sign_url)
+        message_text_ar = (
+            "رمز التحقق لتأكيد استلامك سيارتك هو: %s\n"
+            "للتوقيع الإلكتروني: %s"
+        ) % (otp, sign_url)
         lang = (self.partner_id.lang or "en_US").lower()
 
-        if lang.startswith("ar_001"):
+        if lang.startswith("ar"):
             message_text = message_text_ar
         else:
             message_text = message_text_en
@@ -418,6 +426,8 @@ class CarCheckoutCheckItem(models.Model):
     _description = "Car checkout check Item"
 
     car_check_item_id = fields.Many2one("car.check.item")
+    image = fields.Binary(string="Image", attachment=True)
+    note = fields.Text(string="Note")
     checked = fields.Boolean(default=False)
     car_checkout_id = fields.Many2one("car.checkout")
     required = fields.Boolean(
