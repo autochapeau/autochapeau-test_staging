@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_external_referral_salesman,external.referral.salesman,model_external_referral,sales_team.group_sale_salesman,1,0,0,0
+access_external_referral_manager,external.referral.manager,model_external_referral,sales_team.group_sale_manager,1,1,1,1
