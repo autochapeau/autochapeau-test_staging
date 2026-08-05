@@ -5,10 +5,7 @@
     "author": "Wellknot",
     "category": "Sales",
     "depends": [
-        "sale_management",
-        "account",
-        "cars_management",
-        "work_orders",
+        "sale_management", "account", "cars_management", "work_orders",
     ],
     "data": [
         "security/security.xml",
