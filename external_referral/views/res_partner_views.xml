@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+    <!-- Keep xmlid but clear the obsolete field from the partner form. -->
     <record id="view_partner_form_external_referral" model="ir.ui.view">
         <field name="name">res.partner.form.external.referral</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='category_id']" position="after">
-                <field name="external_referral_percent"
-                       groups="sales_team.group_sale_manager"
-                       invisible="not parent_id"/>
+            <xpath expr="//sheet" position="inside">
+                <!-- External referral % removed; commissions are manual on Extern SO. -->
             </xpath>
         </field>
     </record>

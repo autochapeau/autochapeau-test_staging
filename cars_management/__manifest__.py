@@ -1,6 +1,6 @@
 {
     "name": "Cars management Base",
-    "version": "17.0.1.0.4",
+    "version": "17.0.1.0.7",
     "author": "Wellknot",
     "depends": [
         "fleet",

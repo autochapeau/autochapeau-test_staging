@@ -42,6 +42,7 @@
         <field name="arch" type="xml">
             <tree editable="top">
                 <field name="name" />
+                <field name="code" />
                 <field name="branch_id"/>
             </tree>
         </field>

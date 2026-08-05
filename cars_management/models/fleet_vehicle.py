@@ -1,6 +1,61 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+# Same mapping as eshop-website plateConversions.ts
+AR_TO_EN_DIGITS = {
+    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+    "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+}
+EN_TO_AR_DIGITS = {v: k for k, v in AR_TO_EN_DIGITS.items()}
+
+AR_TO_EN_LETTERS = {
+    "أ": "A",
+    "ب": "B",
+    "ح": "J",
+    "د": "D",
+    "ر": "R",
+    "س": "S",
+    "ص": "X",
+    "ط": "T",
+    "ق": "G",
+    "ك": "K",
+    "ل": "L",
+    "م": "Z",
+    "ن": "N",
+    "ه": "H",
+    "هـ": "H",
+    "و": "U",
+    "ى": "V",
+    "ع": "E",
+}
+EN_TO_AR_LETTERS = {v: k for k, v in AR_TO_EN_LETTERS.items() if k != "هـ"}
+
+
+def _convert_ar_digits_to_en(value):
+    if not value:
+        return value
+    return "".join(AR_TO_EN_DIGITS.get(ch, ch) for ch in value)
+
+
+def _convert_en_digits_to_ar(value):
+    if not value:
+        return value
+    return "".join(EN_TO_AR_DIGITS.get(ch, ch) for ch in value)
+
+
+def _convert_ar_letters_to_en(value):
+    if not value:
+        return value
+    if value.strip() == "هـ":
+        return "H"
+    return "".join(AR_TO_EN_LETTERS.get(ch, ch) for ch in value)
+
+
+def _convert_en_letters_to_ar(value):
+    if not value:
+        return value
+    return "".join(EN_TO_AR_LETTERS.get(ch.upper() if ch.isalpha() else ch, ch) for ch in value)
+
 
 class FleetVehicle(models.Model):
     _inherit = "fleet.vehicle"
@@ -15,6 +70,10 @@ class FleetVehicle(models.Model):
     partner_id = fields.Many2one("res.partner", "Owner")
     partner_phone = fields.Char(related="partner_id.phone")
     partner_mobile = fields.Char(related="partner_id.mobile")
+    owner_country_code = fields.Char(
+        related="partner_id.country_id.code",
+        string="Owner Country Code",
+    )
     partner_phone_search = fields.Char(
         string="Phone Search",
         compute="_compute_partner_phone_search",
@@ -37,6 +96,7 @@ class FleetVehicle(models.Model):
         string="Arabic Numbers", help="The numeric part in Arabic numerals (Hindi).")
     plate_numbers = fields.Char(
         string="Western Arabic Numbers", help="The numeric part in Western Arabic numerals.")
+    vin_sn = fields.Char(required=True)
 
     license_plate = fields.Char(
         compute="_compute_license_plate", store=True, tracking=True)
@@ -128,16 +188,77 @@ class FleetVehicle(models.Model):
             extra_domain, limit=remaining, order=order))
         return result_ids + extra_ids
 
+    @api.onchange("partner_id")
+    def _onchange_partner_id_plate_fields(self):
+        """Clear Saudi-only plate parts when the owner is not Saudi."""
+        code = self.partner_id.country_id.code
+        if code and code != "SA":
+            self.plate_letters = False
+            self.plate_letters_ar = False
+            self.plate_numbers_ar = False
+
+    def _is_saudi_plate_owner(self):
+        """Saudi layout when country is SA or not set yet."""
+        code = self.partner_id.country_id.code if self.partner_id else False
+        return not code or code == "SA"
+
+    @api.onchange("plate_letters_ar")
+    def _onchange_plate_letters_ar(self):
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+            return
+        self.plate_letters = _convert_ar_letters_to_en(self.plate_letters_ar or "")
+
+    @api.onchange("plate_letters")
+    def _onchange_plate_letters(self):
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+            return
+        converted = _convert_en_letters_to_ar(self.plate_letters or "")
+        current_en_from_ar = _convert_ar_letters_to_en(self.plate_letters_ar or "")
+        if (self.plate_letters or "") != current_en_from_ar:
+            self.with_context(skip_plate_convert=True).update({
+                "plate_letters_ar": converted,
+            })
+
+    @api.onchange("plate_numbers_ar")
+    def _onchange_plate_numbers_ar(self):
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+            return
+        self.plate_numbers = _convert_ar_digits_to_en(self.plate_numbers_ar or "")
+
+    @api.onchange("plate_numbers")
+    def _onchange_plate_numbers(self):
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+            return
+        converted = _convert_en_digits_to_ar(self.plate_numbers or "")
+        current_en_from_ar = _convert_ar_digits_to_en(self.plate_numbers_ar or "")
+        if (self.plate_numbers or "") != current_en_from_ar:
+            self.with_context(skip_plate_convert=True).update({
+                "plate_numbers_ar": converted,
+            })
+
     @api.constrains("vin_sn")
     def _check_vin_sn(self):
         for vehicle in self:
-            if vehicle.vin_sn and len(vehicle.vin_sn) != 17:
+            if not vehicle.vin_sn:
+                raise ValidationError(_("The Chassis Number is required."))
+            if len(vehicle.vin_sn) != 17:
                 raise ValidationError(
                     _("The Chassis Number should be 17 characters."))
 
-    @api.depends("plate_letters_ar", "plate_letters", "plate_numbers_ar", "plate_numbers")
+    @api.depends(
+        "plate_letters_ar",
+        "plate_letters",
+        "plate_numbers_ar",
+        "plate_numbers",
+        "partner_id.country_id.code",
+    )
     def _compute_license_plate(self):
         for vehicle in self:
+            country_code = vehicle.partner_id.country_id.code
+            # Non-Saudi (and website "Others"): plate stored in plate_numbers only.
+            if country_code and country_code != "SA":
+                vehicle.license_plate = vehicle.plate_numbers or ""
+                continue
             parts = [
                 vehicle.plate_letters_ar or "",
                 vehicle.plate_numbers_ar or "",
@@ -162,18 +283,38 @@ class FleetVehicle(models.Model):
             vehicle.checkout_count = self.env["car.checkout"].search_count(
                 [("vehicle_id", "=", vehicle.id)])
 
+    @api.depends(
+        "plate_letters_ar",
+        "plate_letters",
+        "plate_numbers_ar",
+        "plate_numbers",
+        "partner_id.country_id.code",
+        "brand_id.name",
+        "model_id.name",
+    )
     @api.depends_context("lang")
     def _compute_display_name(self):
         """Compute vehicle display name based on user language and plate details."""
         for vehicle in self:
-            lang = vehicle.env.context.get("lang", "en_US")
-            plate_letters = vehicle.plate_letters_ar if lang.startswith(
-                "ar") else vehicle.plate_letters
-            plate_numbers = vehicle.plate_numbers_ar if lang.startswith(
-                "ar") else vehicle.plate_numbers
-            plate = (plate_numbers or "") + "-" + (plate_letters or "")
+            country_code = vehicle.partner_id.country_id.code
+            if country_code and country_code != "SA":
+                plate = vehicle.plate_numbers or vehicle.license_plate or ""
+            else:
+                lang = vehicle.env.context.get("lang", "en_US")
+                plate_letters = (
+                    vehicle.plate_letters_ar
+                    if lang.startswith("ar")
+                    else vehicle.plate_letters
+                )
+                plate_numbers = (
+                    vehicle.plate_numbers_ar
+                    if lang.startswith("ar")
+                    else vehicle.plate_numbers
+                )
+                plate = f"{plate_numbers or ''}-{plate_letters or ''}".strip("-")
             vehicle.display_name = (
-                f"{vehicle.brand_id.name or ''} / {vehicle.model_id.name or ''} / {plate.strip() or _('No Plate')}"
+                f"{vehicle.brand_id.name or ''} / {vehicle.model_id.name or ''} / "
+                f"{plate or _('No Plate')}"
             )
 
     def action_view_available_services(self):

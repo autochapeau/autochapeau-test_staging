@@ -5,22 +5,55 @@
         <field name="model">sale.order</field>
         <field name="inherit_id"
                ref="cars_management.view_order_form_inherit_cars_management"/>
+        <field name="priority" eval="50"/>
         <field name="arch" type="xml">
+            <!-- Hide old unused commission field -->
             <xpath expr="//field[@name='commission_amount']"
                    position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='commission_amount']" position="after">
-                <field name="external_referral_percent"
-                       readonly="1"
-                       invisible="order_type != 'extern'"/>
-                <field name="external_referral_expected_amount"
-                       readonly="1"
-                       invisible="order_type != 'extern'"/>
-                <field name="external_referral_total"
-                       readonly="1"
-                       invisible="order_type != 'extern' or external_referral_count == 0"/>
+
+            <!--
+                Full-width block AFTER agency fields, BEFORE sale_header.
+                colspan/col isolation prevents Customer/Car leaking under commission titles.
+            -->
+            <xpath expr="//group[@name='sale_order_type']" position="after">
+                <group name="agency_commission_block"
+                       colspan="2"
+                       col="1"
+                       invisible="order_type != 'extern'">
+                    <group col="2">
+                        <group string="Autochapeau Commission">
+                            <label for="commission_autochapeau_amount"
+                                   string="Commission Amount"/>
+                            <div class="o_row">
+                                <field name="commission_autochapeau_amount" nolabel="1"/>
+                                <field name="commission_autochapeau_percent"
+                                       nolabel="1"
+                                       readonly="1"
+                                       class="oe_inline"/>
+                                <span>%</span>
+                            </div>
+                        </group>
+                        <group string="Autoflex Commission">
+                            <label for="commission_autoflex_amount"
+                                   string="Commission Amount"/>
+                            <div class="o_row">
+                                <field name="commission_autoflex_amount" nolabel="1"/>
+                                <field name="commission_autoflex_percent"
+                                       nolabel="1"
+                                       readonly="1"
+                                       class="oe_inline"/>
+                                <span>%</span>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="commission_agency_total" readonly="1"/>
+                    </group>
+                </group>
             </xpath>
+
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_external_referrals"
                         type="object"

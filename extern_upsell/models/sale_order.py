@@ -247,7 +247,8 @@ class SaleOrder(models.Model):
             "agency_id": False,
             "agency_salesperson_id": False,
             "commission_amount": 0.0,
-            "external_referral_percent": 0.0,
+            "commission_autochapeau_amount": 0.0,
+            "commission_autoflex_amount": 0.0,
         })
         extra.message_post(body=_(
             "Upsell order linked to extern referral %(order)s. "

@@ -58,6 +58,14 @@ class CarWorkshop(models.Model):
     _description = "Workshop"
 
     name = fields.Char(required=True)
+    code = fields.Selection(
+        [
+            ("autochapeau", "Autochapeau"),
+            ("autoflex", "Autoflex"),
+        ],
+        string="Commission Code",
+        help="Used to calculate Autochapeau / Autoflex commission on Sale Orders.",
+    )
     company_id = fields.Many2one(
         "res.company", string="Company", default=lambda self: self.env.company, required=True)
     staff_ids = fields.Many2many(

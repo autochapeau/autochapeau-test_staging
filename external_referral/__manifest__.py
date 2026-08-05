@@ -1,13 +1,14 @@
 {
     "name": "External Referral",
-    "summary": "Track percentage-based fees for external agency referrals",
-    "version": "17.0.1.0.0",
+    "summary": "Track manual Autochapeau/Autoflex agency referral fees",
+    "version": "17.0.1.1.2",
     "author": "Wellknot",
     "category": "Sales",
     "depends": [
         "sale_management",
         "account",
         "cars_management",
+        "work_orders",
     ],
     "data": [
         "security/security.xml",

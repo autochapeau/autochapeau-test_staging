@@ -62,40 +62,7 @@
                         <h2>
                             <field name="title" class="oe_inline" />
                         </h2>
-                         <div class="o_row">
-                            <b>License Plate</b>
-                        </div>
-
-                        <div class="o_row">
-                            <field
-                                name="plate_numbers_ar"
-                                class="oe_inline ml-3 o_ar_numerals o_license_plate"
-                                nolabel="1"
-                                style="font-family: 'Noto Sans Arabic', sans-serif;"
-                                placeholder="٥ ٦ ٧"
-                            />
-                            <field
-                                name="plate_numbers"
-                                class="oe_inline mr-5 o_license_plate"
-                                nolabel="1"
-                                placeholder="7 6 5"
-                            />
-                        </div>
-                        <div class="o_row" />
-                        <div class="o_row">
-                            <field
-                                name="plate_letters_ar"
-                                class="oe_inline ml-3 o_license_plate"
-                                nolabel="1"
-                                placeholder="م ل ل"
-                            />
-                            <field
-                                name="plate_letters"
-                                class="oe_inline mr-5 o_license_plate"
-                                nolabel="1"
-                                placeholder="LLZ"
-                            />
-                        </div>
+                        <field name="owner_country_code" invisible="1" />
                         <div class="o_row">
                             <field name="owner_type" widget="radio" options="{'horizontal': True}" nolabel="1" />
                         </div>
@@ -103,6 +70,51 @@
                         <h2>
                             <field name="partner_id" class="oe_inline" />
                         </h2>
+                         <div class="o_row">
+                            <b>License Plate</b>
+                        </div>
+
+                        <!-- Non-Saudi: free plate text (same field used by website Others) -->
+                        <field
+                            name="plate_numbers"
+                            string="License Plate"
+                            placeholder="License Plate"
+                            invisible="not owner_country_code or owner_country_code == 'SA'"
+                        />
+
+                        <!-- Saudi plate layout -->
+                        <div invisible="owner_country_code and owner_country_code != 'SA'">
+                            <div class="o_row">
+                                <field
+                                    name="plate_numbers_ar"
+                                    class="oe_inline ml-3 o_ar_numerals o_license_plate"
+                                    nolabel="1"
+                                    style="font-family: 'Noto Sans Arabic', sans-serif;"
+                                    placeholder="٥ ٦ ٧"
+                                />
+                                <field
+                                    name="plate_numbers"
+                                    class="oe_inline mr-5 o_license_plate"
+                                    nolabel="1"
+                                    placeholder="7 6 5"
+                                />
+                            </div>
+                            <div class="o_row" />
+                            <div class="o_row">
+                                <field
+                                    name="plate_letters_ar"
+                                    class="oe_inline ml-3 o_license_plate"
+                                    nolabel="1"
+                                    placeholder="م ل ل"
+                                />
+                                <field
+                                    name="plate_letters"
+                                    class="oe_inline mr-5 o_license_plate"
+                                    nolabel="1"
+                                    placeholder="LLZ"
+                                />
+                            </div>
+                        </div>
                         <label for="tag_ids" class="me-3" />
                         <field
                             name="tag_ids"
@@ -114,7 +126,7 @@
                         <group string="Vehicle">
                             <field name="company_id" />
                             <field name="category_id" />
-                            <field name="vin_sn" />
+                            <field name="vin_sn" required="1" />
                             <field name="location" />
                         </group>
                         <group string="Car Owner" name="car_owner" invisible="owner_type != 'company'">

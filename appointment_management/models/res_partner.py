@@ -97,6 +97,7 @@ class LoyaltyExchangeLog(models.Model):
             ("yougotagift_loyalty_exchange", "You GotaGift Loyalty exchange to Wallet"),
             ("mylist_loyalty_exchange", "MyList Loyalty exchange to Wallet"),
             ("payment_by_wallet", "Payment by Wallet"),
+            ("loyalty_invoice_earn", "Loyalty points from paid invoice"),
         ]
     )
     card_source_id = fields.Many2one("loyalty.card")

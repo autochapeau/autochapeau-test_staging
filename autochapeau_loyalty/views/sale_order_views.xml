@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_loyalty_redeem" model="ir.ui.view">
+        <field name="name">sale.order.form.loyalty.redeem</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_loyalty_redeem_wizard"
+                        type="object"
+                        string="Redeem Loyalty Points"
+                        class="btn-secondary"
+                        invisible="state not in ('draft', 'sent')"/>
+                <button name="action_remove_loyalty_redeem"
+                        type="object"
+                        string="Remove Loyalty Redeem"
+                        class="btn-secondary"
+                        invisible="state not in ('draft', 'sent') or not has_loyalty_redeem"
+                        confirm="Restore redeemed loyalty points to the customer card?"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="loyalty_type" widget="radio"
+                         options="{'horizontal': true}"
+                         readonly="state not in ('draft', 'sent')"/>
+                <field name="loyalty_balance" readonly="1"/>
+                <field name="loyalty_points_redeemed" readonly="1"
+                         invisible="not loyalty_points_redeemed"/>
+                <field name="loyalty_redeem_amount" readonly="1"
+                         invisible="not loyalty_redeem_amount"/>
+                <field name="has_loyalty_redeem" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//tree" position="inside">
+                <field name="is_loyalty_redeem_line" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
