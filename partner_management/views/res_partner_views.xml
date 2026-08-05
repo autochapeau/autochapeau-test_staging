@@ -231,8 +231,8 @@
                             class="btn-link"
                             invisible="not id or contact_partner_type != 'customer' or partner_type == 'contract' or not mobile or mobile_verified"/>
                 </div>
-                <field name="mobile_verified" readonly="1"
-                         invisible="contact_partner_type != 'customer' or partner_type == 'contract'"/>
+                <field name="mobile_verified" readonly="1" invisible="1"/>
+<!--                invisible="contact_partner_type != 'customer' or partner_type == 'contract'"-->
             </xpath>
         </field>
     </record>

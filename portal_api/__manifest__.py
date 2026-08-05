@@ -1,8 +1,15 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.7",
+    "version": "17.0.1.0.8",
     "author": "Wellknot",
-    "depends": ["cars_management", "appointment_management", "hr_recruitment", "account", "crm"],
+    "depends": [
+        "cars_management",
+        "appointment_management",
+        "hr_recruitment",
+        "account",
+        "crm",
+        "autochapeau_loyalty",
+    ],
     "data": [
         "data/portal_api_data.xml",
         "data/alrajhi_loyalty_api_data.xml",

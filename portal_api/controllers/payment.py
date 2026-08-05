@@ -173,110 +173,14 @@ class PortalPayment(http.Controller):
                     )
                 ]
 
-            # confirm order
-            #  don't generate loyalty points if loyalty_type not autochapeau
-            loyalty_type = data.get("loyalty_type")
-            if loyalty_type == "autochapeau":
-                sale_order.with_user(SUPERUSER_ID).action_confirm()
-                total_amount = amount + donation_amount
-                loyalty_card = sale_order.partner_id.loyalty_card_id
-                loyalty_card.points += total_amount / 10
-                sale_order.partner_id.loyalty_exchange_log_ids = [
-                    (
-                        0,
-                        0,
-                        {
-                            "type": "payment_by_wallet",
-                            "points": total_amount,
-                            "amount": total_amount,
-                            "card_source_id": loyalty_card.id,
-                            "order_id": sale_order.id,
-                        },
-                    )
-                ]
-            else:
+            # Store destination; points are granted only when the invoice is paid.
+            loyalty_type = data.get("loyalty_type") or "autochapeau"
+            if loyalty_type not in ("autochapeau", "alrajhi", "qitaf"):
+                return make_json_response(422, {"message": "Invalid loyalty_type"})
+            sale_order.write({"loyalty_type": loyalty_type})
+            if loyalty_type != "autochapeau":
                 sale_order.coupon_point_ids.sudo().unlink()
-                sale_order.with_user(SUPERUSER_ID).with_context(
-                    bypass_point_changes=True).action_confirm()
-            # generate loyalty points for alrajhi and qitaf
-            if loyalty_type in ("alrajhi", "qitaf"):
-                branch = sale_order.appointment_id and sale_order.appointment_id.company_id or sale_order.company_id
-                base_url = request.env["ir.config_parameter"].sudo(
-                ).get_param("web.base.url")
-                authorization_header = request.httprequest.headers.get(
-                    "Authorization")
-                access_token = authorization_header.split(
-                    " ")[1] if authorization_header else False
-                headers = {"Content-Type": "application/json",
-                           "Authorization": f"Bearer {access_token}"}
-                reward_payload = {
-                    "amount": amount,
-                    "phone": user.partner_id.phone,
-                    "branch_code": branch.branch_code,
-                }
-                if loyalty_type == "alrajhi":
-                    url = base_url + "/v1/alrajhi/loyalty/reward"
-                elif loyalty_type == "qitaf":
-                    url = base_url + "/v1/qitaf/loyalty/reward"
-                response = requests.post(
-                    url, headers=headers, json=reward_payload, timeout=10)
-                try:
-                    result = response.json()
-                except ValueError:
-                    return make_json_response(
-                        200,
-                        {
-                            "message": "Payment success, but loyalty service returned invalid JSON.",
-                            "require_alternate_phone": False,
-                            "order_id": sale_order.id,
-                            "amount": amount,
-                        },
-                    )
-
-                result_data = result.get(
-                    "result") if isinstance(result, dict) else {}
-                result_code = result_data.get("code") if isinstance(
-                    result_data, dict) else None
-
-                if result_code != 200:
-                    error_message = {
-                        "message": "Payment success, but invalid mobile number for loyalty points.",
-                        "require_alternate_phone": True,
-                        "order_id": sale_order.id,
-                        "amount": amount,
-                    }
-                    if loyalty_type == "alrajhi":
-                        header_data = result_data.get(
-                            "header") if isinstance(result_data, dict) else {}
-                        status_code = header_data.get("statusCode") if isinstance(
-                            header_data, dict) else None
-                        description = (
-                            header_data.get("statusDescription")
-                            if isinstance(header_data, dict)
-                            else None
-                        ) or result_data.get("message") or "AlRajhi loyalty error"
-
-                        if status_code in ["E00173", "E00145"]:
-                            return make_json_response(200, error_message)
-                        else:
-                            return make_json_response(200, {"message": f"AlRajhi Mokafaa: {description}"})
-
-                    elif loyalty_type == "qitaf":
-                        message_data = result_data.get(
-                            "message") if isinstance(result_data, dict) else {}
-                        message_code = message_data.get("code") if isinstance(
-                            message_data, dict) else None
-                        description = (
-                            message_data.get("description")
-                            if isinstance(message_data, dict)
-                            else None
-                        ) or "Qitaf loyalty error"
-
-                        if message_code == 9999:
-                            return make_json_response(200, error_message)
-                        else:
-                            return make_json_response(200, {"message": f"Qitaf Earn: {description}"})
-            # return result
+            sale_order.with_user(SUPERUSER_ID).action_confirm()
             return make_json_response(200, {"message": "success"})
         except Exception as e:
             request.env.cr.rollback()
@@ -302,28 +206,33 @@ class PortalPayment(http.Controller):
             [("id", "=", order_id)])
         if not order:
             return make_json_response(404, {"message": "Order not found"})
-        payload = {
-            "amount": amount,
-            "phone": new_phone,
-            "branch_code": order.company_id.branch_code,
-        }
-        base_url = request.env["ir.config_parameter"].sudo(
-        ).get_param("web.base.url")
+
+        service = request.env["loyalty.earn.service"].sudo()
         if loyalty_type == "alrajhi":
-            url = base_url + "/v1/alrajhi/loyalty/reward"
+            result = service.earn_alrajhi(
+                new_phone,
+                amount,
+                branch_code=order.company_id.branch_code,
+            )
         elif loyalty_type == "qitaf":
-            url = base_url + "/v1/qitaf/loyalty/reward"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": request.httprequest.headers.get("Authorization", ""),
-        }
-        response = requests.post(url, headers=headers,
-                                 json=payload, timeout=10)
-        result = response.json()
-        if result.get("result")["code"] == 200:
-            return make_json_response(200, {"message": "Loyalty points added successfully with new phone"})
+            result = service.earn_qitaf(new_phone, amount)
         else:
-            return make_json_response(422, {"message": "Failed to add loyalty points with new phone"})
+            return make_json_response(422, {"message": "Invalid loyalty_type"})
+
+        if result.get("success"):
+            # Mark related paid invoices as earned when retry succeeds.
+            invoices = order.invoice_ids.filtered(
+                lambda m: m.move_type == "out_invoice"
+                and m.state == "posted"
+                and m.payment_state in ("paid", "in_payment")
+                and not m.loyalty_earn_done
+            )
+            invoices.write({"loyalty_earn_done": True, "loyalty_points_granted": float(amount or 0.0) or 1.0})
+            return make_json_response(200, {"message": "Loyalty points added successfully with new phone"})
+        return make_json_response(
+            422,
+            {"message": result.get("message") or "Failed to add loyalty points with new phone"},
+        )
 
     @http.route(
         "/v1/invoice/print/<string:access_token>",
