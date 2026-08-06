@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_checkout_view_form_sale_payment" model="ir.ui.view">
+        <field name="name">car.checkout.form.sale.payment</field>
+        <field name="model">car.checkout</field>
+        <field name="inherit_id" ref="cars_management.car_checkout_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_progress']" position="attributes">
+                <attribute name="invisible">state != 'draft' or (sale_order_id and not sale_order_is_fully_paid)</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_pickup_now']" position="after">
+                <button
+                    name="action_open_split_payment_wizard"
+                    string="Collect Payment"
+                    type="object"
+                    class="btn-primary"
+                    groups="sale_split_payment.group_split_payment_cashier,sales_team.group_sale_manager"
+                    invisible="not sale_order_id or sale_order_state not in ('sale', 'done') or sale_split_amount_remaining &lt;= 0 or not sale_has_service_product_lines"
+                />
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button
+                        name="action_view_sale_order"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-shopping-cart"
+                        invisible="not sale_order_id"
+                    >
+                        <div class="o_stat_info">
+                            <span class="o_stat_text">Sale Order</span>
+                        </div>
+                    </button>
+                    <field name="sale_order_state" invisible="1"/>
+                    <field name="sale_split_amount_remaining" invisible="1"/>
+                    <field name="sale_has_service_product_lines" invisible="1"/>
+                    <field name="sale_currency_id" invisible="1"/>
+                    <field name="sale_order_is_fully_paid" invisible="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='sale_order_id']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

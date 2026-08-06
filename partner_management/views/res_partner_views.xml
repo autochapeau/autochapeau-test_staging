@@ -199,7 +199,10 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='city']" position="before">
-                <field name="city_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="city_id"
+                         domain="[('country_id', '=', country_id)]"
+                         context="{'default_country_id': country_id}"
+                         options="{'no_create': True, 'no_create_edit': True}"/>
             </xpath>
             <xpath expr="//field[@name='city']" position="attributes">
                 <attribute name="readonly">1</attribute>

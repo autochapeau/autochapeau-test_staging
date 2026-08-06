@@ -1,7 +1,7 @@
 {
     "name": "Partner Management",
     "summary": "Contact type, city selection, customer mobile OTP, supervisor/subordinate links, and related sale orders",
-    "version": "17.0.1.1.2",
+    "version": "17.0.1.1.8",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
@@ -16,6 +16,7 @@
         "appointment_management",
         "work_orders",
         "commission",
+        "sale_split_payment",
     ],
     "data": [
         "security/groups.xml",
@@ -26,6 +27,7 @@
         "views/sale_order_views.xml",
         "views/fleet_vehicle_views.xml",
         "views/car_appointment_views.xml",
+        "views/car_checkout_views.xml",
         "views/car_work_order_views.xml",
         "views/car_workorder_service_views.xml",
         "views/product_product_views.xml",

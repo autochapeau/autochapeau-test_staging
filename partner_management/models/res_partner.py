@@ -32,6 +32,7 @@ class ResPartner(models.Model):
         "res.city",
         string="City",
         ondelete="restrict",
+        domain="[('country_id', '=', country_id)]",
     )
 
     # ── Subordinate / Supervisor ──────────────────────────────────────
@@ -92,6 +93,14 @@ class ResPartner(models.Model):
     @api.onchange("city_id")
     def _onchange_city_id(self):
         self.city = self.city_id.name if self.city_id else False
+        if self.city_id and self.city_id.country_id:
+            self.country_id = self.city_id.country_id
+
+    @api.onchange("country_id")
+    def _onchange_country_id_clear_city(self):
+        if self.city_id and self.city_id.country_id != self.country_id:
+            self.city_id = False
+            self.city = False
 
     @api.model
     def _sync_city_from_city_id(self, vals):
@@ -101,6 +110,8 @@ class ResPartner(models.Model):
         if city_id:
             city = self.env["res.city"].browse(city_id)
             vals["city"] = city.name
+            if city.country_id and not vals.get("country_id"):
+                vals["country_id"] = city.country_id.id
         else:
             vals["city"] = False
 

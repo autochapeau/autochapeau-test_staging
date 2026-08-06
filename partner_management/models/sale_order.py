@@ -63,6 +63,19 @@ class SaleOrder(models.Model):
         string="Appointment Count",
         compute="_compute_appointment_count",
     )
+    has_booking_for_payment = fields.Boolean(
+        string="Has Booking For Payment",
+        compute="_compute_has_booking_for_payment",
+        help="True when this order or its related parent order has an appointment.",
+    )
+    has_storable_product_lines = fields.Boolean(
+        string="Has Storable Lines",
+        compute="_compute_product_line_type_flags",
+    )
+    has_service_product_lines = fields.Boolean(
+        string="Has Service Lines",
+        compute="_compute_product_line_type_flags",
+    )
 
     def _get_vehicle_size_product_domain(self):
         """Show products without Size, or products matching the car size."""
@@ -93,6 +106,33 @@ class SaleOrder(models.Model):
     def _compute_appointment_count(self):
         for order in self:
             order.appointment_count = len(order.appointment_ids)
+
+    @api.depends(
+        "appointment_ids",
+        "related_sale_id",
+        "related_sale_id.appointment_ids",
+    )
+    def _compute_has_booking_for_payment(self):
+        """Extras share the parent contract/extern appointment."""
+        for order in self:
+            order.has_booking_for_payment = bool(
+                order.appointment_ids
+                or order.related_sale_id.appointment_ids
+            )
+
+    @api.depends(
+        "order_line.product_id",
+        "order_line.product_id.type",
+        "order_line.display_type",
+    )
+    def _compute_product_line_type_flags(self):
+        for order in self:
+            lines = order.order_line.filtered(
+                lambda line: not line.display_type and line.product_id
+            )
+            types = set(lines.mapped("product_id.type"))
+            order.has_storable_product_lines = "product" in types
+            order.has_service_product_lines = "service" in types
 
     @api.constrains("related_sale_id")
     def _check_related_sale_id(self):
@@ -143,6 +183,11 @@ class SaleOrder(models.Model):
             raise UserError(_("Please save the sale order first."))
         if not self.vehicle_id:
             raise UserError(_("Please select a car before creating an appointment."))
+        if not self.has_service_product_lines:
+            raise UserError(_(
+                "Create Appointment is only available when the order has at least "
+                "one service product line."
+            ))
 
         appointment = self.env["car.appointment"].search(
             [("sale_order_id", "=", self.id)], limit=1
@@ -234,6 +279,21 @@ class SaleOrder(models.Model):
             )],
             "target": "current",
         }
+
+    def action_open_split_payment_wizard(self):
+        """Collect Payment requires service lines and an existing appointment."""
+        self.ensure_one()
+        if not self.has_service_product_lines:
+            raise UserError(_(
+                "Collect Payment is only available when the order has at least "
+                "one service product line."
+            ))
+        if not self.has_booking_for_payment:
+            raise UserError(_(
+                "Collect Payment is not available until an appointment/booking "
+                "exists for this sale order."
+            ))
+        return super().action_open_split_payment_wizard()
 
     def action_view_child_sale_orders(self):
         self.ensure_one()

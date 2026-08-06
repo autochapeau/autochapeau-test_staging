@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <tree editable="bottom">
                 <field name="name"/>
+                <field name="country_id" required="1"/>
                 <field name="active" column_invisible="1"/>
             </tree>
         </field>
@@ -19,10 +20,25 @@
                 <sheet>
                     <group>
                         <field name="name"/>
+                        <field name="country_id" required="1"/>
                         <field name="active"/>
                     </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_res_city_search" model="ir.ui.view">
+        <field name="name">res.city.search</field>
+        <field name="model">res.city</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="country_id"/>
+                <group>
+                    <filter name="group_country" string="Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

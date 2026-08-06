@@ -5,5 +5,6 @@ from . import fleet_vehicle
 from . import product_template
 from . import product_product
 from . import car_appointment
+from . import car_checkout
 from . import car_workorder_service
 from . import car_work_order
