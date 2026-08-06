@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_discount_limit_salesman,sale.discount.limit salesman,model_sale_discount_limit,sales_team.group_sale_salesman,1,0,0,0
+access_sale_discount_limit_manager,sale.discount.limit manager,model_sale_discount_limit,sales_team.group_sale_manager,1,1,1,1
+access_sale_discount_limit_user_admin,sale.discount.limit settings,model_sale_discount_limit,base.group_system,1,1,1,1

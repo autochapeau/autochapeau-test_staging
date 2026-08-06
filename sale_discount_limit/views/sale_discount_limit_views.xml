@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sale_discount_limit_view_tree" model="ir.ui.view">
+        <field name="name">sale.discount.limit.tree</field>
+        <field name="model">sale.discount.limit</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="user_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('share', '=', False)]"/>
+                <field name="max_discount_percent"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sale_discount_limit_view_form" model="ir.ui.view">
+        <field name="name">sale.discount.limit.form</field>
+        <field name="model">sale.discount.limit</field>
+        <field name="arch" type="xml">
+            <form string="Sale Discount Limit">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Salespersons 10%"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="max_discount_percent"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Users">
+                        <field name="user_ids" nolabel="1" widget="many2many_tags"
+                               domain="[('share', '=', False)]"
+                               options="{'no_create': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_discount_limit_view_search" model="ir.ui.view">
+        <field name="name">sale.discount.limit.search</field>
+        <field name="model">sale.discount.limit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_ids"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="sale_discount_limit_action" model="ir.actions.act_window">
+        <field name="name">Discount Limits</field>
+        <field name="res_model">sale.discount.limit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a discount limit for one or more users.
+            </p>
+            <p>
+                Users without a rule cannot apply any discount (0%).
+                If a user is in several rules, the highest percentage is used.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="sale_discount_limit_menu"
+        name="Discount Limits"
+        parent="sale.menu_sale_config"
+        action="sale_discount_limit_action"
+        sequence="55"
+        groups="sales_team.group_sale_manager"
+    />
+</odoo>
