@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_task_quality_refuse_wizard" model="ir.ui.view">
+        <field name="name">task.quality.refuse.wizard.form</field>
+        <field name="model">task.quality.refuse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refuse Quality">
+                <group>
+                    <field name="service_id" invisible="1"/>
+                    <field name="available_employee_ids" invisible="1"/>
+                    <field name="has_bom_items" invisible="1"/>
+                    <field name="fault_type" widget="radio"/>
+                    <field name="reason" placeholder="Explain why quality was refused..."/>
+                </group>
+                <div class="alert alert-warning" role="alert" invisible="has_bom_items or fault_type == 'simple'">
+                    This service has no BOM parts. Technician / Supplier faults require BOM lines on the service product.
+                </div>
+                <group invisible="fault_type == 'simple'" string="Faulty Part">
+                    <field
+                        name="bom_item_ids"
+                        widget="many2many_tags"
+                        options="{'no_create': True, 'no_create_edit': True}"
+                        required="fault_type in ('technician', 'supplier')"
+                    />
+                    <field
+                        name="employee_id"
+                        invisible="fault_type != 'technician'"
+                        required="fault_type == 'technician'"
+                        options="{'no_create': True}"
+                    />
+                    <field
+                        name="partner_id"
+                        invisible="fault_type != 'supplier'"
+                        options="{'no_create': True}"
+                        context="{'res_partner_search_mode': 'supplier', 'default_supplier_rank': 1}"
+                    />
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Confirm Refusal" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

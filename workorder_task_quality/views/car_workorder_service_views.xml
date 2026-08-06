@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="car_workorderservice_view_form_task_quality" model="ir.ui.view">
+        <field name="name">car.workorder.service.form.task.quality</field>
+        <field name="model">car.workorder.service</field>
+        <field name="inherit_id" ref="workorder_time_tracking.car_workorderservice_view_form_time_tracking"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_finish']" position="after">
+                <button
+                    name="action_confirm_quality"
+                    type="object"
+                    string="Confirm QA"
+                    class="btn-success"
+                    invisible="state != 'quality'"
+                    groups="work_orders.group_quality_officer,work_orders.group_quality_manager,work_orders.group_workshop_manager"
+                />
+                <button
+                    name="action_refuse_quality"
+                    type="object"
+                    string="Refuse QA"
+                    class="btn-danger"
+                    invisible="state != 'quality'"
+                    groups="work_orders.group_quality_officer,work_orders.group_quality_manager,work_orders.group_workshop_manager"
+                />
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">waiting,ready,progress,quality,done</attribute>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button
+                        name="action_view_qa_faults"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-exclamation-triangle"
+                        invisible="qa_fault_count == 0"
+                        groups="work_orders.group_quality_officer,work_orders.group_quality_manager,work_orders.group_workshop_manager"
+                    >
+                        <field name="qa_fault_count" widget="statinfo" string="QA Faults"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='time_logs']" position="after">
+                <page
+                    string="Quality List"
+                    name="task_quality_list"
+                    invisible="state not in ('quality', 'done') and not qa_check_item_ids"
+                >
+                    <group invisible="not qa_refuse_reason">
+                        <field name="qa_refuse_fault_type" readonly="1"/>
+                        <field name="qa_refuse_reason" readonly="1"/>
+                    </group>
+                    <!-- Editable only during Check Quality -->
+                    <field
+                        name="qa_check_item_ids"
+                        invisible="state != 'quality'"
+                    >
+                        <tree editable="bottom" create="0" delete="0">
+                            <field name="item_type"/>
+                            <field name="feature_id" column_invisible="1"/>
+                            <field name="bom_id" column_invisible="1"/>
+                            <field name="product_id" optional="show"/>
+                            <field name="name" readonly="1"/>
+                            <field name="quantity" readonly="1" optional="show"/>
+                            <field name="unit_cost" readonly="1" optional="hide"/>
+                            <field name="cost" readonly="1" optional="show" sum="Total"/>
+                            <field name="checked" widget="boolean_toggle"/>
+                        </tree>
+                    </field>
+                    <!-- Read-only in every other state -->
+                    <field
+                        name="qa_check_item_ids"
+                        invisible="state == 'quality'"
+                        readonly="1"
+                    >
+                        <tree create="0" delete="0" edit="0">
+                            <field name="item_type"/>
+                            <field name="feature_id" column_invisible="1"/>
+                            <field name="bom_id" column_invisible="1"/>
+                            <field name="product_id" optional="show"/>
+                            <field name="name"/>
+                            <field name="quantity" optional="show"/>
+                            <field name="unit_cost" optional="hide"/>
+                            <field name="cost" optional="show" sum="Total"/>
+                            <field name="checked" widget="boolean"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="car_workorderservice_view_tree_task_quality" model="ir.ui.view">
+        <field name="name">car.workorder.service.tree.task.quality</field>
+        <field name="model">car.workorder.service</field>
+        <field name="inherit_id" ref="work_orders.car_workorderservice_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="decoration-warning">state in ('progress', 'quality')</attribute>
+                <attribute name="decoration-success">state == 'done'</attribute>
+                <attribute name="decoration-info">state in ('waiting', 'ready')</attribute>
+                <attribute name="decoration-danger">state == 'cancel'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

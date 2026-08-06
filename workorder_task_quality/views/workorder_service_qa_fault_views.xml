@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_workorder_service_qa_fault_tree" model="ir.ui.view">
+        <field name="name">workorder.service.qa.fault.tree</field>
+        <field name="model">workorder.service.qa.fault</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="refuse_date"/>
+                <field name="fault_type"/>
+                <field name="product_id"/>
+                <field name="quantity" optional="hide"/>
+                <field name="unit_cost" optional="hide"/>
+                <field name="cost" sum="BOM Cost"/>
+                <field name="technician_cost" sum="Technician"/>
+                <field name="company_cost" sum="Company"/>
+                <field name="picking_id" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="service_product_id"/>
+                <field name="workorder_id"/>
+                <field name="vehicle_id" optional="hide"/>
+                <field name="reason" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_workorder_service_qa_fault_form" model="ir.ui.view">
+        <field name="name">workorder.service.qa.fault.form</field>
+        <field name="model">workorder.service.qa.fault</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_picking"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-truck"
+                            invisible="not picking_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Delivery</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="refuse_date" readonly="1"/>
+                            <field name="fault_type" readonly="1"/>
+                            <field name="reason" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="product_id" readonly="1"/>
+                            <field name="quantity" readonly="1"/>
+                            <field name="unit_cost" readonly="1"/>
+                            <field name="employee_id" readonly="1" invisible="fault_type != 'technician'"/>
+                            <field name="partner_id" readonly="1" invisible="fault_type != 'supplier'"/>
+                            <field name="picking_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Cost Allocation">
+                        <group>
+                            <field name="cost" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="technician_cost"/>
+                            <field name="company_cost"/>
+                        </group>
+                    </group>
+                    <group string="Context">
+                        <field name="service_id" readonly="1"/>
+                        <field name="service_product_id" readonly="1"/>
+                        <field name="workorder_id" readonly="1"/>
+                        <field name="vehicle_id" readonly="1"/>
+                        <field name="branch_id" readonly="1"/>
+                        <field name="qa_check_item_id" invisible="1"/>
+                        <field name="bom_id" invisible="1"/>
+                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_workorder_service_qa_fault_search" model="ir.ui.view">
+        <field name="name">workorder.service.qa.fault.search</field>
+        <field name="model">workorder.service.qa.fault</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="service_product_id"/>
+                <field name="workorder_id"/>
+                <field name="employee_id"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <field name="reason"/>
+                <filter name="filter_technician" string="Technician Fault" domain="[('fault_type', '=', 'technician')]"/>
+                <filter name="filter_supplier" string="Supplier Fault" domain="[('fault_type', '=', 'supplier')]"/>
+                <group>
+                    <filter name="group_fault_type" string="Fault Type" context="{'group_by': 'fault_type'}"/>
+                    <filter name="group_product" string="Faulty Part" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_employee" string="Technician" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_partner" string="Supplier" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_service" string="Service" context="{'group_by': 'service_product_id'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'refuse_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_workorder_service_qa_fault_pivot" model="ir.ui.view">
+        <field name="name">workorder.service.qa.fault.pivot</field>
+        <field name="model">workorder.service.qa.fault</field>
+        <field name="arch" type="xml">
+            <pivot string="QA Faults">
+                <field name="fault_type" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="cost" type="measure"/>
+                <field name="technician_cost" type="measure"/>
+                <field name="company_cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_workorder_service_qa_fault_graph" model="ir.ui.view">
+        <field name="name">workorder.service.qa.fault.graph</field>
+        <field name="model">workorder.service.qa.fault</field>
+        <field name="arch" type="xml">
+            <graph string="QA Faults" type="bar">
+                <field name="fault_type"/>
+                <field name="technician_cost" type="measure"/>
+                <field name="company_cost" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_workorder_service_qa_fault" model="ir.actions.act_window">
+        <field name="name">QA Fault Report</field>
+        <field name="res_model">workorder.service.qa.fault</field>
+        <field name="view_mode">tree,pivot,graph,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No QA faults recorded yet.
+            </p>
+            <p>
+                Technician and supplier faults from task quality refusal appear here,
+                with cost based on the selected BOM part only. You can split the amount
+                between technician and company on each fault.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_workorder_service_qa_fault"
+        name="QA Fault Report"
+        parent="work_orders.car_work_order_menu_root"
+        action="action_workorder_service_qa_fault"
+        sequence="40"
+        groups="work_orders.group_quality_officer,work_orders.group_quality_manager,work_orders.group_workshop_manager"
+    />
+</odoo>
