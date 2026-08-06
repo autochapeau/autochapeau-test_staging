@@ -100,7 +100,7 @@
                                 <field name="branch_id" readonly="1"/>
                                 <field name="date" readonly="state != 'draft'" />
                                 <field name="company_id" options="{'no_create': True}" readonly="state != 'draft'" />
-                                <field name="sale_order_id" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="sale_order_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
                                 <field name="employee_id" options="{'no_create': True}" readonly="state != 'draft'" />
                             </group>
                         <group string="OTP Verification" invisible="state != 'progress'">

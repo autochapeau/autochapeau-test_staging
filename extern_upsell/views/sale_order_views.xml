@@ -15,7 +15,7 @@
             </xpath>
             <!-- Extras share the parent appointment -->
             <xpath expr="//button[@name='action_create_appointment']" position="attributes">
-                <attribute name="invisible">state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0 or related_sale_id</attribute>
+                <attribute name="invisible">state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0 or related_sale_id or not has_service_product_lines</attribute>
             </xpath>
             <xpath expr="//field[@name='related_sale_id']" position="before">
                 <field name="is_extern_visit_order" invisible="1"/>
