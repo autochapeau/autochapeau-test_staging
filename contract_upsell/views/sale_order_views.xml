@@ -16,7 +16,7 @@
             </xpath>
             <!-- Extra upsell orders share the contract appointment -->
             <xpath expr="//button[@name='action_create_appointment']" position="attributes">
-                <attribute name="invisible">state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0 or related_sale_id</attribute>
+                <attribute name="invisible">state not in ('sale', 'done') or not id or not vehicle_id or appointment_count &gt; 0 or related_sale_id or not has_service_product_lines</attribute>
             </xpath>
             <xpath expr="//field[@name='related_sale_id']" position="after">
                 <field name="contract_work_order_id"
@@ -32,7 +32,7 @@
         <field name="inherit_id" ref="sale_split_payment.view_order_form_sale_split_payment"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_open_split_payment_wizard']" position="attributes">
-                <attribute name="invisible">state not in ('sale', 'done') or not id or split_amount_remaining &lt;= 0 or order_type == 'contract'</attribute>
+                <attribute name="invisible">state not in ('sale', 'done') or not id or split_amount_remaining &lt;= 0 or not has_service_product_lines or not has_booking_for_payment or order_type == 'contract'</attribute>
             </xpath>
         </field>
     </record>
