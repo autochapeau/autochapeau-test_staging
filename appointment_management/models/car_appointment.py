@@ -298,6 +298,35 @@ class CarAppointment(models.Model):
             [("state", "=", "cancelled")])
         return result
 
+    # def _register_hook(self):
+    #     """Disable leftover POS appointment views when POS fields are missing.
+
+    #     Happens when ``pos_appointment`` views stay in the DB but the module
+    #     Python is not loaded (wrong addons path / partial uninstall).
+    #     """
+    #     super()._register_hook()
+    #     if "pos_order_id" in self._fields:
+    #         return
+    #     View = self.env["ir.ui.view"].sudo()
+    #     orphan_views = View.browse()
+    #     pos_view = self.env.ref(
+    #         "pos_appointment.car_appointment_view_form_pos_order",
+    #         raise_if_not_found=False,
+    #     )
+    #     if pos_view and pos_view.active:
+    #         orphan_views |= pos_view
+    #     orphan_views |= View.search(
+    #         [
+    #             ("model", "=", "car.appointment"),
+    #             ("active", "=", True),
+    #             "|",
+    #             ("arch_db", "ilike", "pos_order_id"),
+    #             ("arch_db", "ilike", 'name="pos_uid"'),
+    #         ]
+    #     )
+    #     if orphan_views:
+    #         orphan_views.write({"active": False})
+
 
 class CarAppointmentService(models.Model):
     _name = "car.appointment.service"
