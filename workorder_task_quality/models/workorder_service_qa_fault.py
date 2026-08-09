@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.fields import Command
+from odoo.tools.float_utils import float_compare, float_is_zero
 
 
 class WorkorderServiceQaFault(models.Model):
@@ -119,12 +120,35 @@ class WorkorderServiceQaFault(models.Model):
         index=True,
         help="Outgoing delivery created to replace the faulty BOM part from stock.",
     )
+    move_id = fields.Many2one(
+        "account.move",
+        string="Journal Entry",
+        readonly=True,
+        copy=False,
+        index=True,
+        help="Accounting entry for the technician / company cost split.",
+    )
+    accounting_state = fields.Selection(
+        [
+            ("not_posted", "Not Posted"),
+            ("posted", "Posted"),
+        ],
+        string="Accounting Status",
+        compute="_compute_accounting_state",
+        store=True,
+        index=True,
+    )
     company_id = fields.Many2one(
         "res.company",
         string="Company",
         default=lambda self: self.env.company,
         required=True,
     )
+
+    @api.depends("move_id")
+    def _compute_accounting_state(self):
+        for fault in self:
+            fault.accounting_state = "posted" if fault.move_id else "not_posted"
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -285,6 +309,174 @@ class WorkorderServiceQaFault(models.Model):
             "res_id": self.picking_id.id,
             "target": "current",
         }
+
+    def action_view_move(self):
+        self.ensure_one()
+        if not self.move_id:
+            raise UserError(_("No journal entry linked to this QA fault."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Journal Entry"),
+            "res_model": "account.move",
+            "view_mode": "form",
+            "res_id": self.move_id.id,
+            "target": "current",
+        }
+
+    def _get_technician_partner(self):
+        """Partner used on Partner Ledger for the technician share (as customer)."""
+        self.ensure_one()
+        employee = self.employee_id
+        if not employee:
+            raise UserError(_("Select a technician before posting accounting."))
+        partner = employee.work_contact_id or employee.user_id.partner_id
+        if not partner:
+            raise UserError(
+                _("Employee '%s' has no related contact (Work Contact). "
+                  "Set it on the employee form so the amount can appear on "
+                  "Partner Ledger.")
+                % employee.display_name
+            )
+        if partner.customer_rank <= 0:
+            partner.sudo().write({"customer_rank": 1})
+        return partner
+
+    def _get_qa_fault_accounts(self):
+        self.ensure_one()
+        company = self.company_id
+        journal = company.qa_fault_journal_id
+        tech_account = company.qa_fault_technician_account_id
+        company_account = company.qa_fault_company_account_id
+        offset_account = company.qa_fault_offset_account_id
+        missing = []
+        if not journal:
+            missing.append(_("QA Fault Journal"))
+        if not tech_account:
+            missing.append(_("QA Fault Technician Account"))
+        if not company_account:
+            missing.append(_("QA Fault Company Expense Account"))
+        if not offset_account:
+            missing.append(_("QA Fault Offset Account"))
+        if missing:
+            raise UserError(
+                _("Please configure QA Fault accounting in Settings → "
+                  "Accounting → Default Accounts:\n- %s")
+                % "\n- ".join(missing)
+            )
+        return journal, tech_account, company_account, offset_account
+
+    def _prepare_qa_fault_move_line_vals(self):
+        """Build journal lines: debit tech + company, credit offset."""
+        self.ensure_one()
+        journal, tech_account, company_account, offset_account = self._get_qa_fault_accounts()
+        company = self.company_id
+        currency = company.currency_id
+        precision = currency.rounding
+
+        tech_amt = self.technician_cost or 0.0
+        company_amt = self.company_cost or 0.0
+        if float_compare(tech_amt, 0.0, precision_rounding=precision) < 0:
+            raise UserError(_("Charged to Technician cannot be negative."))
+        if float_compare(company_amt, 0.0, precision_rounding=precision) < 0:
+            raise UserError(_("Charged to Company cannot be negative."))
+        if float_is_zero(tech_amt, precision_rounding=precision) and float_is_zero(
+            company_amt, precision_rounding=precision
+        ):
+            raise UserError(_("Nothing to post: both charged amounts are zero."))
+
+        total = currency.round(tech_amt + company_amt)
+        label = self.name or _("QA Fault")
+        wo_name = self.workorder_id.name if self.workorder_id else ""
+        line_name = f"{label}" + (f" ({wo_name})" if wo_name else "")
+
+        analytic_distribution = False
+        branch = self.branch_id
+        if branch and getattr(branch, "analytic_account_id", False) and branch.analytic_account_id:
+            analytic_distribution = {str(branch.analytic_account_id.id): 100}
+
+        line_vals = []
+        if not float_is_zero(tech_amt, precision_rounding=precision):
+            partner = self._get_technician_partner()
+            # Prefer partner receivable if set and matches company; else company setting.
+            receivable = partner.property_account_receivable_id
+            account = tech_account
+            if receivable and receivable.company_id == company:
+                account = receivable
+            line_vals.append(
+                Command.create(
+                    {
+                        "name": _("Technician share: %s") % line_name,
+                        "account_id": account.id,
+                        "partner_id": partner.id,
+                        "debit": currency.round(tech_amt),
+                        "credit": 0.0,
+                        "analytic_distribution": analytic_distribution,
+                    }
+                )
+            )
+        if not float_is_zero(company_amt, precision_rounding=precision):
+            line_vals.append(
+                Command.create(
+                    {
+                        "name": _("Company share: %s") % line_name,
+                        "account_id": company_account.id,
+                        "debit": currency.round(company_amt),
+                        "credit": 0.0,
+                        "analytic_distribution": analytic_distribution,
+                    }
+                )
+            )
+        line_vals.append(
+            Command.create(
+                {
+                    "name": _("QA fault offset: %s") % line_name,
+                    "account_id": offset_account.id,
+                    "debit": 0.0,
+                    "credit": total,
+                    "analytic_distribution": analytic_distribution,
+                }
+            )
+        )
+        return journal, line_vals
+
+    def action_post_accounting(self):
+        """Post misc journal entry for cost allocation (Partner Ledger on technician)."""
+        for fault in self:
+            if fault.move_id:
+                raise UserError(
+                    _("Accounting already posted for this fault (%s).")
+                    % fault.move_id.display_name
+                )
+            journal, line_vals = fault._prepare_qa_fault_move_line_vals()
+            move = self.env["account.move"].sudo().create(
+                {
+                    "move_type": "entry",
+                    "journal_id": journal.id,
+                    "date": fields.Date.context_today(fault),
+                    "ref": fault.name or _("QA Fault"),
+                    "company_id": fault.company_id.id,
+                    "line_ids": line_vals,
+                }
+            )
+            move.action_post()
+            fault.move_id = move.id
+            if fault.service_id:
+                fault.service_id.message_post(
+                    body=_("QA fault accounting posted: %s") % move.display_name,
+                    message_type="comment",
+                    subtype_xmlid="mail.mt_note",
+                )
+        return True
+
+    def write(self, vals):
+        locked_fields = {"technician_cost", "company_cost", "employee_id"}
+        if locked_fields.intersection(vals):
+            posted = self.filtered("move_id")
+            if posted:
+                raise UserError(
+                    _("You cannot change cost allocation after accounting is posted.")
+                )
+        return super().write(vals)
 
     @api.onchange("technician_cost")
     def _onchange_technician_cost(self):

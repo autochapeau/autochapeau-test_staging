@@ -4,9 +4,17 @@
         <field name="name">workorder.service.qa.fault.tree</field>
         <field name="model">workorder.service.qa.fault</field>
         <field name="arch" type="xml">
-            <tree create="0" delete="0">
+            <tree
+                create="0"
+                delete="0"
+                decoration-success="accounting_state == 'posted'"
+                decoration-warning="accounting_state == 'not_posted'"
+            >
                 <field name="refuse_date"/>
                 <field name="fault_type"/>
+                <field name="accounting_state" widget="badge"
+                         decoration-success="accounting_state == 'posted'"
+                         decoration-warning="accounting_state == 'not_posted'"/>
                 <field name="product_id"/>
                 <field name="quantity" optional="hide"/>
                 <field name="unit_cost" optional="hide"/>
@@ -14,6 +22,7 @@
                 <field name="technician_cost" sum="Technician"/>
                 <field name="company_cost" sum="Company"/>
                 <field name="picking_id" optional="show"/>
+                <field name="move_id" optional="show"/>
                 <field name="employee_id" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="service_product_id"/>
@@ -29,6 +38,17 @@
         <field name="model">workorder.service.qa.fault</field>
         <field name="arch" type="xml">
             <form create="0" delete="0">
+                <header>
+                    <button
+                        name="action_post_accounting"
+                        type="object"
+                        string="Post Accounting"
+                        class="btn-primary"
+                        invisible="move_id"
+                        groups="work_orders.group_quality_officer,work_orders.group_quality_manager,work_orders.group_workshop_manager,account.group_account_invoice"
+                    />
+                    <field name="accounting_state" widget="statusbar"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button
@@ -40,6 +60,17 @@
                         >
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Delivery</span>
+                            </div>
+                        </button>
+                        <button
+                            name="action_view_move"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o"
+                            invisible="not move_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
                             </div>
                         </button>
                     </div>
@@ -57,6 +88,7 @@
                             <field name="employee_id" readonly="1" invisible="fault_type != 'technician'"/>
                             <field name="partner_id" readonly="1" invisible="fault_type != 'supplier'"/>
                             <field name="picking_id" readonly="1"/>
+                            <field name="move_id" readonly="1"/>
                         </group>
                     </group>
                     <group string="Cost Allocation">
@@ -64,8 +96,8 @@
                             <field name="cost" readonly="1"/>
                         </group>
                         <group>
-                            <field name="technician_cost"/>
-                            <field name="company_cost"/>
+                            <field name="technician_cost" readonly="move_id"/>
+                            <field name="company_cost" readonly="move_id"/>
                         </group>
                     </group>
                     <group string="Context">
@@ -97,7 +129,11 @@
                 <field name="reason"/>
                 <filter name="filter_technician" string="Technician Fault" domain="[('fault_type', '=', 'technician')]"/>
                 <filter name="filter_supplier" string="Supplier Fault" domain="[('fault_type', '=', 'supplier')]"/>
+                <separator/>
+                <filter name="filter_not_posted" string="Not Posted" domain="[('accounting_state', '=', 'not_posted')]"/>
+                <filter name="filter_posted" string="Posted" domain="[('accounting_state', '=', 'posted')]"/>
                 <group>
+                    <filter name="group_accounting_state" string="Accounting Status" context="{'group_by': 'accounting_state'}"/>
                     <filter name="group_fault_type" string="Fault Type" context="{'group_by': 'fault_type'}"/>
                     <filter name="group_product" string="Faulty Part" context="{'group_by': 'product_id'}"/>
                     <filter name="group_employee" string="Technician" context="{'group_by': 'employee_id'}"/>
