@@ -1,4 +1,5 @@
 from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class CarWorkOrder(models.Model):
@@ -7,6 +8,21 @@ class CarWorkOrder(models.Model):
     task_count = fields.Integer(
         string="Tasks",
         compute="_compute_task_count",
+    )
+    sale_order_state = fields.Selection(
+        related="sale_order_id.state",
+        string="Sale Order Status",
+    )
+    sale_currency_id = fields.Many2one(
+        related="sale_order_id.currency_id",
+    )
+    sale_split_amount_remaining = fields.Monetary(
+        related="sale_order_id.split_amount_remaining",
+        currency_field="sale_currency_id",
+        string="Remaining to Collect",
+    )
+    sale_has_service_product_lines = fields.Boolean(
+        related="sale_order_id.has_service_product_lines",
     )
 
     def _compute_task_count(self):
@@ -25,3 +41,12 @@ class CarWorkOrder(models.Model):
         }
         action["name"] = _("Tasks")
         return action
+
+    def action_open_split_payment_wizard(self):
+        """Collect payment on the linked sale order."""
+        self.ensure_one()
+        if not self.sale_order_id:
+            raise UserError(_(
+                "Collect Payment requires a sale order linked to this work order."
+            ))
+        return self.sale_order_id.action_open_split_payment_wizard()
