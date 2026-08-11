@@ -10,4 +10,40 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Smart button next to partner_management stats -->
+    <record id="view_partner_form_loyalty_card_stat" model="ir.ui.view">
+        <field name="name">res.partner.form.loyalty.card.stat</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="partner_management.view_partner_form_appointments"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_invoices']" position="after">
+                <button
+                    name="action_view_loyalty_card"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-credit-card"
+                    help="Loyalty Card">
+                    <field name="loyalty_card_count" widget="statinfo" string="Loyalty Card"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Colored action button row -->
+    <record id="view_partner_form_loyalty_card_action_button" model="ir.ui.view">
+        <field name="name">res.partner.form.loyalty.card.action.button</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="partner_management.view_partner_form_action_buttons"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_invoices']" position="after">
+                <button
+                    name="action_view_loyalty_card"
+                    type="object"
+                    string="Loyalty Card"
+                    class="btn btn-outline-success"
+                    icon="fa-credit-card"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

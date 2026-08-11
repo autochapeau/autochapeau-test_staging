@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_round
 
 from .constants import LOYALTY_TYPE_SELECTION
@@ -19,6 +20,42 @@ class ResPartner(models.Model):
         help="Default destination for loyalty points earned on paid invoices. "
         "Can be overridden per Sale Order.",
     )
+    loyalty_card_count = fields.Integer(
+        string="Loyalty Cards",
+        compute="_compute_loyalty_card_count",
+    )
+
+    def _compute_loyalty_card_count(self):
+        Card = self.env["loyalty.card"].sudo()
+        for partner in self:
+            partner.loyalty_card_count = Card.search_count(
+                [
+                    ("partner_id", "=", partner.commercial_partner_id.id),
+                    ("program_id.program_type", "=", "loyalty"),
+                ]
+            )
+
+    def action_view_loyalty_card(self):
+        """Open (or create) the Autochapeau loyalty card for this partner."""
+        self.ensure_one()
+        card = self._get_autochapeau_loyalty_card(create_if_missing=True)
+        if not card:
+            raise UserError(
+                _("No loyalty program is configured. "
+                  "Set a loyalty program on the company or create an active loyalty program.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Loyalty Card"),
+            "res_model": "loyalty.card",
+            "view_mode": "form",
+            "res_id": card.id,
+            "target": "new",
+            "context": {
+                "dialog_size": "medium",
+                "form_view_initial_mode": "readonly",
+            },
+        }
 
     def _get_autochapeau_loyalty_card(self, create_if_missing=True):
         """Return the partner loyalty card, searching DB directly (not stored related)."""
