@@ -223,7 +223,11 @@
                             <field name="name" invisible="id == False" />
                         </group>
                         <group>
-                            <field name="checkin_state" widget="badge" />
+                            <field name="checkin_state" widget="badge"
+                                   decoration-muted="checkin_state == 'draft'"
+                                   decoration-warning="checkin_state == 'progress'"
+                                   decoration-success="checkin_state == 'done'"
+                                   decoration-danger="checkin_state == 'canceled'"/>
                         </group>
                     </group>
                     <group>

@@ -492,6 +492,14 @@ class CarWorkOrder(models.Model):
         if not self.service_ids:
             raise UserError(
                 _("You must add at least one service before confirming the work order."))
+        # Prefill empty staff from workcenter employees before validating.
+        for service in self.service_ids.filtered(lambda s: not s.staff_ids and s.workcenter_id):
+            employees = service.workcenter_id.employee_ids
+            branch = self.branch_id
+            if branch:
+                employees = employees.filtered(lambda emp: emp.branch_id == branch)
+            if employees:
+                service.staff_ids = employees
         has_staff = any(service.staff_ids for service in self.service_ids)
         if not has_staff:
             raise UserError(
@@ -753,6 +761,16 @@ class CarWorkOrderService(models.Model):
     expected_duration = fields.Float()
     staff_ids = fields.Many2many(
         'hr.employee', 'car_workorder_service_staff_rel', 'service_id', 'employee_id', string='Staff', required=True)
+
+    @api.onchange("workcenter_id")
+    def _onchange_workcenter_staff(self):
+        """Prefill staff from the selected workcenter employees."""
+        for service in self:
+            employees = service.workcenter_id.employee_ids
+            branch = service.workorder_id.branch_id or service.branch_id
+            if branch:
+                employees = employees.filtered(lambda emp: emp.branch_id == branch)
+            service.staff_ids = employees
 
     @api.onchange('workorder_id')
     def _onchange_workorder_staff(self):
