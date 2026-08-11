@@ -242,7 +242,6 @@ class SaleOrder(models.Model):
             ),
             "user_id": self.user_id.id,
             "team_id": self.team_id.id if self.team_id else False,
-            "pricelist_id": self.pricelist_id.id if self.pricelist_id else False,
             # Explicitly no agency / referral on the upsell.
             "agency_id": False,
             "agency_salesperson_id": False,
