@@ -149,6 +149,19 @@ class SaleOrder(models.Model):
                     "Link extras directly to the contract order."
                 ))
 
+    def write(self, vals):
+        if "pricelist_id" in vals:
+            new_pricelist_id = vals.get("pricelist_id") or False
+            if isinstance(new_pricelist_id, models.BaseModel):
+                new_pricelist_id = new_pricelist_id.id
+            for order in self.filtered("related_sale_id"):
+                current_id = order.pricelist_id.id if order.pricelist_id else False
+                if new_pricelist_id != current_id:
+                    raise UserError(_(
+                        "You cannot change the pricelist on a sub sale order."
+                    ))
+        return super().write(vals)
+
     @api.onchange("partner_id")
     def _onchange_partner_id_reset_subordinate(self):
         if self.subordinate_id and self.subordinate_id.supervisor_id != self.partner_id:
@@ -313,7 +326,25 @@ class SaleOrder(models.Model):
         return action
 
     def action_create_extra_sale_order(self):
-        """Create a linked extra SO invoiced to the sub-customer (not the contract)."""
+        """Create Extra Order: type wizard → OTP (if needed) → create."""
+        self.ensure_one()
+        self._check_extra_sale_order_ready()
+        if not self.env.context.get("skip_extra_order_type_wizard"):
+            return self._action_open_extra_order_type_wizard()
+
+        order_type = self.env.context.get("extra_order_type") or "intern"
+        if not self.subordinate_id.mobile_verified:
+            if not self.subordinate_id.mobile:
+                raise UserError(_(
+                    "Please set a mobile number on the Sub-customer before "
+                    "creating an Extra Order."
+                ))
+            return self._action_open_subordinate_otp_wizard(
+                extra_order_type=order_type
+            )
+        return self._create_extra_sale_order_action(order_type=order_type)
+
+    def _check_extra_sale_order_ready(self):
         self.ensure_one()
         if self.order_type != "contract":
             raise UserError(_(
@@ -328,11 +359,52 @@ class SaleOrder(models.Model):
                 "Please save the contract sale order first."
             ))
 
-        extra = self.env["sale.order"].create({
+    def _action_open_extra_order_type_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Create Extra Order"),
+            "res_model": "sale.extra.order.type.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_sale_order_id": self.id,
+                "default_order_type": "intern",
+            },
+        }
+
+    def _action_open_subordinate_otp_wizard(self, extra_order_type="intern"):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Verify Sub-customer Mobile"),
+            "res_model": "sale.extra.order.otp.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_sale_order_id": self.id,
+                "default_partner_id": self.subordinate_id.id,
+                "default_mobile": self.subordinate_id.mobile,
+                "default_country_id": (
+                    self.subordinate_id.country_id.id
+                    or self.partner_id.country_id.id
+                ),
+                "default_extra_order_type": extra_order_type or "intern",
+            },
+        }
+
+    def _create_extra_sale_order_action(self, order_type="intern"):
+        self.ensure_one()
+        self._check_extra_sale_order_ready()
+        if order_type not in ("intern", "extern"):
+            raise UserError(_("Invalid Extra Order type."))
+        vals = {
             "partner_id": self.subordinate_id.id,
             "related_sale_id": self.id,
             "vehicle_id": self.vehicle_id.id if self.vehicle_id else False,
-            "order_type": "intern",
+            "order_type": order_type,
             "origin": self.name,
             "client_order_ref": self.client_order_ref,
             "company_id": self.company_id.id,
@@ -340,8 +412,14 @@ class SaleOrder(models.Model):
             "branch_id": self.branch_id.id if "branch_id" in self._fields and self.branch_id else False,
             "user_id": self.user_id.id,
             "team_id": self.team_id.id if self.team_id else False,
-            "pricelist_id": self.pricelist_id.id if self.pricelist_id else False,
-        })
+        }
+        if order_type != "extern":
+            # Keep extras clean unless explicitly Extern.
+            vals.update({
+                "agency_id": False,
+                "agency_salesperson_id": False,
+            })
+        extra = self.env["sale.order"].create(vals)
         return {
             "type": "ir.actions.act_window",
             "name": _("Extra Sale Order"),

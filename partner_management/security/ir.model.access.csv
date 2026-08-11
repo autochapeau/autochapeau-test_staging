@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_res_city_user,res.city.user,model_res_city,base.group_user,1,0,0,0
 access_res_city_partner_manager,res.city.partner.manager,model_res_city,base.group_partner_manager,1,1,1,1
 access_partner_send_otp_wizard_user,partner.send.otp.wizard.user,model_partner_send_otp_wizard,base.group_user,1,1,1,1
+access_sale_extra_order_otp_wizard_user,sale.extra.order.otp.wizard.user,model_sale_extra_order_otp_wizard,base.group_user,1,1,1,1
+access_sale_extra_order_type_wizard_user,sale.extra.order.type.wizard.user,model_sale_extra_order_type_wizard,base.group_user,1,1,1,1

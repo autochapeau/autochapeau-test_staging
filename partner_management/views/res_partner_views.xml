@@ -45,6 +45,11 @@
                     class="oe_stat_button" icon="fa-money" help="Payments">
                     <field name="payment_count" widget="statinfo" string="Payments"/>
                 </button>
+                <button
+                    name="action_view_invoices" type="object"
+                    class="oe_stat_button" icon="fa-pencil-square-o" help="Invoices">
+                    <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                </button>
             </div>
         </field>
     </record>
@@ -104,6 +109,11 @@
                             string="Payments"
                             class="btn btn-danger"
                             icon="fa-money"/>
+                    <button name="action_view_invoices"
+                            type="object"
+                            string="Invoices"
+                            class="btn btn-outline-primary"
+                            icon="fa-pencil-square-o"/>
                 </div>
             </xpath>
         </field>
@@ -219,23 +229,22 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='mobile']" position="after">
                 <label for="mobile_otp_input"
-                       invisible="contact_partner_type != 'customer' or partner_type == 'contract' or mobile_verified"/>
+                       invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or mobile_verified"/>
                 <div class="o_row"
-                     invisible="contact_partner_type != 'customer' or partner_type == 'contract' or mobile_verified">
+                     invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or mobile_verified">
                     <field name="mobile_otp_input" placeholder="Enter OTP"/>
                     <button name="action_send_mobile_otp"
                             type="object"
                             string="Send OTP"
                             class="btn-secondary"
-                            invisible="contact_partner_type != 'customer' or partner_type == 'contract' or not mobile or mobile_verified"/>
+                            invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or not mobile or mobile_verified"/>
                     <button name="action_send_mobile_otp"
                             type="object"
                             string="Resend OTP"
                             class="btn-link"
-                            invisible="not id or contact_partner_type != 'customer' or partner_type == 'contract' or not mobile or mobile_verified"/>
+                            invisible="not id or contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or not mobile or mobile_verified"/>
                 </div>
                 <field name="mobile_verified" readonly="1" invisible="1"/>
-<!--                invisible="contact_partner_type != 'customer' or partner_type == 'contract'"-->
             </xpath>
         </field>
     </record>
