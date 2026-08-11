@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+import re
 
 # Same mapping as eshop-website plateConversions.ts
 AR_TO_EN_DIGITS = {
@@ -29,6 +30,7 @@ AR_TO_EN_LETTERS = {
     "ع": "E",
 }
 EN_TO_AR_LETTERS = {v: k for k, v in AR_TO_EN_LETTERS.items() if k != "هـ"}
+PLATE_LETTER_SELECTION = [(letter, letter) for letter in sorted(EN_TO_AR_LETTERS)]
 
 
 def _convert_ar_digits_to_en(value):
@@ -92,6 +94,18 @@ class FleetVehicle(models.Model):
         string="Arabic Letters", help="The three-letter part in Arabic.")
     plate_letters = fields.Char(
         string="Latin Letters", help="The three-letter part in Latin.")
+    plate_letter_1 = fields.Selection(
+        selection=PLATE_LETTER_SELECTION,
+        string="Letter 1",
+    )
+    plate_letter_2 = fields.Selection(
+        selection=PLATE_LETTER_SELECTION,
+        string="Letter 2",
+    )
+    plate_letter_3 = fields.Selection(
+        selection=PLATE_LETTER_SELECTION,
+        string="Letter 3",
+    )
     plate_numbers_ar = fields.Char(
         string="Arabic Numbers", help="The numeric part in Arabic numerals (Hindi).")
     plate_numbers = fields.Char(
@@ -108,6 +122,8 @@ class FleetVehicle(models.Model):
 
     @api.model
     def create(self, vals):
+        vals = dict(vals)
+        self._sync_plate_letter_vals(vals)
         if vals.get("unverified_model_name"):
             car_model_vals = {
                 "name": vals.get("unverified_model_name"),
@@ -125,6 +141,90 @@ class FleetVehicle(models.Model):
                 )
             return car
         return super().create(vals)
+
+    def write(self, vals):
+        vals = dict(vals)
+        letter_part_keys = ("plate_letter_1", "plate_letter_2", "plate_letter_3")
+        has_letter_parts = any(key in vals for key in letter_part_keys)
+        has_plate_letters = "plate_letters" in vals
+
+        if has_letter_parts and not has_plate_letters:
+            if all(key in vals for key in letter_part_keys) or len(self) == 1:
+                merged = dict(vals)
+                if len(self) == 1 and not all(key in vals for key in letter_part_keys):
+                    vehicle = self
+                    merged.update({
+                        "plate_letter_1": vals.get(
+                            "plate_letter_1", vehicle.plate_letter_1
+                        ),
+                        "plate_letter_2": vals.get(
+                            "plate_letter_2", vehicle.plate_letter_2
+                        ),
+                        "plate_letter_3": vals.get(
+                            "plate_letter_3", vehicle.plate_letter_3
+                        ),
+                    })
+                self._sync_plate_letter_vals(merged)
+                return super().write(merged)
+            for vehicle in self:
+                merged = {
+                    "plate_letter_1": vals.get(
+                        "plate_letter_1", vehicle.plate_letter_1
+                    ),
+                    "plate_letter_2": vals.get(
+                        "plate_letter_2", vehicle.plate_letter_2
+                    ),
+                    "plate_letter_3": vals.get(
+                        "plate_letter_3", vehicle.plate_letter_3
+                    ),
+                }
+                self._sync_plate_letter_vals(merged)
+                super(FleetVehicle, vehicle).write({**vals, **merged})
+            return True
+
+        if has_plate_letters or has_letter_parts:
+            self._sync_plate_letter_vals(vals)
+        return super().write(vals)
+
+    @api.model
+    def _split_plate_letters(self, plate_letters):
+        """Return selection values for the three latin plate letters."""
+        allowed = set(EN_TO_AR_LETTERS)
+        raw = (plate_letters or "").upper().replace(" ", "")
+        parts = []
+        for index in range(3):
+            char = raw[index] if index < len(raw) else False
+            parts.append(char if char in allowed else False)
+        return parts
+
+    @api.model
+    def _join_plate_letters(self, letter_1, letter_2, letter_3):
+        letters = [letter for letter in (letter_1, letter_2, letter_3) if letter]
+        return " ".join(letters) or False
+
+    @api.model
+    def _sync_plate_letter_vals(self, vals):
+        """Keep plate_letters and the three selections aligned in create/write vals."""
+        if any(key in vals for key in ("plate_letter_1", "plate_letter_2", "plate_letter_3")):
+            letters = self._join_plate_letters(
+                vals.get("plate_letter_1"),
+                vals.get("plate_letter_2"),
+                vals.get("plate_letter_3"),
+            )
+            vals["plate_letters"] = letters
+            if "plate_letters_ar" not in vals:
+                vals["plate_letters_ar"] = (
+                    _convert_en_letters_to_ar(letters) if letters else False
+                )
+        elif "plate_letters" in vals:
+            letter_1, letter_2, letter_3 = self._split_plate_letters(vals.get("plate_letters"))
+            vals["plate_letter_1"] = letter_1
+            vals["plate_letter_2"] = letter_2
+            vals["plate_letter_3"] = letter_3
+            if vals.get("plate_letters") and "plate_letters_ar" not in vals:
+                vals["plate_letters_ar"] = _convert_en_letters_to_ar(vals["plate_letters"])
+        return vals
+
 
     def name_get(self):
         """Return formatted vehicle names."""
@@ -195,6 +295,9 @@ class FleetVehicle(models.Model):
         if code and code != "SA":
             self.plate_letters = False
             self.plate_letters_ar = False
+            self.plate_letter_1 = False
+            self.plate_letter_2 = False
+            self.plate_letter_3 = False
             self.plate_numbers_ar = False
 
     def _is_saudi_plate_owner(self):
@@ -202,15 +305,41 @@ class FleetVehicle(models.Model):
         code = self.partner_id.country_id.code if self.partner_id else False
         return not code or code == "SA"
 
+    @api.onchange("plate_letter_1", "plate_letter_2", "plate_letter_3")
+    def _onchange_plate_letter_parts(self):
+        """Mirror selected letters into the main latin/arabic plate fields."""
+        if self.env.context.get("skip_plate_convert"):
+            return
+        letters = self._join_plate_letters(
+            self.plate_letter_1, self.plate_letter_2, self.plate_letter_3
+        )
+        self.plate_letters = letters
+        if self._is_saudi_plate_owner():
+            self.plate_letters_ar = (
+                _convert_en_letters_to_ar(letters) if letters else False
+            )
+
     @api.onchange("plate_letters_ar")
     def _onchange_plate_letters_ar(self):
         if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
             return
         self.plate_letters = _convert_ar_letters_to_en(self.plate_letters_ar or "")
+        letter_1, letter_2, letter_3 = self._split_plate_letters(self.plate_letters)
+        self.plate_letter_1 = letter_1
+        self.plate_letter_2 = letter_2
+        self.plate_letter_3 = letter_3
 
     @api.onchange("plate_letters")
     def _onchange_plate_letters(self):
-        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+        if self.env.context.get("skip_plate_convert"):
+            return
+        letter_1, letter_2, letter_3 = self._split_plate_letters(self.plate_letters)
+        self.with_context(skip_plate_convert=True).update({
+            "plate_letter_1": letter_1,
+            "plate_letter_2": letter_2,
+            "plate_letter_3": letter_3,
+        })
+        if not self._is_saudi_plate_owner():
             return
         converted = _convert_en_letters_to_ar(self.plate_letters or "")
         current_en_from_ar = _convert_ar_letters_to_en(self.plate_letters_ar or "")
@@ -239,11 +368,17 @@ class FleetVehicle(models.Model):
     @api.constrains("vin_sn")
     def _check_vin_sn(self):
         for vehicle in self:
-            if not vehicle.vin_sn:
+            vin = (vehicle.vin_sn or "").strip()
+            if not vin:
                 raise ValidationError(_("The Chassis Number is required."))
-            if len(vehicle.vin_sn) != 17:
-                raise ValidationError(
-                    _("The Chassis Number should be 17 characters."))
+            if not (8 <= len(vin) <= 17):
+                raise ValidationError(_(
+                    "The Chassis Number must be between 8 and 17 characters."
+                ))
+            if not re.fullmatch(r"[A-Za-z0-9]+", vin):
+                raise ValidationError(_(
+                    "The Chassis Number may only contain English letters and numbers."
+                ))
 
     @api.depends(
         "plate_letters_ar",

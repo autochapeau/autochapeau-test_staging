@@ -102,16 +102,40 @@
                             <div class="o_row" />
                             <div class="o_row">
                                 <field
+                                    name="plate_letter_1"
+                                    class="oe_inline o_license_plate_letter"
+                                    nolabel="1"
+                                    placeholder="L"
+                                />
+                                <field
+                                    name="plate_letter_2"
+                                    class="oe_inline o_license_plate_letter"
+                                    nolabel="1"
+                                    placeholder="L"
+                                />
+                                <field
+                                    name="plate_letter_3"
+                                    class="oe_inline mr-5 o_license_plate_letter"
+                                    nolabel="1"
+                                    placeholder="Z"
+                                />
+                            </div>
+                            <div class="o_row">
+                                <field
                                     name="plate_letters_ar"
                                     class="oe_inline ml-3 o_license_plate"
                                     nolabel="1"
+                                    readonly="1"
+                                    force_save="1"
                                     placeholder="م ل ل"
                                 />
                                 <field
                                     name="plate_letters"
                                     class="oe_inline mr-5 o_license_plate"
                                     nolabel="1"
-                                    placeholder="LLZ"
+                                    readonly="1"
+                                    force_save="1"
+                                    placeholder="L L Z"
                                 />
                             </div>
                         </div>

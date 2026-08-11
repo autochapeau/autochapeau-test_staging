@@ -30,6 +30,41 @@ class ResPartner(models.Model):
         sanitize=False,
     )
 
+    @api.model
+    def _clear_partner_type_for_parent(self, vals):
+        """Child contacts keep partner_type empty (type belongs to the company)."""
+        if vals.get("parent_id"):
+            vals["partner_type"] = False
+        return vals
+
+    @api.onchange("parent_id")
+    def _onchange_parent_id_partner_type(self):
+        if self.parent_id:
+            self.partner_type = False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._clear_partner_type_for_parent(vals)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        vals = dict(vals)
+        if "parent_id" in vals:
+            if vals.get("parent_id"):
+                vals["partner_type"] = False
+            elif "partner_type" not in vals:
+                # Detached from parent: restore a usable default if empty.
+                for partner in self:
+                    if not partner.partner_type:
+                        vals.setdefault("partner_type", "external")
+                        break
+        result = super().write(vals)
+        child_with_type = self.filtered(lambda p: p.parent_id and p.partner_type)
+        for partner in child_with_type:
+            super(ResPartner, partner).write({"partner_type": False})
+        return result
+
     @api.depends("total_invoiced")
     def _compute_membership_id(self):
         Membership = self.env["customer.membership.level"]

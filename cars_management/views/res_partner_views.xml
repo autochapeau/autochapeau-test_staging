@@ -8,7 +8,9 @@
         <field name="arch" type="xml">
             <field name="website" position="before">
                 <field name="birthdate" />
-                <field name="partner_type" />
+                <field name="partner_type"
+                       readonly="parent_id"
+                       force_save="1"/>
                 <field name="source_id" />
             </field>
             <field name="mobile" position="attributes">

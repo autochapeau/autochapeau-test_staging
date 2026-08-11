@@ -6,3 +6,8 @@ div.o_ar_numerals > input {
     max-width: 220px;
     border-radius: 2px;
 }
+.o_license_plate_letter {
+    border: 1px solid grey !important;
+    max-width: 72px;
+    border-radius: 2px;
+}
