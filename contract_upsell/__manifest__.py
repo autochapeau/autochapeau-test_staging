@@ -1,7 +1,7 @@
 {
     "name": "Contract Upsell",
     "summary": "Shared work order and dual invoicing for Contract sale upsells",
-    "version": "17.0.1.3.1",
+    "version": "17.0.1.4.0",
     "author": "Wellknot",
     "category": "Sales",
     "depends": [

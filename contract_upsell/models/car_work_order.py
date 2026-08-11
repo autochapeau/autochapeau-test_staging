@@ -51,10 +51,6 @@ class CarWorkOrder(models.Model):
                 "You cannot create an upsell order on a finished or cancelled "
                 "work order."
             ))
-        if sale.child_sale_ids:
-            raise UserError(_(
-                "Only one extra sale order is allowed per Contract order."
-            ))
         return sale.action_create_extra_sale_order()
 
     def action_view_extra_sale_orders(self):

@@ -181,11 +181,10 @@ class SaleOrder(models.Model):
             raise UserError(_(
                 "Please confirm the Contract sale order before creating an extra order."
             ))
-        if self.child_sale_ids:
-            raise UserError(_(
-                "Only one extra sale order is allowed per Contract order."
-            ))
         action = super().action_create_extra_sale_order()
+        # Type/OTP wizards are returned before the Extra Order exists.
+        if action.get("res_model") != "sale.order" or not action.get("res_id"):
+            return action
         extra = self.env["sale.order"].browse(action.get("res_id"))
         if extra:
             extra.message_post(body=_(

@@ -5,9 +5,9 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="partner_management.view_order_form_inherit_subordinate"/>
         <field name="arch" type="xml">
-            <!-- Only one extra/upsell sale order per contract -->
+            <!-- Multiple extra/upsell sale orders per contract (Intern and/or Extern) -->
             <xpath expr="//button[@name='action_create_extra_sale_order']" position="attributes">
-                <attribute name="invisible">order_type != 'contract' or state not in ('sale', 'done') or not id or not subordinate_id or child_sale_count &gt; 0</attribute>
+                <attribute name="invisible">order_type != 'contract' or state not in ('sale', 'done') or not id or not subordinate_id</attribute>
             </xpath>
             <xpath expr="//field[@name='related_sale_id']" position="before">
                 <field name="contract_appointment_id"

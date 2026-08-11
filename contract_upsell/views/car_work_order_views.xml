@@ -10,7 +10,7 @@
                         string="Add Upsell Order"
                         type="object"
                         class="btn-secondary"
-                        invisible="not is_contract_work_order or parent_id or state in ('done', 'cancelled') or extra_sale_order_count &gt; 0"/>
+                        invisible="not is_contract_work_order or parent_id or state in ('done', 'cancelled')"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <field name="parent_id" invisible="1"/>
