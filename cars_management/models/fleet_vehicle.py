@@ -72,9 +72,15 @@ class FleetVehicle(models.Model):
     partner_id = fields.Many2one("res.partner", "Owner")
     partner_phone = fields.Char(related="partner_id.phone")
     partner_mobile = fields.Char(related="partner_id.mobile")
-    owner_country_code = fields.Char(
-        related="partner_id.country_id.code",
-        string="Owner Country Code",
+    plate_country_id = fields.Many2one(
+        "res.country",
+        string="Country",
+        default=lambda self: self.env.ref("base.sa", raise_if_not_found=False),
+        help="Vehicle plate country. Independent from the owner and company country.",
+    )
+    plate_country_code = fields.Char(
+        related="plate_country_id.code",
+        string="Plate Country Code",
     )
     partner_phone_search = fields.Char(
         string="Phone Search",
@@ -288,10 +294,10 @@ class FleetVehicle(models.Model):
             extra_domain, limit=remaining, order=order))
         return result_ids + extra_ids
 
-    @api.onchange("partner_id")
-    def _onchange_partner_id_plate_fields(self):
-        """Clear Saudi-only plate parts when the owner is not Saudi."""
-        code = self.partner_id.country_id.code
+    @api.onchange("plate_country_id")
+    def _onchange_plate_country_id_plate_fields(self):
+        """Clear Saudi-only plate parts when the plate country is not Saudi."""
+        code = self.plate_country_id.code
         if code and code != "SA":
             self.plate_letters = False
             self.plate_letters_ar = False
@@ -300,9 +306,9 @@ class FleetVehicle(models.Model):
             self.plate_letter_3 = False
             self.plate_numbers_ar = False
 
-    def _is_saudi_plate_owner(self):
-        """Saudi layout when country is SA or not set yet."""
-        code = self.partner_id.country_id.code if self.partner_id else False
+    def _is_saudi_plate(self):
+        """Saudi layout when plate country is SA or not set yet."""
+        code = self.plate_country_id.code if self.plate_country_id else False
         return not code or code == "SA"
 
     @api.onchange("plate_letter_1", "plate_letter_2", "plate_letter_3")
@@ -314,14 +320,14 @@ class FleetVehicle(models.Model):
             self.plate_letter_1, self.plate_letter_2, self.plate_letter_3
         )
         self.plate_letters = letters
-        if self._is_saudi_plate_owner():
+        if self._is_saudi_plate():
             self.plate_letters_ar = (
                 _convert_en_letters_to_ar(letters) if letters else False
             )
 
     @api.onchange("plate_letters_ar")
     def _onchange_plate_letters_ar(self):
-        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate():
             return
         self.plate_letters = _convert_ar_letters_to_en(self.plate_letters_ar or "")
         letter_1, letter_2, letter_3 = self._split_plate_letters(self.plate_letters)
@@ -339,7 +345,7 @@ class FleetVehicle(models.Model):
             "plate_letter_2": letter_2,
             "plate_letter_3": letter_3,
         })
-        if not self._is_saudi_plate_owner():
+        if not self._is_saudi_plate():
             return
         converted = _convert_en_letters_to_ar(self.plate_letters or "")
         current_en_from_ar = _convert_ar_letters_to_en(self.plate_letters_ar or "")
@@ -350,13 +356,13 @@ class FleetVehicle(models.Model):
 
     @api.onchange("plate_numbers_ar")
     def _onchange_plate_numbers_ar(self):
-        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate():
             return
         self.plate_numbers = _convert_ar_digits_to_en(self.plate_numbers_ar or "")
 
     @api.onchange("plate_numbers")
     def _onchange_plate_numbers(self):
-        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate_owner():
+        if self.env.context.get("skip_plate_convert") or not self._is_saudi_plate():
             return
         converted = _convert_en_digits_to_ar(self.plate_numbers or "")
         current_en_from_ar = _convert_ar_digits_to_en(self.plate_numbers_ar or "")
@@ -385,12 +391,12 @@ class FleetVehicle(models.Model):
         "plate_letters",
         "plate_numbers_ar",
         "plate_numbers",
-        "partner_id.country_id.code",
+        "plate_country_id.code",
     )
     def _compute_license_plate(self):
         for vehicle in self:
-            country_code = vehicle.partner_id.country_id.code
-            # Non-Saudi (and website "Others"): plate stored in plate_numbers only.
+            country_code = vehicle.plate_country_id.code
+            # Non-Saudi: plate stored in plate_numbers only.
             if country_code and country_code != "SA":
                 vehicle.license_plate = vehicle.plate_numbers or ""
                 continue
@@ -423,7 +429,7 @@ class FleetVehicle(models.Model):
         "plate_letters",
         "plate_numbers_ar",
         "plate_numbers",
-        "partner_id.country_id.code",
+        "plate_country_id.code",
         "brand_id.name",
         "model_id.name",
     )
@@ -431,7 +437,7 @@ class FleetVehicle(models.Model):
     def _compute_display_name(self):
         """Compute vehicle display name based on user language and plate details."""
         for vehicle in self:
-            country_code = vehicle.partner_id.country_id.code
+            country_code = vehicle.plate_country_id.code
             if country_code and country_code != "SA":
                 plate = vehicle.plate_numbers or vehicle.license_plate or ""
             else:

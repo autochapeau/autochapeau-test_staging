@@ -62,7 +62,7 @@
                         <h2>
                             <field name="title" class="oe_inline" />
                         </h2>
-                        <field name="owner_country_code" invisible="1" />
+                        <field name="plate_country_code" invisible="1" />
                         <div class="o_row">
                             <field name="owner_type" widget="radio" options="{'horizontal': True}" nolabel="1" />
                         </div>
@@ -70,20 +70,25 @@
                         <h2>
                             <field name="partner_id" class="oe_inline" />
                         </h2>
+                        <div class="o_row mt-2">
+                            <field name="plate_country_id"
+                                   string="Country"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                        </div>
                          <div class="o_row">
                             <b>License Plate</b>
                         </div>
 
-                        <!-- Non-Saudi: free plate text (same field used by website Others) -->
+                        <!-- Non-Saudi: free plate text -->
                         <field
                             name="plate_numbers"
                             string="License Plate"
                             placeholder="License Plate"
-                            invisible="not owner_country_code or owner_country_code == 'SA'"
+                            invisible="not plate_country_code or plate_country_code == 'SA'"
                         />
 
                         <!-- Saudi plate layout -->
-                        <div invisible="owner_country_code and owner_country_code != 'SA'">
+                        <div invisible="plate_country_code and plate_country_code != 'SA'">
                             <div class="o_row">
                                 <field
                                     name="plate_numbers_ar"
