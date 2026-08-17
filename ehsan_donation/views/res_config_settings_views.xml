@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_ehsan_donation" model="ir.ui.view">
+        <field name="name">res.config.settings.inherit.ehsan.donation</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="cars_management.res_config_settings_view_form_inherit_cars_management"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='default_accounts']" position="inside">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                        <field name="ehsan_company_donation_enabled"/>
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="ehsan_company_donation_enabled"/>
+                        <div class="text-muted">
+                            Donate automatically when paid customer invoices of a sale reach the
+                            untaxed threshold, even if the sale is split into smaller invoices.
+                            One donation per sales order. This is a company expense and is not
+                            added to the customer invoice.
+                        </div>
+                        <div class="content-group" invisible="not ehsan_company_donation_enabled">
+                            <div class="row mt8">
+                                <label for="ehsan_company_donation_threshold" class="col-lg-5 o_light_label"/>
+                                <field name="ehsan_company_donation_threshold"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="ehsan_company_donation_amount" class="col-lg-5 o_light_label"/>
+                                <field name="ehsan_company_donation_amount"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
