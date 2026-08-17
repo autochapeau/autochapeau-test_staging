@@ -193,6 +193,8 @@ class SaleOrder(models.Model):
 
     def action_open_loyalty_redeem_wizard(self):
         self.ensure_one()
+        if self.order_type == "contract":
+            raise UserError(_("Loyalty redemption is not available on Contract sale orders."))
         if self.state not in ("draft", "sent"):
             raise UserError(_("Loyalty points can only be redeemed on quotations."))
         return {
@@ -208,12 +210,16 @@ class SaleOrder(models.Model):
 
     def action_remove_loyalty_redeem(self):
         for order in self:
+            if order.order_type == "contract":
+                raise UserError(_("Loyalty redemption is not available on Contract sale orders."))
             order._reverse_loyalty_points_redeem()
         return True
 
     def _apply_loyalty_points_redeem(self, points):
         """Deduct points and add an untaxed discount line on the SO."""
         self.ensure_one()
+        if self.order_type == "contract":
+            raise UserError(_("Loyalty redemption is not available on Contract sale orders."))
         if self.state not in ("draft", "sent"):
             raise UserError(_("Loyalty points can only be redeemed on quotations."))
         points = float_round(points, precision_digits=2)

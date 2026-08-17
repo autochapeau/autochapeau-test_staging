@@ -156,6 +156,15 @@ class AccountMove(models.Model):
                 )
                 continue
 
+            sale_orders = move.invoice_line_ids.sale_line_ids.order_id
+            if sale_orders.filtered(lambda order: order.order_type == "contract"):
+                _logger.critical(
+                    "%s skip: related Contract sale order(s)=%s",
+                    prefix,
+                    sale_orders.filtered(lambda order: order.order_type == "contract").mapped("name"),
+                )
+                continue
+
             base_amount = move._get_loyalty_amount_before_discount()
             _logger.critical("%s base_amount_before_discount=%s", prefix, base_amount)
             if base_amount <= 0:
@@ -219,7 +228,6 @@ class AccountMove(models.Model):
                     ["loyalty_card_id", "loyalty_balance", "wallet_card_id", "wallet_balance"]
                 )
 
-            sale_orders = move.invoice_line_ids.sale_line_ids.order_id
             order = sale_orders[:1]
             move.loyalty_points_granted = points
             move.loyalty_earn_done = True
@@ -292,6 +300,11 @@ class AccountMove(models.Model):
                 raise UserError(_("The invoice must be paid first."))
             if move.loyalty_earn_done or move.loyalty_points_granted:
                 raise UserError(_("Loyalty points were already granted on this invoice."))
+            sale_orders = move.invoice_line_ids.sale_line_ids.order_id
+            if sale_orders.filtered(lambda order: order.order_type == "contract"):
+                raise UserError(_(
+                    "Loyalty points are not granted for Contract sale orders."
+                ))
         self._grant_autochapeau_loyalty_points(source="manual_button")
         missing = self.filtered(
             lambda move: not move.loyalty_earn_done and not move.loyalty_points_granted

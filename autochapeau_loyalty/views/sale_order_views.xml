@@ -10,23 +10,25 @@
                         type="object"
                         string="Redeem Loyalty Points"
                         class="btn-secondary"
-                        invisible="state not in ('draft', 'sent')"/>
+                        invisible="order_type == 'contract' or state not in ('draft', 'sent')"/>
                 <button name="action_remove_loyalty_redeem"
                         type="object"
                         string="Remove Loyalty Redeem"
                         class="btn-secondary"
-                        invisible="state not in ('draft', 'sent') or not has_loyalty_redeem"
+                        invisible="order_type == 'contract' or state not in ('draft', 'sent') or not has_loyalty_redeem"
                         confirm="Restore redeemed loyalty points to the customer card?"/>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="loyalty_type" widget="radio"
                          options="{'horizontal': true}"
-                         readonly="state not in ('draft', 'sent')"/>
-                <field name="loyalty_balance" readonly="1"/>
+                         readonly="state not in ('draft', 'sent')"
+                         invisible="order_type == 'contract'"/>
+                <field name="loyalty_balance" readonly="1"
+                         invisible="order_type == 'contract'"/>
                 <field name="loyalty_points_redeemed" readonly="1"
-                         invisible="not loyalty_points_redeemed"/>
+                         invisible="order_type == 'contract' or not loyalty_points_redeemed"/>
                 <field name="loyalty_redeem_amount" readonly="1"
-                         invisible="not loyalty_redeem_amount"/>
+                         invisible="order_type == 'contract' or not loyalty_redeem_amount"/>
                 <field name="has_loyalty_redeem" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='order_line']//tree" position="inside">

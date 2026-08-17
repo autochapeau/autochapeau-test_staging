@@ -1,6 +1,6 @@
 {
     "name": "AutoChapeau Loyalty",
-    "version": "17.0.1.4.2",
+    "version": "17.0.1.4.4",
     "summary": "Loyalty points on paid invoices and redeem on sale orders",
     "author": "Wellknot",
     "depends": [
