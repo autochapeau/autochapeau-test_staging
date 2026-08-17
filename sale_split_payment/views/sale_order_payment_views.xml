@@ -10,6 +10,10 @@
                 <field name="partner_id"/>
                 <field name="collection_method_id"/>
                 <field name="external_reference"/>
+                <field name="terminal_rr_number"/>
+                <field name="terminal_approval_code"/>
+                <field name="terminal_txn_id"/>
+                <field name="terminal_device_serial"/>
                 <filter name="not_cancelled"
                         string="Not Cancelled"
                         domain="[('state', '!=', 'cancelled')]"/>
@@ -26,6 +30,9 @@
                     <filter string="Status"
                             name="group_state"
                             context="{'group_by': 'state'}"/>
+                    <filter string="Device"
+                            name="group_device"
+                            context="{'group_by': 'terminal_device_serial'}"/>
                 </group>
             </search>
         </field>
@@ -48,7 +55,12 @@
                 <field name="company_id" column_invisible="True"/>
                 <field name="journal_id" optional="hide"/>
                 <field name="state" widget="badge"/>
-                <field name="external_reference" optional="show"/>
+                <field name="terminal_rr_number" optional="show"/>
+                <field name="terminal_approval_code" optional="show"/>
+                <field name="terminal_device_serial" optional="show"/>
+                <field name="terminal_masked_card" optional="hide"/>
+                <field name="terminal_card_type" optional="hide"/>
+                <field name="external_reference" optional="hide"/>
                 <field name="provider_status" optional="hide"/>
                 <field name="account_payment_id" optional="show"/>
             </tree>
@@ -112,6 +124,22 @@
                             <field name="external_reference"/>
                             <field name="provider_status"/>
                             <field name="account_payment_id"/>
+                        </group>
+                    </group>
+                    <group string="Card Terminal Details"
+                           invisible="processing_type != 'terminal' or (not terminal_rr_number and not terminal_approval_code and not terminal_txn_id and not terminal_device_serial)">
+                        <group>
+                            <field name="terminal_rr_number"/>
+                            <field name="terminal_approval_code"/>
+                            <field name="terminal_txn_id"/>
+                            <field name="terminal_local_reference"/>
+                            <field name="terminal_response_code"/>
+                        </group>
+                        <group>
+                            <field name="terminal_device_serial"/>
+                            <field name="terminal_masked_card"/>
+                            <field name="terminal_card_type"/>
+                            <field name="terminal_txn_mode"/>
                         </group>
                     </group>
                     <group invisible="not checkout_url">

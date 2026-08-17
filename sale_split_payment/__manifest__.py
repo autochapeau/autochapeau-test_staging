@@ -1,7 +1,7 @@
 {
     "name": "Sale Order Collection Payments",
     "summary": "Collect configurable advance payments from sale orders onto the partner ledger",
-    "version": "17.0.1.1.0",
+    "version": "17.0.1.2.1",
     "author": "Wellknot",
     "category": "Sales/Accounting",
     "depends": ["sale_management", "account", "payment"],

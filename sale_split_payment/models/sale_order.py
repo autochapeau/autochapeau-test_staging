@@ -75,6 +75,45 @@ class SaleOrder(models.Model):
             },
         }
 
+    def action_open_multi_split_payment_wizard(self):
+        orders = self.exists()
+        if not orders:
+            raise UserError(_("Please select at least one sale order."))
+        invalid_orders = orders.filtered(
+            lambda order: order.state not in ("sale", "done")
+            or order.currency_id.is_zero(order.split_amount_remaining)
+        )
+        if invalid_orders:
+            raise UserError(
+                _(
+                    "Only confirmed sale orders with a remaining amount can be selected."
+                )
+            )
+        if len(orders.mapped("partner_id")) != 1:
+            raise UserError(_("All selected sale orders must belong to the same customer."))
+        if len(orders.mapped("company_id")) != 1:
+            raise UserError(_("All selected sale orders must belong to the same company."))
+        if len(orders.mapped("currency_id")) != 1:
+            raise UserError(_("All selected sale orders must use the same currency."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Collect Payment for Multiple Orders"),
+            "res_model": "sale.multi.split.payment.wizard",
+            "view_mode": "form",
+            "views": [
+                (
+                    self.env.ref(
+                        "sale_split_payment.view_sale_multi_split_payment_wizard_form"
+                    ).id,
+                    "form",
+                )
+            ],
+            "target": "new",
+            "context": {
+                "default_sale_order_ids": [(6, 0, orders.ids)],
+            },
+        }
+
     def action_view_split_payments(self):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id(

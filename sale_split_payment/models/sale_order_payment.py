@@ -1,12 +1,18 @@
 import logging
 import uuid
+import warnings
 
 import requests
+import urllib3
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
+
+# SoftPOS local HTTPS uses a self-signed certificate.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
 TABBY_REJECTION_MESSAGES = {
     "order_amount_too_low": (
@@ -96,6 +102,58 @@ class SaleOrderPayment(models.Model):
     status_url = fields.Char(copy=False, readonly=True)
     provider_status = fields.Char(copy=False, readonly=True)
     error_message = fields.Text(copy=False, readonly=True)
+    # SoftPOS / card terminal response details
+    terminal_rr_number = fields.Char(
+        string="RR Number",
+        copy=False,
+        readonly=True,
+        index=True,
+        help="Bank / SoftPOS retrieval reference number (rrNumber).",
+    )
+    terminal_approval_code = fields.Char(
+        string="Approval Code",
+        copy=False,
+        readonly=True,
+    )
+    terminal_txn_id = fields.Char(
+        string="Terminal Txn ID",
+        copy=False,
+        readonly=True,
+        index=True,
+    )
+    terminal_device_serial = fields.Char(
+        string="Device Serial",
+        copy=False,
+        readonly=True,
+        help="Card reader / SoftPOS device serial number.",
+    )
+    terminal_masked_card = fields.Char(
+        string="Masked Card",
+        copy=False,
+        readonly=True,
+    )
+    terminal_card_type = fields.Char(
+        string="Card Type",
+        copy=False,
+        readonly=True,
+    )
+    terminal_txn_mode = fields.Char(
+        string="Txn Mode",
+        copy=False,
+        readonly=True,
+        help="How the card was read, e.g. CHIP or CONTACTLESS.",
+    )
+    terminal_response_code = fields.Char(
+        string="Terminal Response Code",
+        copy=False,
+        readonly=True,
+    )
+    terminal_local_reference = fields.Char(
+        string="Local Reference",
+        copy=False,
+        readonly=True,
+        help="SoftPOS localReferenceNumber / transactionRefNo.",
+    )
     account_payment_id = fields.Many2one(
         "account.payment",
         copy=False,
@@ -320,19 +378,26 @@ class SaleOrderPayment(models.Model):
                 }
             )
             return False
+        # SoftPOS local HTTPS API (Interpay): amount + transaction_type.
+        # Extra fields are ignored by SoftPOS and kept for compatibility.
         payload = {
+            "amount": "%.2f" % float(self.amount),
+            "transaction_type": "Sale",
+            "paymentApp": "softpos",
             "reference": self.name,
-            "amount": float(self.amount),
+            "transactionRefNo": self.name,
             "currency": self.currency_id.name,
             "sale_order": self.sale_order_id.name,
             "partner": self.partner_id.name,
         }
         try:
+            # SoftPOS uses a self-signed certificate on the local device.
             response = requests.post(
                 terminal_url,
                 json=payload,
                 headers=self._terminal_headers(),
                 timeout=self._terminal_timeout(),
+                verify=False,
             )
             response.raise_for_status()
             result = response.json()
@@ -341,24 +406,81 @@ class SaleOrderPayment(models.Model):
             return False
         return self._apply_terminal_result(result)
 
+    def _softpos_terminal_values(self, result):
+        """Extract SoftPOS / terminal detail fields from a provider JSON payload."""
+        txn_id = result.get("txnId") or result.get("transaction_id") or result.get("id")
+        rr_number = result.get("rrNumber")
+        masked = result.get("maskedCardNumber") or result.get("masked_card_number")
+        if masked and isinstance(masked, str) and "f" in masked.lower():
+            # SoftPOS masks with 'f'; receipt printing usually shows last 4 only.
+            digits = "".join(ch for ch in masked if ch.isdigit())
+            if len(digits) >= 4:
+                masked = "**** **** **** %s" % digits[-4:]
+        return {
+            "terminal_rr_number": rr_number or False,
+            "terminal_approval_code": result.get("approvalCode") or False,
+            "terminal_txn_id": txn_id or False,
+            "terminal_device_serial": (
+                result.get("deviseSerialNo")
+                or result.get("deviceSerialNo")
+                or False
+            ),
+            "terminal_masked_card": masked or False,
+            "terminal_card_type": result.get("cardType") or False,
+            "terminal_txn_mode": result.get("txnMode") or False,
+            "terminal_response_code": (
+                str(result.get("responseCode")).strip()
+                if result.get("responseCode") not in (None, False, "")
+                else False
+            ),
+            "terminal_local_reference": (
+                result.get("localReferenceNumber")
+                or result.get("transactionRefNo")
+                or False
+            ),
+        }
+
     def _apply_terminal_result(self, result):
         self.ensure_one()
+        # Generic connector statuses + SoftPOS (isFailed / responseCode / txnId).
         status = str(result.get("status", "")).lower()
+        response_code = str(result.get("responseCode") or "").strip()
+        is_failed = result.get("isFailed")
+        if isinstance(is_failed, str):
+            is_failed = is_failed.strip().lower() in ("1", "true", "yes")
+        softpos_approved = (
+            not is_failed
+            and response_code == "000"
+            and bool(result.get("approvalCode"))
+        )
+        softpos_declined = (
+            bool(is_failed)
+            or (response_code and response_code != "000")
+            or status in ("0", "failed", "error", "declined")
+        )
         reference = (
             result.get("transaction_id")
+            or result.get("txnId")
+            or result.get("rrNumber")
             or result.get("reference")
             or result.get("id")
         )
+        provider_status = (
+            "approved"
+            if softpos_approved
+            else (response_code or status or result.get("message") or "")
+        )
         values = {
             "external_reference": reference,
-            "provider_status": status,
+            "provider_status": provider_status,
             "status_url": result.get("status_url"),
-            "error_message": result.get("message"),
+            "error_message": result.get("message") or result.get("errorMessage"),
         }
-        if status in ("approved", "success", "paid", "completed"):
+        values.update(self._softpos_terminal_values(result))
+        if softpos_approved or status in ("approved", "success", "paid", "completed"):
             self.write(values)
             if reference:
-                self._mark_provider_paid(status)
+                self._mark_provider_paid(provider_status or status or "approved")
             else:
                 self.write(
                     {
@@ -373,6 +495,11 @@ class SaleOrderPayment(models.Model):
             values["state"] = "pending"
             self.write(values)
         else:
+            # SoftPOS decline / unknown connector failure.
+            if softpos_declined and not values.get("error_message"):
+                values["error_message"] = _(
+                    "Card terminal declined or failed the payment."
+                )
             values["state"] = "failed"
             self.write(values)
         return False
@@ -392,10 +519,12 @@ class SaleOrderPayment(models.Model):
         if not status_url:
             raise UserError(_("Card terminal status URL is not configured."))
         try:
+            # SoftPOS uses a self-signed certificate on the local device.
             response = requests.get(
                 status_url,
                 headers=self._terminal_headers(),
                 timeout=self._terminal_timeout(),
+                verify=False,
             )
             response.raise_for_status()
             result = response.json()

@@ -45,4 +45,68 @@
             </form>
         </field>
     </record>
+
+    <record id="view_sale_multi_split_payment_wizard_form" model="ir.ui.view">
+        <field name="name">sale.multi.split.payment.wizard.form</field>
+        <field name="model">sale.multi.split.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Collect Payment for Multiple Orders">
+                <group>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_remaining"/>
+                    </group>
+                    <group>
+                        <field name="require_reference" invisible="1"/>
+                        <field name="collection_method_id"
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="amount"/>
+                        <field name="journal_id"
+                               options="{'no_create_edit': True}"/>
+                        <field name="provider_reference"
+                               invisible="not require_reference"
+                               required="require_reference"/>
+                    </group>
+                </group>
+                <field name="sale_order_ids" nolabel="1">
+                    <tree create="0" delete="0">
+                        <field name="date_order"/>
+                        <field name="name"/>
+                        <field name="amount_total"/>
+                        <field name="split_amount_paid"/>
+                        <field name="split_amount_pending"/>
+                        <field name="split_amount_remaining"/>
+                    </tree>
+                </field>
+                <div class="alert alert-info" role="alert">
+                    The payment is allocated to the oldest sale order first, then to
+                    each following order. Multi-order collection currently supports
+                    manual payment methods only.
+                </div>
+                <footer>
+                    <button name="action_collect_payment"
+                            type="object"
+                            string="Collect Payment"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_collect_multi_sale_order_payment" model="ir.actions.server">
+        <field name="name">Collect Payment for Multiple Orders</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id"
+               eval="[(4, ref('sale_split_payment.group_split_payment_cashier')),
+                      (4, ref('sales_team.group_sale_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_open_multi_split_payment_wizard()</field>
+    </record>
 </odoo>
