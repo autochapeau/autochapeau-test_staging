@@ -1,7 +1,7 @@
 {
     "name": "Partner Management",
-    "summary": "Contact type, city selection, customer mobile OTP, supervisor/subordinate links, and related sale orders",
-    "version": "17.0.1.2.1",
+    "summary": "Contact type, city selection, customer mobile OTP, and related sale orders",
+    "version": "17.0.1.3.5",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [

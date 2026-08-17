@@ -5,17 +5,13 @@
         <field name="model">sale.extra.order.otp.wizard</field>
         <field name="arch" type="xml">
             <form string="Verify Sub-customer Mobile">
-                <div class="alert alert-info" role="alert">
-                    The sub-customer's mobile is not verified. Send an OTP and confirm
-                    it before creating the Extra Order.
-                </div>
                 <group>
                     <field name="sale_order_id" invisible="1"/>
                     <field name="partner_id"/>
                     <field name="mobile"/>
                     <field name="country_id"/>
-                    <field name="extra_order_type" readonly="1"/>
-                    <field name="otp_code" placeholder="Enter OTP"/>
+                    <field name="extra_order_type" invisible="1"/>
+                    <field name="otp_code"/>
                 </group>
                 <footer>
                     <button name="action_send_otp"
@@ -24,7 +20,7 @@
                             class="btn-secondary"/>
                     <button name="action_verify_and_create_extra_order"
                             type="object"
-                            string="Verify &amp; Create Extra Order"
+                            string="Verify and Create Extra Order"
                             class="btn-primary"/>
                     <button string="Cancel" special="cancel"/>
                 </footer>

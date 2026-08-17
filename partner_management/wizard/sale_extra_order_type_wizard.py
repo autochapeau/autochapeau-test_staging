@@ -22,7 +22,7 @@ class SaleExtraOrderTypeWizard(models.TransientModel):
     )
 
     def action_continue(self):
-        """Continue to OTP (if needed) or create the Extra Order."""
+        """Create the Extra Order with the chosen type."""
         self.ensure_one()
         order = self.sale_order_id
         if not order:

@@ -9,8 +9,8 @@ class SaleOrder(models.Model):
     subordinate_id = fields.Many2one(
         "res.partner",
         string="Sub-customer",
-        domain="[('supervisor_id', '=', partner_id), ('partner_type', '=', 'internal')]",
-        help="Internal subordinate linked to the Contract customer.",
+        domain="[('partner_type', '=', 'internal')]",
+        help="Internal customer served under this Contract order.",
     )
     subordinate_mobile = fields.Char(
         related="subordinate_id.mobile",
@@ -163,13 +163,11 @@ class SaleOrder(models.Model):
         return super().write(vals)
 
     @api.onchange("partner_id")
-    def _onchange_partner_id_reset_subordinate(self):
-        if self.subordinate_id and self.subordinate_id.supervisor_id != self.partner_id:
-            self.subordinate_id = False
+    def _onchange_partner_id_reset_vehicle(self):
         self._reset_vehicle_if_invalid()
 
     @api.onchange("order_type")
-    def _onchange_order_type_reset_subordinate(self):
+    def _onchange_order_type_reset_vehicle(self):
         if self.order_type != "contract":
             self.subordinate_id = False
         self._reset_vehicle_if_invalid()
@@ -314,7 +312,9 @@ class SaleOrder(models.Model):
         action["domain"] = [("related_sale_id", "=", self.id)]
         action["context"] = {
             "default_related_sale_id": self.id,
-            "default_partner_id": self.subordinate_id.id if self.subordinate_id else False,
+            "default_partner_id": (
+                self.subordinate_id.id if self.subordinate_id else False
+            ),
             "default_vehicle_id": self.vehicle_id.id if self.vehicle_id else False,
             "default_order_type": "intern",
         }

@@ -80,7 +80,7 @@ class SaleExtraOrderOtpWizard(models.TransientModel):
         }
 
     def action_verify_and_create_extra_order(self):
-        """Validate OTP, mark sub-customer mobile verified, then create Extra Order."""
+        """Validate OTP, verify the Sub-customer, then create Extra Order."""
         self.ensure_one()
         order = self.sale_order_id
         partner = self.partner_id
@@ -95,7 +95,7 @@ class SaleExtraOrderOtpWizard(models.TransientModel):
 
         Partner = self.env["res.partner"]
         Partner._assert_mobile_otp_valid(self.mobile, self.otp_code)
-        partner.write({
+        partner.with_context(skip_partner_mobile_otp=True).write({
             "mobile": self.mobile,
             "country_id": self.country_id.id,
             "mobile_verified": True,

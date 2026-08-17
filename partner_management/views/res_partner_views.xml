@@ -226,23 +226,24 @@
         <field name="name">res.partner.form.customer.otp</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="active" eval="True"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='mobile']" position="after">
                 <label for="mobile_otp_input"
-                       invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or mobile_verified"/>
+                       invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or mobile_verified"/>
                 <div class="o_row"
-                     invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or mobile_verified">
+                     invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or mobile_verified">
                     <field name="mobile_otp_input" placeholder="Enter OTP"/>
                     <button name="action_send_mobile_otp"
                             type="object"
                             string="Send OTP"
                             class="btn-secondary"
-                            invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or not mobile or mobile_verified"/>
+                            invisible="contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or not mobile or mobile_verified"/>
                     <button name="action_send_mobile_otp"
                             type="object"
                             string="Resend OTP"
                             class="btn-link"
-                            invisible="not id or contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or supervisor_id or not mobile or mobile_verified"/>
+                            invisible="not id or contact_partner_type != 'customer' or partner_type == 'contract' or parent_id or not mobile or mobile_verified"/>
                 </div>
                 <field name="mobile_verified" readonly="1" invisible="1"/>
             </xpath>
@@ -276,36 +277,16 @@
         </field>
     </record>
 
-    <!-- Subordinates / Supervisor: Contract → Internal only -->
+    <!-- Inactive stub: clears old Subordinates/Supervisor tab from DB on upgrade -->
     <record id="view_partner_form_inherit_subordinate" model="ir.ui.view">
-        <field name="name">res.partner.form.inherit.subordinate</field>
+        <field name="name">res.partner.form.inherit.subordinate.deprecated</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="active" eval="False"/>
+        <field name="priority" eval="999"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='contact_addresses']" position="after">
-                <page string="Subordinates" name="subordinates"
-                      invisible="partner_type not in ('contract', 'internal')">
-                    <field name="subordinate_ids" mode="tree,form"
-                             invisible="partner_type != 'contract'"
-                             context="{
-                                 'default_supervisor_id': id,
-                                 'default_partner_type': 'internal',
-                                 'default_type': 'contact',
-                             }">
-                        <tree>
-                            <field name="name"/>
-                            <field name="partner_type"/>
-                            <field name="phone"/>
-                            <field name="mobile"/>
-                            <field name="email"/>
-                        </tree>
-                    </field>
-                    <group string="Supervisor" invisible="partner_type != 'internal'">
-                        <field name="supervisor_id"
-                                 options="{'no_create': True, 'no_create_edit': True}"
-                                 domain="[('partner_type', '=', 'contract'), ('id', '!=', id)]"/>
-                    </group>
-                </page>
+            <xpath expr="//form" position="inside">
+                <field name="display_name" invisible="1"/>
             </xpath>
         </field>
     </record>

@@ -37,6 +37,25 @@ class FleetVehicle(models.Model):
             },
         }
 
+    def action_create_sale_order_contract(self):
+        """Open a Contract SO with owner prefilled as the Sub-customer."""
+        self.ensure_one()
+        if not self.partner_id:
+            raise UserError(_("Please set an owner on the vehicle first."))
+        return {
+            "name": _("Sale Order Contract"),
+            "type": "ir.actions.act_window",
+            "res_model": "sale.order",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "context": {
+                "default_order_type": "contract",
+                "default_subordinate_id": self.partner_id.id,
+                "default_vehicle_id": self.id,
+                "dialog_size": "extra-large",
+            },
+        }
+
     def action_view_sale_orders(self):
         """Show every sale order linked to this vehicle."""
         self.ensure_one()

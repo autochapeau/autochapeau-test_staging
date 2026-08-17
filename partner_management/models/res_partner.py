@@ -35,24 +35,6 @@ class ResPartner(models.Model):
         domain="[('country_id', '=', country_id)]",
     )
 
-    # ── Subordinate / Supervisor ──────────────────────────────────────
-    # Hierarchy rule: Contract (supervisor) → Internal (subordinate) only.
-    supervisor_id = fields.Many2one(
-        "res.partner",
-        string="Supervisor",
-        ondelete="set null",
-        index=True,
-        domain="[('partner_type', '=', 'contract')]",
-        help="Must be a Contract contact. Only Internal contacts can have a "
-             "supervisor. This does not affect invoicing (unlike parent_id).",
-    )
-    subordinate_ids = fields.One2many(
-        "res.partner",
-        "supervisor_id",
-        string="Subordinates",
-        domain="[('partner_type', '=', 'internal')]",
-    )
-
     # ── Smart button counters ─────────────────────────────────────────
     appointment_count = fields.Integer(compute="_compute_appointment_count")
     checkin_count = fields.Integer(compute="_compute_checkin_checkout_count")
@@ -115,40 +97,6 @@ class ResPartner(models.Model):
                 vals["country_id"] = city.country_id.id
         else:
             vals["city"] = False
-
-    # ── Subordinate helpers ───────────────────────────────────────────
-
-    @api.constrains("supervisor_id")
-    def _check_supervisor_recursion(self):
-        if not self._check_recursion(parent="supervisor_id"):
-            raise ValidationError(_(
-                "A contact cannot be its own supervisor (directly or indirectly)."
-            ))
-
-    @api.constrains("supervisor_id", "partner_type")
-    def _check_supervisor_hierarchy(self):
-        for partner in self:
-            if not partner.supervisor_id:
-                continue
-            if partner.partner_type != "internal":
-                raise ValidationError(_(
-                    "Only Internal contacts can have a supervisor. "
-                    "Hierarchy must be Contract → Internal."
-                ))
-            if partner.supervisor_id.partner_type != "contract":
-                raise ValidationError(_(
-                    "The supervisor must be a Contract contact. "
-                    "Hierarchy must be Contract → Internal."
-                ))
-
-    @api.constrains("partner_type")
-    def _check_partner_type_has_subordinates(self):
-        for partner in self:
-            if partner.partner_type != "contract" and partner.subordinate_ids:
-                raise ValidationError(_(
-                    "Only Contract contacts can have subordinates. "
-                    "Hierarchy must be Contract → Internal."
-                ))
 
     def _compute_appointment_count(self):
         Appointment = self.env["car.appointment"]
@@ -434,11 +382,11 @@ class ResPartner(models.Model):
             raise ValidationError(_("Incorrect OTP code."))
         self._clear_stored_mobile_otp(mobile)
 
-    def _skips_customer_mobile_otp(self, partner_type=None, parent_id=None, supervisor_id=None):
+    def _skips_customer_mobile_otp(self, partner_type=None, parent_id=None):
         """True when OTP must not be required for this partner shape."""
         if partner_type == "contract":
             return True
-        if parent_id or supervisor_id:
+        if parent_id:
             return True
         return False
 
@@ -448,16 +396,14 @@ class ResPartner(models.Model):
         mobile,
         partner_type=None,
         parent_id=None,
-        supervisor_id=None,
     ):
         """OTP is required for customers with a mobile.
 
-        Skipped for Contract partners, parent-linked contacts, and subordinates
-        created under a supervisor (supervisor_id).
+        Skipped for Contract partners and parent-linked contacts.
         """
         if self.env.context.get("skip_partner_mobile_otp"):
             return False
-        if self._skips_customer_mobile_otp(partner_type, parent_id, supervisor_id):
+        if self._skips_customer_mobile_otp(partner_type, parent_id):
             return False
         return contact_type == "customer" and bool(mobile)
 
@@ -473,15 +419,14 @@ class ResPartner(models.Model):
         verified,
         partner_type=None,
         parent_id=None,
-        supervisor_id=None,
     ):
         """Archive unverified customers; reactivate when verified.
 
-        Contract, subordinate (supervisor_id), and child contacts are never archived for OTP.
+        Contract and child contacts are never archived for OTP.
         """
         if contact_type != "customer" or verified is None:
             return
-        if self._skips_customer_mobile_otp(partner_type, parent_id, supervisor_id):
+        if self._skips_customer_mobile_otp(partner_type, parent_id):
             vals["active"] = True
             return
         vals["active"] = bool(verified)
@@ -490,8 +435,8 @@ class ResPartner(models.Model):
     # OTP is validated only when the user enters a code. Saving without a
     # code is allowed so "Send OTP" can auto-save first. Unverified
     # customers stay archived until OTP succeeds.
-    # Contract / subordinate / child-of-parent: no OTP required, but that
-    # does NOT mean the mobile is verified.
+    # Contract / child-of-parent: no OTP required, but that does NOT mean
+    # the mobile is verified.
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -504,20 +449,15 @@ class ResPartner(models.Model):
                 "default_partner_type", "external"
             )
             parent_id = vals.get("parent_id")
-            supervisor_id = vals.get("supervisor_id") or self.env.context.get(
-                "default_supervisor_id"
-            )
             mobile = vals.get("mobile")
             otp_input = vals.get("mobile_otp_input")
             if contact_type == "customer":
-                if self._skips_customer_mobile_otp(
-                    partner_type, parent_id, supervisor_id
-                ):
+                if self._skips_customer_mobile_otp(partner_type, parent_id):
                     # Skip OTP UI/requirement, keep mobile unverified, stay active.
                     vals["mobile_verified"] = False
                     vals["active"] = True
                 elif self._requires_customer_mobile_otp(
-                    contact_type, mobile, partner_type, parent_id, supervisor_id
+                    contact_type, mobile, partner_type, parent_id
                 ):
                     if self._otp_input_provided(otp_input):
                         self._assert_mobile_otp_valid(mobile, otp_input)
@@ -530,7 +470,6 @@ class ResPartner(models.Model):
                         vals.get("mobile_verified", False),
                         partner_type,
                         parent_id,
-                        supervisor_id,
                     )
                 else:
                     vals.setdefault("mobile_verified", False)
@@ -540,7 +479,6 @@ class ResPartner(models.Model):
                         vals.get("mobile_verified", False),
                         partner_type,
                         parent_id,
-                        supervisor_id,
                     )
             if "mobile_otp_input" in vals:
                 vals["mobile_otp_input"] = False
@@ -560,21 +498,14 @@ class ResPartner(models.Model):
             parent_id = (
                 vals["parent_id"] if "parent_id" in vals else partner.parent_id.id
             )
-            supervisor_id = (
-                vals["supervisor_id"]
-                if "supervisor_id" in vals
-                else partner.supervisor_id.id
-            )
             new_mobile = vals["mobile"] if "mobile" in vals else partner.mobile
             old_norm = partner._normalize_mobile(partner.mobile)
             new_norm = partner._normalize_mobile(new_mobile)
             mobile_changed = "mobile" in vals and new_norm != old_norm
 
-            # Skip OTP for contract / subordinate / child: stay active.
-            # Do not force mobile_verified False here — Extra Order wizard may
-            # verify the subordinate later without requiring OTP on the form.
+            # Skip OTP for contract / child: stay active.
             if contact_type == "customer" and self._skips_customer_mobile_otp(
-                partner_type, parent_id, supervisor_id
+                partner_type, parent_id
             ):
                 vals["active"] = True
                 if mobile_changed and "mobile_verified" not in vals:
@@ -582,7 +513,7 @@ class ResPartner(models.Model):
                 continue
 
             requires_otp = self._requires_customer_mobile_otp(
-                contact_type, new_mobile, partner_type, parent_id, supervisor_id
+                contact_type, new_mobile, partner_type, parent_id
             )
 
             if otp_provided and requires_otp:
@@ -600,7 +531,6 @@ class ResPartner(models.Model):
                     vals["mobile_verified"],
                     partner_type,
                     parent_id,
-                    supervisor_id,
                 )
 
         if "mobile_otp_input" in vals:
@@ -619,11 +549,10 @@ class ResPartner(models.Model):
         if self._skips_customer_mobile_otp(
             self.partner_type,
             self.parent_id.id if self.parent_id else False,
-            self.supervisor_id.id if self.supervisor_id else False,
         ):
             raise ValidationError(_(
-                "OTP verification is not required for Contract, subordinate, "
-                "or parent-linked contacts."
+                "OTP verification is not required for Contract or "
+                "parent-linked contacts."
             ))
         if not self.mobile:
             raise ValidationError(_("Please enter the mobile number first."))
