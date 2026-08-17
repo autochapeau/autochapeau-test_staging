@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ehsan_donation_wizard_form" model="ir.ui.view">
+        <field name="name">ehsan.donation.wizard.form</field>
+        <field name="model">ehsan.donation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ehsan Donation">
+                <group>
+                    <field name="sale_order_id"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="preset_amount" widget="radio" options="{'horizontal': true}"/>
+                    <field name="donation_amount" readonly="preset_amount != 'custom'" force_save="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button name="action_decline" string="Customer Declined" type="object"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -4,6 +4,7 @@
         <field name="name">sale.order.form.extern.upsell</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="partner_management.view_order_form_inherit_subordinate"/>
+        <field name="active" eval="True"/>
         <field name="arch" type="xml">
             <!-- Dedicated Extern button (Contract keeps its own visibility) -->
             <xpath expr="//button[@name='action_create_extra_sale_order']" position="after">

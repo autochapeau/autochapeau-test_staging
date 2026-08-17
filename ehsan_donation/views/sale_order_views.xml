@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_inherit_ehsan_donation" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.ehsan.donation</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="cars_management.view_order_form_inherit_cars_management"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_open_ehsan_donation_wizard"
+                    type="object"
+                    string="Ehsan Donation"
+                    class="btn-success"
+                    invisible="order_type == 'contract' or ehsan_donation_amount > 0 or ehsan_donation_move_id or ehsan_donation_declined"
+                />
+            </xpath>
+            <xpath expr="//group[@name='donation_details']" position="attributes">
+                <attribute name="invisible">order_type == 'contract'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='donation_details']/field[@name='donation_amount']" position="after">
+                <field name="ehsan_donation_amount" invisible="order_type == 'contract'"/>
+                <field name="ehsan_donation_declined" invisible="order_type == 'contract'"/>
+                <field name="ehsan_donation_move_id" readonly="1" invisible="order_type == 'contract'"/>
+                <field name="company_ehsan_donation_amount" readonly="1" invisible="order_type == 'contract'"/>
+                <field name="company_ehsan_donation_move_id" readonly="1" invisible="order_type == 'contract'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

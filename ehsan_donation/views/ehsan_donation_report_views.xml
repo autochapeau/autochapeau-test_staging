@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ehsan_donation_order_tree" model="ir.ui.view">
+        <field name="name">sale.order.tree.ehsan.donation</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0" edit="0">
+                <field name="name"/>
+                <field name="date_order"/>
+                <field name="partner_id"/>
+                <field name="ehsan_donation_amount" sum="Total Donations"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="ehsan_donation_move_id"/>
+                <field name="ehsan_donation_state"
+                       widget="badge"
+                       decoration-warning="ehsan_donation_state == 'pending'"
+                       decoration-success="ehsan_donation_state == 'posted'"/>
+                <field name="state" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ehsan_donation_order_search" model="ir.ui.view">
+        <field name="name">sale.order.search.ehsan.donation</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ehsan_donation_move_id"/>
+                <filter name="pending" string="Pending Journal"
+                        domain="[('ehsan_donation_state', '=', 'pending')]"/>
+                <filter name="posted" string="Posted"
+                        domain="[('ehsan_donation_state', '=', 'posted')]"/>
+                <separator/>
+                <filter name="filter_date" string="Order Date" date="date_order"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_partner" string="Customer"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Donation Status"
+                            context="{'group_by': 'ehsan_donation_state'}"/>
+                    <filter name="group_date" string="Order Date"
+                            context="{'group_by': 'date_order:month'}"/>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_ehsan_donation_order_pivot" model="ir.ui.view">
+        <field name="name">sale.order.pivot.ehsan.donation</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <pivot string="Ehsan Donations">
+                <field name="date_order" type="row" interval="month"/>
+                <field name="ehsan_donation_state" type="col"/>
+                <field name="ehsan_donation_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_ehsan_donation_order_graph" model="ir.ui.view">
+        <field name="name">sale.order.graph.ehsan.donation</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <graph string="Ehsan Donations" type="bar">
+                <field name="date_order" interval="month"/>
+                <field name="ehsan_donation_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_ehsan_donation_report" model="ir.actions.act_window">
+        <field name="name">Ehsan Donations</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,pivot,graph,form</field>
+        <field name="domain">[('ehsan_donation_amount', '>', 0)]</field>
+        <field name="search_view_id" ref="view_ehsan_donation_order_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Ehsan donations yet
+            </p>
+            <p>
+                Donations registered from the sales order wizard will appear here.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_ehsan_donation_report_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_ehsan_donation_order_tree"/>
+        <field name="act_window_id" ref="action_ehsan_donation_report"/>
+    </record>
+    <record id="action_ehsan_donation_report_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_ehsan_donation_order_pivot"/>
+        <field name="act_window_id" ref="action_ehsan_donation_report"/>
+    </record>
+    <record id="action_ehsan_donation_report_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_ehsan_donation_order_graph"/>
+        <field name="act_window_id" ref="action_ehsan_donation_report"/>
+    </record>
+
+    <menuitem id="menu_ehsan_donation_report"
+              name="Ehsan Donations"
+              parent="sale.menu_sale_report"
+              action="action_ehsan_donation_report"
+              groups="sales_team.group_sale_salesman"
+              sequence="50"/>
+</odoo>
