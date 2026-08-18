@@ -59,6 +59,25 @@ class CarCheckout(models.Model):
             item = missing_required[0]
             raise ValidationError(
                 _("The item '%s' should be checked, it is required.") % item.car_check_item_id.name)
+        missing_image = self.car_check_item_ids.filtered(
+            lambda l: l.car_check_item_id
+            and l.car_check_item_id.image_required
+            and not l.image
+        )
+        if missing_image:
+            item = missing_image[0]
+            raise ValidationError(
+                _("The item '%s' requires an image.") % item.car_check_item_id.name)
+        missing_note = self.car_check_item_ids.filtered(
+            lambda l: l.car_check_item_id
+            and l.car_check_item_id.image_required
+            and not (l.note or "").strip()
+        )
+        if missing_note:
+            item = missing_note[0]
+            raise ValidationError(
+                _("The item '%s' requires a note.") % item.car_check_item_id.name)
+
     _name = "car.checkout"
     _inherit = ["mail.thread", "mail.activity.mixin", "portal.mixin"]
     _description = "Car checkout"
@@ -432,3 +451,8 @@ class CarCheckoutCheckItem(models.Model):
     car_checkout_id = fields.Many2one("car.checkout")
     required = fields.Boolean(
         related="car_check_item_id.required", string="Required", store=False)
+    image_required = fields.Boolean(
+        related="car_check_item_id.image_required",
+        string="Image Required",
+        store=False,
+    )

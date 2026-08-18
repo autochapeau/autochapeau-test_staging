@@ -139,8 +139,9 @@
                                 <field nolabel="1" name="car_check_item_ids" readonly="state != 'draft'">
                                     <tree editable="bottom" create="0" delete="0">
                                         <field name="car_check_item_id" readonly="1"/>
-                                        <field name="image" widget="image" options="{'size': [64, 64]}"/>
-                                        <field name="note" placeholder="Note..."/>
+                                        <field name="image_required" column_invisible="1"/>
+                                        <field name="image" widget="image" options="{'size': [64, 64]}" required="image_required"/>
+                                        <field name="note" placeholder="Note..." required="image_required"/>
                                         <field name="checked" widget="boolean_toggle"/>
                                     </tree>
                                 </field>

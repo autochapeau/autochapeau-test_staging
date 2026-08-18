@@ -11,6 +11,7 @@
                 <field name="check_in" widget="boolean_toggle"/>
                 <field name="check_out" widget="boolean_toggle"/>
                 <field name="required" widget="boolean_toggle" string="Required"/>
+                <field name="image_required" widget="boolean_toggle" string="Image Required"/>
             </tree>
         </field>
     </record>

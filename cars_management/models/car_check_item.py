@@ -13,3 +13,8 @@ class CarCheckItem(models.Model):
         string="Check-out", default=True, help="Show this item during check-out")
     required = fields.Boolean(string="Required", default=False,
                               help="This item is required if checked, otherwise optional.")
+    image_required = fields.Boolean(
+        string="Image Required",
+        default=False,
+        help="If enabled, a photo must be attached for this item during check-in/check-out.",
+    )

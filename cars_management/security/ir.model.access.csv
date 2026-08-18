@@ -4,6 +4,7 @@ access_car_check_item,access_car_check_item,model_car_check_item,base.group_user
 
 access_car_checkin,access_car_checkin,model_car_checkin,base.group_user,1,1,1,0
 access_car_checkin_check_item,access_car_checkin_check_item,model_car_checkin_check_item,base.group_user,1,1,1,1
+access_car_checkin_photo,access_car_checkin_photo,model_car_checkin_photo,base.group_user,1,1,1,1
 
 access_car_checkout,access_car_checkout,model_car_checkout,base.group_user,1,1,1,0
 access_car_checkout_check_item,access_car_checkout_check_item,model_car_checkout_check_item,base.group_user,1,1,1,1

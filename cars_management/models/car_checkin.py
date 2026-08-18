@@ -2,7 +2,7 @@ import math
 import random
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -82,6 +82,24 @@ class CarCheckin(models.Model):
             item = missing_required[0]
             raise ValidationError(
                 _("The item '%s' should be checked, it is required.") % item.car_check_item_id.name)
+        missing_image = self.car_check_item_ids.filtered(
+            lambda l: l.car_check_item_id
+            and l.car_check_item_id.image_required
+            and not l.image
+        )
+        if missing_image:
+            item = missing_image[0]
+            raise ValidationError(
+                _("The item '%s' requires an image.") % item.car_check_item_id.name)
+        missing_note = self.car_check_item_ids.filtered(
+            lambda l: l.car_check_item_id
+            and l.car_check_item_id.image_required
+            and not (l.note or "").strip()
+        )
+        if missing_note:
+            item = missing_note[0]
+            raise ValidationError(
+                _("The item '%s' requires a note.") % item.car_check_item_id.name)
 
     _name = "car.checkin"
     _inherit = ["mail.thread", "mail.activity.mixin", "portal.mixin"]
@@ -124,6 +142,12 @@ class CarCheckin(models.Model):
         "sale.order", string="Sale Order", readonly=True)
 
     photo_attachment_ids = fields.Many2many("ir.attachment", string="Photos")
+    photo_line_ids = fields.One2many(
+        "car.checkin.photo",
+        "checkin_id",
+        string="Photo Notes",
+        copy=False,
+    )
     notes = fields.Text()
     state = fields.Selection(
         [
@@ -401,3 +425,55 @@ class CarCheckinCheckItem(models.Model):
     note = fields.Text(string="Note")
     checked = fields.Boolean(default=False)
     car_checkin_id = fields.Many2one("car.checkin")
+    image_required = fields.Boolean(
+        related="car_check_item_id.image_required",
+        string="Image Required",
+        store=False,
+    )
+
+
+class CarCheckinPhoto(models.Model):
+    _name = "car.checkin.photo"
+    _description = "Check-in Photo"
+    _order = "sequence, id"
+
+    checkin_id = fields.Many2one(
+        "car.checkin",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    sequence = fields.Integer(default=10)
+    image = fields.Image(
+        required=True,
+        attachment=True,
+        max_width=1920,
+        max_height=1920,
+    )
+    note = fields.Text(string="Note")
+
+    def _ensure_checkin_is_draft(self, checkins=None):
+        records = checkins if checkins is not None else self.mapped("checkin_id")
+        if records.filtered(lambda checkin: checkin.state != "draft"):
+            raise UserError(_(
+                "Photos can only be added or changed while the check-in "
+                "is in Draft."
+            ))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        checkin_ids = [vals["checkin_id"] for vals in vals_list if vals.get("checkin_id")]
+        self._ensure_checkin_is_draft(self.env["car.checkin"].browse(checkin_ids))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._ensure_checkin_is_draft()
+        if vals.get("checkin_id"):
+            self._ensure_checkin_is_draft(
+                self.env["car.checkin"].browse(vals["checkin_id"])
+            )
+        return super().write(vals)
+
+    def unlink(self):
+        self._ensure_checkin_is_draft()
+        return super().unlink()
