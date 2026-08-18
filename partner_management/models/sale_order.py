@@ -8,7 +8,7 @@ class SaleOrder(models.Model):
 
     subordinate_id = fields.Many2one(
         "res.partner",
-        string="Sub-customer",
+        string="Car Owner",
         domain="[('partner_type', '=', 'internal')]",
         help="Internal customer served under this Contract order.",
     )
@@ -181,6 +181,44 @@ class SaleOrder(models.Model):
         if self.order_type == "contract":
             return self.subordinate_id
         return self.partner_id
+
+    def _unverified_intern_extern_orders(self):
+        return self.filtered(
+            lambda order: order.order_type in ("intern", "extern")
+            and order.partner_id
+            and not order.partner_id.mobile_verified
+        )
+
+    def _action_open_confirm_otp_wizard(self):
+        self.ensure_one()
+        partner = self.partner_id
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Verify Customer Mobile"),
+            "res_model": "sale.order.confirm.otp.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_sale_order_id": self.id,
+                "default_partner_id": partner.id,
+                "default_mobile": partner.mobile,
+                "default_country_id": partner.country_id.id,
+            },
+        }
+
+    def action_confirm(self):
+        if self.env.context.get("skip_confirm_otp_wizard"):
+            return super().action_confirm()
+        unverified = self._unverified_intern_extern_orders()
+        if not unverified:
+            return super().action_confirm()
+        if len(self) == 1:
+            return self._action_open_confirm_otp_wizard()
+        raise UserError(_(
+            "Cannot confirm Intern/Extern orders until each customer's "
+            "mobile number is verified via OTP."
+        ))
 
     def _reset_vehicle_if_invalid(self):
         owner = self._vehicle_owner_partner()

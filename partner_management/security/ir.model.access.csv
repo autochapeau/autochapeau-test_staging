@@ -4,3 +4,4 @@ access_res_city_partner_manager,res.city.partner.manager,model_res_city,base.gro
 access_partner_send_otp_wizard_user,partner.send.otp.wizard.user,model_partner_send_otp_wizard,base.group_user,1,1,1,1
 access_sale_extra_order_otp_wizard_user,sale.extra.order.otp.wizard.user,model_sale_extra_order_otp_wizard,base.group_user,1,1,1,1
 access_sale_extra_order_type_wizard_user,sale.extra.order.type.wizard.user,model_sale_extra_order_type_wizard,base.group_user,1,1,1,1
+access_sale_order_confirm_otp_wizard_user,sale.order.confirm.otp.wizard.user,model_sale_order_confirm_otp_wizard,base.group_user,1,1,1,1
