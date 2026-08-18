@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <!-- Smart buttons: Cars / Sales Orders / Reservations / ... -->
-    <record id="view_partner_form_appointments" model="ir.ui.view">
+    <record id="view_partner_form_appointments1" model="ir.ui.view">
         <field name="name">res.partner.form.appointments</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <menuitem id="menu_customer_statement"
+                  name="Partner Statement"
+                  parent="contacts.menu_contacts"
+                  action="customer_statement_report_wizard_action"
+                  groups="partner_statement_report.customer_statement_group"
+                  sequence="2"
+        />
+<!--        <menuitem id="menu_partner_statement_accounting"-->
+<!--                  name="Partner Statement"-->
+<!--                  -->
+<!--                  action="customer_statement_report_wizard_action"-->
+<!--                  groups="partner_statement_report.customer_statement_group"-->
+<!--                  sequence="99"-->
+<!--        />-->
+    </data>
+</odoo>
