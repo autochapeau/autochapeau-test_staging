@@ -2,7 +2,7 @@
 <odoo>
     <!-- Smart buttons: Cars / Sales Orders / Reservations / ... -->
     <record id="view_partner_form_appointments1" model="ir.ui.view">
-        <field name="name">res.partner.form.appointments</field>
+        <field name="name">res.partner.form.appointments1</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority" eval="50"/>
@@ -278,16 +278,16 @@
     </record>
 
     <!-- Inactive stub: clears old Subordinates/Supervisor tab from DB on upgrade -->
-    <record id="view_partner_form_inherit_subordinate" model="ir.ui.view">
-        <field name="name">res.partner.form.inherit.subordinate.deprecated</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="active" eval="False"/>
-        <field name="priority" eval="999"/>
-        <field name="arch" type="xml">
-            <xpath expr="//form" position="inside">
-                <field name="display_name" invisible="1"/>
-            </xpath>
-        </field>
-    </record>
+<!--    <record id="view_partner_form_inherit_subordinate" model="ir.ui.view">-->
+<!--        <field name="name">res.partner.form.inherit.subordinate.deprecated</field>-->
+<!--        <field name="model">res.partner</field>-->
+<!--        <field name="inherit_id" ref="base.view_partner_form"/>-->
+<!--        <field name="active" eval="False"/>-->
+<!--        <field name="priority" eval="999"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//form" position="inside">-->
+<!--                <field name="display_name" invisible="1"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
 </odoo>
