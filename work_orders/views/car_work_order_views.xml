@@ -71,6 +71,7 @@
         <field name="arch" type="xml">
             <form>
                 <field name="all_tasks_done" invisible="1"/>
+                
                 <header>
                     <button
                         name="action_confirm"
