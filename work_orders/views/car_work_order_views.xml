@@ -99,7 +99,7 @@
                         string="Check Quality"
                         type="object"
                         class="oe_highlight"
-                        invisible="state != 'progress'"
+                        invisible="state != 'progress' or not all_tasks_done"
                     />
                     <button
                         name="action_confirm_quality"
@@ -122,12 +122,12 @@
                         class="oe_highlight"
                         invisible="state != 'quality_confirmed'"
                     />
-                    <button
-                        name="action_create_invoice"
-                        string="Create Invoice"
-                        type="object"
-                        class="btn-primary"
-                    />
+<!--                    <button-->
+<!--                        name="action_create_invoice"-->
+<!--                        string="Create Invoice"-->
+<!--                        type="object"-->
+<!--                        class="btn-primary"-->
+<!--                    />-->
                     <button
                         name="action_create_sub_order"
                         string="Create Sub Order"
@@ -142,6 +142,7 @@
                     />
                 </header>
                 <sheet>
+                    <field name="all_tasks_done" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button
                             name="action_view_sale_order"

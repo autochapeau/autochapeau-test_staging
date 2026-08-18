@@ -376,6 +376,10 @@ class CarWorkOrder(models.Model):
     partner_email = fields.Char(related="partner_id.email")
     service_ids = fields.One2many(
         "car.workorder.service", "workorder_id", "Services")
+    all_tasks_done = fields.Boolean(
+        string="All Tasks Finished",
+        compute="_compute_all_tasks_done",
+    )
     product_ids = fields.One2many(
         "car.workorder.product", "workorder_id", "Products")
     picking_id = fields.Many2one(
@@ -537,8 +541,24 @@ class CarWorkOrder(models.Model):
         self.ensure_one()
         self.state = "progress"
 
+    @api.depends("service_ids", "service_ids.state")
+    def _compute_all_tasks_done(self):
+        for order in self:
+            active_tasks = order.service_ids.filtered(
+                lambda service: service.state != "cancel"
+            )
+            order.all_tasks_done = bool(
+                active_tasks
+                and all(service.state == "done" for service in active_tasks)
+            )
+
     def action_quality(self):
         self.ensure_one()
+        if not self.all_tasks_done:
+            raise UserError(_(
+                "Check Quality is only available after all linked tasks "
+                "are finished."
+            ))
         # Ensure QA checklist lines exist (copy from related checkin of same sale order)
         self._ensure_qa_check_items()
         self.state = "quality"
@@ -698,12 +718,13 @@ class CarWorkOrder(models.Model):
 
     def action_view_car_checkin_id(self):
         self.ensure_one()
+        if not self.car_checkin_id:
+            raise UserError(_("No check-in is linked to this work order."))
         action = self.env["ir.actions.actions"]._for_xml_id(
             "cars_management.car_checkin_action")
         action["views"] = [(False, "form")]
-        sub_orders_count = self.env["car.work.order"].search_count([
-            ("parent_id", "=", self.id)
-        ])
+        action["res_id"] = self.car_checkin_id.id
+        return action
 
     def action_view_car_checkout_id(self):
         self.ensure_one()
