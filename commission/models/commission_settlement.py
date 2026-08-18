@@ -100,7 +100,10 @@ class CommissionSettlement(models.Model):
                     for line in move_lines:
                         if line.product_id.commission_category_id.id == categ.id:
                             for section in commission.section_ids:
-                                if section.amount_from <= percent <= section.amount_to:
+                                if (
+                                    section.commission_category_id.id == categ.id
+                                    and section.amount_from <= percent <= section.amount_to
+                                ):
                                     curr_amount = line.price_subtotal * (section.percent / 100)
                                     amount_to_settle += curr_amount
                                     move_line_ids.append(line.id)

@@ -172,8 +172,8 @@ class CarAppointment(models.Model):
         # Verify the responsibility of the slot
         self.ensure_one()
         if not self.appointment_slot_id.is_available:
-            UserError(_("Slot %s is not available") %
-                      str(self.appointment_slot_id.start_date))
+            raise UserError(_("Slot %s is not available") %
+                            str(self.appointment_slot_id.start_date))
         message = _("Your appointment has been confirmed")
         self.notify_customer(message)
         self_vals = {

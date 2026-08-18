@@ -23,6 +23,14 @@ class SaleOrder(models.Model):
         readonly=True,
         check_company=True,
     )
+    ehsan_donation_invoice_id = fields.Many2one(
+        "account.move",
+        string="Ehsan Donation Invoice",
+        copy=False,
+        readonly=True,
+        check_company=True,
+        help="Customer invoice containing the Ehsan donation line.",
+    )
     ehsan_donation_state = fields.Selection(
         selection=[
             ("pending", "Pending Journal"),
@@ -64,15 +72,118 @@ class SaleOrder(models.Model):
             tx_total = sum(order.transaction_ids.mapped("donation_amount"))
             order.donation_amount = tx_total + (order.ehsan_donation_amount or 0.0)
 
-    @api.depends("ehsan_donation_amount", "ehsan_donation_move_id")
+    @api.depends(
+        "ehsan_donation_amount",
+        "ehsan_donation_move_id",
+        "ehsan_donation_invoice_id.payment_state",
+    )
     def _compute_ehsan_donation_state(self):
         for order in self:
-            if order.ehsan_donation_move_id:
+            if (
+                order.ehsan_donation_move_id
+                or (
+                    order.ehsan_donation_invoice_id
+                    and order.ehsan_donation_invoice_id.payment_state
+                    in ("paid", "in_payment")
+                )
+            ):
                 order.ehsan_donation_state = "posted"
             elif order.ehsan_donation_amount:
                 order.ehsan_donation_state = "pending"
             else:
                 order.ehsan_donation_state = False
+
+    @api.depends(
+        "amount_total",
+        "ehsan_donation_amount",
+        "split_payment_ids.amount",
+        "split_payment_ids.state",
+    )
+    def _compute_split_payment_totals(self):
+        super()._compute_split_payment_totals()
+        for order in self:
+            active_payments = order.split_payment_ids.filtered(
+                lambda payment: payment.state != "cancelled"
+            )
+            paid = sum(
+                active_payments.filtered(
+                    lambda payment: payment.state == "paid"
+                ).mapped("amount")
+            )
+            pending = sum(
+                active_payments.filtered(
+                    lambda payment: payment.state
+                    in ("processing", "pending", "needs_review")
+                ).mapped("amount")
+            )
+            amount_to_collect = (
+                order.amount_total + (order.ehsan_donation_amount or 0.0)
+            )
+            order.split_amount_remaining = max(
+                amount_to_collect - paid - pending,
+                0.0,
+            )
+
+    def _create_invoices(self, grouped=False, final=False, date=None):
+        invoices = super()._create_invoices(
+            grouped=grouped,
+            final=final,
+            date=date,
+        )
+        self._add_ehsan_donation_to_invoices(invoices)
+        return invoices
+
+    def _add_ehsan_donation_to_invoices(self, invoices):
+        """Add the customer donation to one invoice, never to sale order lines."""
+        for order in self.filtered(
+            lambda sale: sale.order_type != "contract"
+            and sale.ehsan_donation_amount > 0
+        ):
+            existing_line = order.invoice_ids.invoice_line_ids.filtered(
+                lambda line: line.ehsan_donation_sale_order_id == order
+            )
+            if existing_line:
+                order.ehsan_donation_invoice_id = existing_line[:1].move_id.id
+                continue
+
+            order_invoices = invoices.filtered(
+                lambda invoice: order
+                in invoice.invoice_line_ids.sale_line_ids.order_id
+                and invoice.move_type == "out_invoice"
+            )
+            invoice = order_invoices[:1]
+            if not invoice:
+                continue
+
+            account = order.company_id.donation_credit_account_id
+            if not account:
+                raise UserError(
+                    _(
+                        "Please configure the Donation Credit Account before "
+                        "creating an invoice with an Ehsan donation."
+                    )
+                )
+            invoice.write(
+                {
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": _("تبرع لإحسان"),
+                                "quantity": 1.0,
+                                "price_unit": order.ehsan_donation_amount,
+                                "product_id": False,
+                                "product_uom_id": False,
+                                "account_id": account.id,
+                                "tax_ids": [(5, 0, 0)],
+                                "ehsan_donation_sale_order_id": order.id,
+                            },
+                        )
+                    ]
+                }
+            )
+            order.ehsan_donation_invoice_id = invoice.id
 
     def action_open_ehsan_donation_wizard(self):
         self.ensure_one()

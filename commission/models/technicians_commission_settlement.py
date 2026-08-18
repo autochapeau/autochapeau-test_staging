@@ -69,25 +69,34 @@ class TechniciansCommissionSettlement(models.Model):
         amounts_by_emp = {}
         for service in services:
             commission_amount = service.product_id.technicians_commission_amount
-            employees = service.workcenter_id.employee_ids
+            # Use staff assigned on the service (prefilled from workcenter, can be adjusted).
+            employees = service.staff_ids
             employees_count = len(employees)
+            if not employees_count:
+                continue
+            share = commission_amount / employees_count
             for employee in employees:
-                if amounts_by_emp.get(employee.id):
-                    amounts_by_emp[employee.id]["amount"] += commission_amount / employees_count
+                if employee.id in amounts_by_emp:
+                    amounts_by_emp[employee.id]["amount"] += share
                     amounts_by_emp[employee.id]["service_ids"].append(service.product_id.id)
                 else:
                     amounts_by_emp[employee.id] = {
-                        "amount": commission_amount / employees_count,
+                        "amount": share,
                         "service_ids": [service.product_id.id],
                     }
         lines = [(5, 0, 0)]
-        for employee_id in amounts_by_emp:
-            line = {
-                "employee_id": employee_id,
-                "service_ids": [(6, 0, amounts_by_emp[employee.id]["service_ids"])],
-                "amount": amounts_by_emp[employee.id]["amount"],
-            }
-            lines.append((0, 0, line))
+        for employee_id, values in amounts_by_emp.items():
+            lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "employee_id": employee_id,
+                        "service_ids": [(6, 0, values["service_ids"])],
+                        "amount": values["amount"],
+                    },
+                )
+            )
         self.line_ids = lines
 
 

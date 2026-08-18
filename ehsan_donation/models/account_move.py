@@ -67,7 +67,16 @@ class AccountMove(models.Model):
         )
         orders = paid_invoices.invoice_line_ids.sale_line_ids.order_id
         for order in orders:
-            if order.ehsan_donation_amount and not order.ehsan_donation_move_id:
+            donation_invoice = paid_invoices.filtered(
+                lambda invoice: any(
+                    line.ehsan_donation_sale_order_id == order
+                    for line in invoice.invoice_line_ids
+                )
+            )[:1]
+            if donation_invoice:
+                order.ehsan_donation_invoice_id = donation_invoice.id
+            elif order.ehsan_donation_amount and not order.ehsan_donation_move_id:
+                # Compatibility for invoices created before donation invoice lines existed.
                 order._create_ehsan_donation_move()
         for invoice in paid_invoices:
             related_orders = invoice.invoice_line_ids.sale_line_ids.order_id
@@ -166,3 +175,16 @@ class AccountMove(models.Model):
             }
         )
         return move
+
+
+class AccountMoveLine(models.Model):
+    _inherit = "account.move.line"
+
+    ehsan_donation_sale_order_id = fields.Many2one(
+        "sale.order",
+        string="Ehsan Donation Sales Order",
+        copy=False,
+        readonly=True,
+        index=True,
+        help="Technical link for an invoice-only Ehsan donation line.",
+    )
