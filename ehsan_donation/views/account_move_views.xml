@@ -12,6 +12,11 @@
                        invisible="move_type != 'out_invoice' or not company_ehsan_donation_move_id"/>
                 <field name="company_ehsan_donation_state" invisible="1"/>
             </xpath>
+            <!-- Keep Label/Description visible so donation text shows without a product. -->
+            <xpath expr="//field[@name='invoice_line_ids']//field[@name='name']" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute name="string">Label</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>

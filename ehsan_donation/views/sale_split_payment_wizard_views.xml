@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_split_payment_wizard_form_inherit_ehsan" model="ir.ui.view">
+        <field name="name">sale.split.payment.wizard.form.inherit.ehsan</field>
+        <field name="model">sale.split.payment.wizard</field>
+        <field name="inherit_id" ref="sale_split_payment.view_sale_split_payment_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_total']" position="attributes">
+                <attribute name="string">Sale Order Cost</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_total']" position="after">
+                <field name="ehsan_donation_amount"/>
+                <field name="total_with_ehsan_donation" class="fw-bold"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

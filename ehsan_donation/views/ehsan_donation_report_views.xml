@@ -10,7 +10,8 @@
                 <field name="partner_id"/>
                 <field name="ehsan_donation_amount" sum="Total Donations"/>
                 <field name="currency_id" column_invisible="1"/>
-                <field name="ehsan_donation_move_id"/>
+                <field name="ehsan_donation_invoice_id"/>
+                <field name="ehsan_donation_move_id" optional="hide"/>
                 <field name="ehsan_donation_state"
                        widget="badge"
                        decoration-warning="ehsan_donation_state == 'pending'"
@@ -28,6 +29,7 @@
             <search>
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="ehsan_donation_invoice_id"/>
                 <field name="ehsan_donation_move_id"/>
                 <filter name="pending" string="Pending Journal"
                         domain="[('ehsan_donation_state', '=', 'pending')]"/>

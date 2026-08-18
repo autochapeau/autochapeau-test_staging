@@ -20,6 +20,7 @@
             <xpath expr="//group[@name='donation_details']/field[@name='donation_amount']" position="after">
                 <field name="ehsan_donation_amount" invisible="order_type == 'contract'"/>
                 <field name="ehsan_donation_declined" invisible="order_type == 'contract'"/>
+                <field name="ehsan_donation_invoice_id" readonly="1" invisible="order_type == 'contract' or not ehsan_donation_invoice_id"/>
                 <field name="ehsan_donation_move_id" readonly="1" invisible="order_type == 'contract'"/>
                 <field name="company_ehsan_donation_amount" readonly="1" invisible="order_type == 'contract'"/>
                 <field name="company_ehsan_donation_move_id" readonly="1" invisible="order_type == 'contract'"/>

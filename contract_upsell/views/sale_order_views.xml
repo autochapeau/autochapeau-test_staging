@@ -4,6 +4,7 @@
         <field name="name">sale.order.form.contract.upsell</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="partner_management.view_order_form_inherit_subordinate"/>
+        <field name="active" eval="True"/>
         <field name="arch" type="xml">
             <!-- Multiple extra/upsell sale orders per contract (Intern and/or Extern) -->
             <xpath expr="//button[@name='action_create_extra_sale_order']" position="attributes">
@@ -30,6 +31,7 @@
         <field name="name">sale.order.form.contract.upsell.hide.collect.payment</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale_split_payment.view_order_form_sale_split_payment"/>
+        <field name="active" eval="True"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_open_split_payment_wizard']" position="attributes">
                 <attribute name="invisible">state not in ('sale', 'done') or not id or split_amount_remaining &lt;= 0 or not has_service_product_lines or not has_booking_for_payment or order_type == 'contract'</attribute>
