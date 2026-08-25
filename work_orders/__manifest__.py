@@ -1,6 +1,6 @@
 {
     "name": "Work orders",
-    "version": "17.0.1.0.14",
+    "version": "17.0.1.0.15",
     "author": "WellKnot",
     "depends": ["appointment_management", "stock"],
     "data": [
