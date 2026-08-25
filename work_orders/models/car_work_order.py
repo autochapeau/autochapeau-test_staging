@@ -190,6 +190,14 @@ class CarWorkOrder(models.Model):
     sale_order_id = fields.Many2one(
         "sale.order", string="Sale Order", readonly=True)
 
+    def _get_linked_sale_order(self):
+        """Linked sale order for workshop flows that only need to read it."""
+        self.ensure_one()
+        sale_id = self.sale_order_id.id
+        if not sale_id and self.appointment_id:
+            sale_id = self.appointment_id.sudo().sale_order_id.id
+        return self.env["sale.order"].sudo().browse(sale_id)
+
     def action_view_sale_order(self):
         self.ensure_one()
         if not self.sale_order_id:
@@ -515,7 +523,7 @@ class CarWorkOrder(models.Model):
             "picking_type_id": picking_type_internal.id,
             "location_id": location_id,
             "location_dest_id": location_dest_id,
-            "origin": self.appointment_id.sale_order_id.name if self.appointment_id.sale_order_id else "",
+            "origin": self._get_linked_sale_order().name or self.name or "",
             "move_ids": [
                 Command.create(
                     {
@@ -572,8 +580,7 @@ class CarWorkOrder(models.Model):
         if self.car_checkin_id:
             return self.car_checkin_id
         # fallback: latest checkin for the same sale order
-        sale = self.sale_order_id or (
-            self.appointment_id.sale_order_id if self.appointment_id and self.appointment_id.sale_order_id else False)
+        sale = self._get_linked_sale_order()
         if sale:
             checkin = self.env['car.checkin'].search(
                 [('sale_order_id', '=', sale.id)], order='id desc', limit=1)
@@ -648,8 +655,7 @@ class CarWorkOrder(models.Model):
         # Create a car checkout
         if not self.car_checkout_id:
             # include sale order id if available
-            sale_id = self.sale_order_id.id if self.sale_order_id else (
-                self.appointment_id.sale_order_id.id if self.appointment_id and self.appointment_id.sale_order_id else False)
+            sale_id = self._get_linked_sale_order().id
             checkout_vals = {
                 "car_work_order_id": self.id,
                 "partner_id": self.partner_id.id,
