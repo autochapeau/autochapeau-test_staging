@@ -516,7 +516,7 @@ class CarWorkOrder(models.Model):
         if not has_staff:
             raise UserError(
                 _("You must select at least one staff on a service before confirming the work order."))
-        picking_type_internal = self.env.ref("stock.picking_type_internal")
+        picking_type_internal = self.env.ref("stock.picking_type_internal").sudo()
         location_id = picking_type_internal.default_location_src_id.id
         location_dest_id = picking_type_internal.default_location_dest_id.id
         picking_vals = {
@@ -537,12 +537,12 @@ class CarWorkOrder(models.Model):
                 for line in self.product_ids
             ],
         }
-        # branch_id can come from optional branch modules, so only set it when available.
-        if "branch_id" in self.env["stock.picking"]._fields:
+        Picking = self.env["stock.picking"].sudo()
+        if "branch_id" in Picking._fields:
             picking_vals["branch_id"] = self.branch_id.id if self.branch_id else False
 
-        picking = self.env["stock.picking"].create(picking_vals)
-        self.picking_id = picking
+        picking = Picking.create(picking_vals)
+        self.picking_id = picking.id
         self.state = "confirmed"
 
     def action_progress(self):
