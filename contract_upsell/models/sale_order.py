@@ -326,6 +326,7 @@ class SaleOrder(models.Model):
                         "workorder_id": work_order.id,
                         "product_id": product.id,
                         "expected_duration": product.expected_duration,
+                        "workshop_id": product.workshop_id.id,
                     })
                     existing_services |= product
                     for bom in product.bom_ids:

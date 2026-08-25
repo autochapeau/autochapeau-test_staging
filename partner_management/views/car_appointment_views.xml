@@ -55,9 +55,6 @@
             </xpath>
             <xpath expr="//field[@name='appointment_slot_id']"
                    position="attributes">
-                <attribute name="domain">[
-                    ('date', '&gt;=', context_today())
-                ]</attribute>
                 <attribute name="options">{
                     'no_create': True,
                     'no_quick_create': True,
@@ -67,9 +64,6 @@
             </xpath>
             <xpath expr="//field[@name='maintenance_slot_id']"
                    position="attributes">
-                <attribute name="domain">[
-                    ('date', '&gt;=', context_today())
-                ]</attribute>
                 <attribute name="options">{
                     'no_create': True,
                     'no_quick_create': True,

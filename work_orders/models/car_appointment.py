@@ -28,6 +28,7 @@ class CarAppointment(models.Model):
                         {
                             "product_id": service.product_id.id,
                             "expected_duration": service.product_id.expected_duration,
+                            "workshop_id": service.product_id.workshop_id.id,
                         },
                     )
                 )

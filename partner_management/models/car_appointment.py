@@ -2,8 +2,15 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
+def _future_slot_domain(env):
+    return [("start_date", ">", fields.Datetime.now())]
+
+
 class CarAppointment(models.Model):
     _inherit = "car.appointment"
+
+    appointment_slot_id = fields.Many2one(domain=_future_slot_domain)
+    maintenance_slot_id = fields.Many2one(domain=_future_slot_domain)
 
     sale_order_state = fields.Selection(
         related="sale_order_id.state",
@@ -99,14 +106,13 @@ class CarAppointment(models.Model):
 
     @api.constrains("appointment_slot_id", "maintenance_slot_id")
     def _check_appointment_slots_not_in_past(self):
+        now = fields.Datetime.now()
         for appointment in self:
-            today = fields.Date.context_today(appointment)
             slots = (
                 appointment.appointment_slot_id
                 | appointment.maintenance_slot_id
             )
-            if any(slot.date and slot.date < today for slot in slots):
+            if any(slot.start_date and slot.start_date <= now for slot in slots):
                 raise ValidationError(_(
-                    "Appointment and maintenance slots cannot be before "
-                    "today's date."
+                    "Appointment and maintenance slots cannot be in the past."
                 ))

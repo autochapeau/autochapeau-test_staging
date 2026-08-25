@@ -880,12 +880,32 @@ class CarWorkOrderService(models.Model):
             else:
                 rec.duration_hours = 0.0
 
-    @api.onchange('product_id')
+    def _workshop_id_from_product(self, product):
+        product = product.exists() if product else product
+        return product.workshop_id.id if product and product.workshop_id else False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Product = self.env["product.product"]
+        for vals in vals_list:
+            if vals.get("product_id") and not vals.get("workshop_id"):
+                vals["workshop_id"] = self._workshop_id_from_product(
+                    Product.browse(vals["product_id"])
+                )
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if "product_id" in vals and "workshop_id" not in vals:
+            vals["workshop_id"] = self._workshop_id_from_product(
+                self.env["product.product"].browse(vals["product_id"])
+                if vals["product_id"]
+                else self.env["product.product"]
+            )
+        return super().write(vals)
+
+    @api.onchange("product_id")
     def onchange_method(self):
-        if self.product_id and self.product_id.workshop_id:
-            self.workshop_id = self.product_id.workshop_id.id
-        else:
-            self.workshop_id = False
+        self.workshop_id = self._workshop_id_from_product(self.product_id)
 
 
 class CarWorkOrderProduct(models.Model):

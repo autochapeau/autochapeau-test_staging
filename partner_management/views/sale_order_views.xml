@@ -24,6 +24,18 @@
                     <field name="child_sale_count" widget="statinfo" string="Extra Orders"/>
                 </button>
             </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="domain">
+                    [('type', '!=', 'private'), ('company_id', 'in', (False, company_id)), ('contact_partner_type', '=', 'customer')]
+                    + ([('partner_type', '=', 'contract')] if order_type == 'contract' else [])
+                </attribute>
+                <attribute name="context">{
+                    'res_partner_search_mode': 'customer',
+                    'show_address': 1,
+                    'show_vat': True,
+                    'default_contact_partner_type': 'customer',
+                }</attribute>
+            </xpath>
             <xpath expr="//header" position="inside">
                 <button name="action_create_extra_sale_order"
                         string="Create Extra Order"

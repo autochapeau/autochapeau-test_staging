@@ -6,6 +6,15 @@ from odoo.osv import expression
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    partner_id = fields.Many2one(
+        domain=(
+            "[('type', '!=', 'private'), "
+            "('company_id', 'in', (False, company_id)), "
+            "('contact_partner_type', '=', 'customer')]"
+            " + ([('partner_type', '=', 'contract')] if order_type == 'contract' else [])"
+        ),
+    )
+
     subordinate_id = fields.Many2one(
         "res.partner",
         string="Car Owner",
