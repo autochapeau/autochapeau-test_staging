@@ -116,7 +116,7 @@ class CarCheckin(models.Model):
     active = fields.Boolean(default=True)
     name = fields.Char(readonly=True, copy=False)
 
-    date = fields.Datetime(readonly=True)
+    date = fields.Datetime()
     company_id = fields.Many2one(
         "res.company", string="Agency", required=True, default=lambda self: self.env.company)
     employee_id = fields.Many2one("hr.employee", "Employee")
@@ -236,7 +236,7 @@ class CarCheckin(models.Model):
     def action_progress(self):
         self.ensure_one()
         if not self.date:
-            raise ValidationError(_("Please add the check-in time"))
+            self.write({"date": fields.Datetime.now()})
         if not self.odometer:
             raise ValidationError(_("Please add the car odometer"))
         # Required check items verification
