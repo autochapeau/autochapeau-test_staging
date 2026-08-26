@@ -23,7 +23,7 @@
                 </page>
             </xpath>
 
-            <xpath expr="//field[@name='type']" position="after">
+            <xpath expr="//field[@name='barcode']" position="after">
                 <field name="is_window_tinting"/>
             </xpath>
 
