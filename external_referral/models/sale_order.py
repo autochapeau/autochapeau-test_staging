@@ -143,11 +143,11 @@ class SaleOrder(models.Model):
         for order in self:
             if order.order_type != "extern":
                 continue
-            if not order.agency_id:
-                raise ValidationError(_(
-                    "Please select the referring agency before confirming "
-                    "an Extern sale order."
-                ))
+            # if not order.agency_id:
+            #     raise ValidationError(_(
+            #         "Please select the referring agency before confirming "
+            #         "an Extern sale order."
+            #     ))
             if not order.agency_salesperson_id:
                 raise ValidationError(_(
                     "Please select the agency salesperson before confirming "
