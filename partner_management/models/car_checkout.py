@@ -30,6 +30,10 @@ class CarCheckout(models.Model):
     sale_has_service_product_lines = fields.Boolean(
         related="sale_order_id.has_service_product_lines",
     )
+    sale_order_type = fields.Selection(
+        related="sale_order_id.order_type",
+        string="Sale Order Type",
+    )
     sale_order_is_fully_paid = fields.Boolean(
         string="Sale Order Fully Paid",
         compute="_compute_sale_order_is_fully_paid",
@@ -42,8 +46,10 @@ class CarCheckout(models.Model):
         if not order:
             return self.env["sale.order"]
         if order.order_type == "contract":
-            return order | order.child_sale_ids.filtered(
-                lambda sale: sale.state != "cancel"
+            # Contract is invoiced to the dealer monthly; only extras are
+            # collected at the branch before checkout approval.
+            return order.child_sale_ids.filtered(
+                lambda sale: sale.state in ("sale", "done")
             )
         return order
 
@@ -69,7 +75,10 @@ class CarCheckout(models.Model):
         for checkout in self:
             orders = checkout._get_payment_sale_orders()
             if not orders:
-                checkout.sale_order_is_fully_paid = False
+                linked = checkout.sale_order_id
+                checkout.sale_order_is_fully_paid = bool(
+                    linked and linked.order_type == "contract"
+                )
                 continue
             checkout.sale_order_is_fully_paid = all(
                 checkout._is_sale_order_fully_paid(order)
@@ -98,6 +107,11 @@ class CarCheckout(models.Model):
             raise UserError(_(
                 "Collect Payment requires a sale order linked to this checkout."
             ))
+        if self.sale_order_id.order_type == "contract":
+            raise UserError(_(
+                "Contract sale orders are billed to the dealer monthly. "
+                "Collect payment on the extra sale orders instead."
+            ))
         return self.sale_order_id.action_open_split_payment_wizard()
 
     def action_progress(self):
@@ -106,18 +120,18 @@ class CarCheckout(models.Model):
             unpaid = self._get_payment_sale_orders().filtered(
                 lambda order: not self._is_sale_order_fully_paid(order)
             )
-            if len(unpaid) > 1 or self.sale_order_id.order_type == "contract":
-                details = "\n".join(
-                    _(
-                        "%(name)s: paid %(paid)s / %(total)s",
-                        name=order.name,
-                        paid=order.split_amount_paid,
-                        total=order.amount_total,
-                    )
-                    for order in unpaid
+            details = "\n".join(
+                _(
+                    "%(name)s: paid %(paid)s / %(total)s",
+                    name=order.name,
+                    paid=order.split_amount_paid,
+                    total=order.amount_total,
                 )
+                for order in unpaid
+            )
+            if self.sale_order_id.order_type == "contract":
                 raise UserError(_(
-                    "Request approval is only available after all linked "
+                    "Request approval is only available after all extra "
                     "sale orders are fully paid:\n%(details)s",
                     details=details,
                 ))
