@@ -5,3 +5,6 @@ access_window_tint_glass_type_manager,window.tint.glass.type manager,model_windo
 access_window_tint_percentage_manager,window.tint.percentage manager,model_window_tint_percentage,sales_team.group_sale_manager,1,1,1,1
 access_sale_order_line_tint_detail_user,sale.order.line.tint.detail user,model_sale_order_line_tint_detail,sales_team.group_sale_salesman,1,1,1,1
 access_sale_order_line_tint_detail_manager,sale.order.line.tint.detail manager,model_sale_order_line_tint_detail,sales_team.group_sale_manager,1,1,1,1
+access_window_tint_glass_type_workshop,window.tint.glass.type workshop,model_window_tint_glass_type,work_orders.group_workshop_employee,1,0,0,0
+access_window_tint_percentage_workshop,window.tint.percentage workshop,model_window_tint_percentage,work_orders.group_workshop_employee,1,0,0,0
+access_sale_order_line_tint_detail_workshop,sale.order.line.tint.detail workshop,model_sale_order_line_tint_detail,work_orders.group_workshop_employee,1,0,0,0

@@ -19,11 +19,13 @@ class CarWorkorderService(models.Model):
         related="sale_line_id.tint_detail_ids",
         string="Tint Details",
         readonly=True,
+        related_sudo=True,
     )
     tint_details_summary = fields.Char(
         related="sale_line_id.tint_details_summary",
         string="Tint Details Summary",
         readonly=True,
+        related_sudo=True,
     )
 
     @api.depends(
@@ -36,7 +38,8 @@ class CarWorkorderService(models.Model):
     )
     def _compute_sale_line_id(self):
         for service in self:
-            sale = service.workorder_id.sale_order_id
+            # Workshop users have no sale.order ACL; resolve the link as sudo.
+            sale = service.workorder_id.sudo().sale_order_id
             if not sale or not service.product_id:
                 service.sale_line_id = False
                 continue

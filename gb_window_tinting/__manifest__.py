@@ -1,6 +1,6 @@
 {
     "name": "Window Tinting Sales",
-    "version": "17.0.2.1.1",
+    "version": "17.0.2.1.2",
     "summary": "Sell window tinting once and store dynamic glass details per sale line",
     "category": "Sales",
     "author": "Custom Development",

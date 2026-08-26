@@ -8,7 +8,6 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="is_window_tinting" invisible="1"/>
-                <field name="sale_line_id" invisible="1"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <separator string="Window Tinting Details"
