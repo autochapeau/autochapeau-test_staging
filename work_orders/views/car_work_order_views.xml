@@ -45,7 +45,7 @@
             <tree js_class="workorder_dashboard_list">
                 <field name="name" />
                 <field name="branch_id" readonly="1"/>
-                <field name="sale_order_id"/>
+                <field name="sale_order_name" string="Sale Order"/>
                 <field name="partner_id" />
                 <field name="vehicle_id" />
                 <field name="vehicle_color_id" />
@@ -237,7 +237,8 @@
                         <group string="Customer information">
                             <field name="partner_id" />
                             <field name="branch_id" readonly="1"/>
-                            <field name="sale_order_id"/>
+                            <field name="sale_order_id" invisible="1"/>
+                            <field name="sale_order_name"/>
                             <field name="partner_phone" />
                             <field name="partner_email" />
                         </group>

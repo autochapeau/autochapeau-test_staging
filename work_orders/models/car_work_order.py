@@ -189,6 +189,16 @@ class CarWorkOrder(models.Model):
 
     sale_order_id = fields.Many2one(
         "sale.order", string="Sale Order", readonly=True)
+    sale_order_name = fields.Char(
+        string="Sale Order",
+        compute="_compute_sale_order_name",
+    )
+
+    @api.depends("sale_order_id", "appointment_id")
+    def _compute_sale_order_name(self):
+        for wo in self:
+            sale = wo._get_linked_sale_order()
+            wo.sale_order_name = sale.name if sale else ""
 
     def _get_linked_sale_order(self):
         """Linked sale order for workshop flows that only need to read it."""

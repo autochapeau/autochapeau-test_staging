@@ -11,6 +11,7 @@ class CarWorkOrder(models.Model):
     )
     extra_sale_order_ids = fields.One2many(
         related="sale_order_id.child_sale_ids",
+        related_sudo=True,
         string="Upsell Sale Orders",
         readonly=True,
     )
@@ -26,7 +27,7 @@ class CarWorkOrder(models.Model):
     )
     def _compute_contract_upsell_info(self):
         for work_order in self:
-            sale = work_order.sale_order_id
+            sale = work_order.sudo().sale_order_id
             is_contract = bool(sale and sale.order_type == "contract")
             work_order.is_contract_work_order = is_contract
             work_order.extra_sale_order_count = (

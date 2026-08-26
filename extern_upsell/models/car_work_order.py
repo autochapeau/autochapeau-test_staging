@@ -21,7 +21,7 @@ class CarWorkOrder(models.Model):
     )
     def _compute_extern_upsell_info(self):
         for work_order in self:
-            sale = work_order.sale_order_id
+            sale = work_order.sudo().sale_order_id
             is_extern = bool(sale and sale.order_type == "extern")
             work_order.is_extern_work_order = is_extern
             work_order.extern_extra_sale_order_count = (

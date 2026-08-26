@@ -1,7 +1,7 @@
 {
     "name": "Extern Upsell",
     "summary": "Shared visit and extra sale orders for Extern referrals (commission on parent only)",
-    "version": "17.0.1.0.1",
+    "version": "17.0.1.0.2",
     "author": "Wellknot",
     "category": "Sales",
     "depends": [

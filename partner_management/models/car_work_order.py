@@ -11,18 +11,22 @@ class CarWorkOrder(models.Model):
     )
     sale_order_state = fields.Selection(
         related="sale_order_id.state",
+        related_sudo=True,
         string="Sale Order Status",
     )
     sale_currency_id = fields.Many2one(
         related="sale_order_id.currency_id",
+        related_sudo=True,
     )
     sale_split_amount_remaining = fields.Monetary(
         related="sale_order_id.split_amount_remaining",
+        related_sudo=True,
         currency_field="sale_currency_id",
         string="Remaining to Collect",
     )
     sale_has_service_product_lines = fields.Boolean(
         related="sale_order_id.has_service_product_lines",
+        related_sudo=True,
     )
 
     def _compute_task_count(self):
