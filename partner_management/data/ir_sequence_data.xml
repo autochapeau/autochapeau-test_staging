@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="seq_partner_customer" model="ir.sequence">
+        <field name="name">Partner Customer</field>
+        <field name="code">res.partner.customer</field>
+        <field name="prefix">CUS</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_partner_supplier" model="ir.sequence">
+        <field name="name">Partner Vendor</field>
+        <field name="code">res.partner.supplier</field>
+        <field name="prefix">VEN</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

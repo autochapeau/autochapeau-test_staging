@@ -105,8 +105,12 @@
         <field name="name">Settlement lines</field>
         <field name="model">technicians.commission.settlement.line</field>
         <field name="arch" type="xml">
-            <tree create="false">
+            <tree create="false" delete="false" edit="false">
+                <field name="settlement_id" />
+                <field name="employee_id" />
+                <field name="service_ids" widget="many2many_tags" />
                 <field name="amount" sum="Total Amount" />
+                <field name="currency_id" column_invisible="1" />
             </tree>
         </field>
     </record>
@@ -116,10 +120,24 @@
         <field name="res_model">technicians.commission.settlement</field>
         <field name="view_mode">tree,form</field>
     </record>
+    <record model="ir.actions.act_window" id="action_my_technicians_commission_lines">
+        <field name="name">My Technician Commissions</field>
+        <field name="res_model">technicians.commission.settlement.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
     <menuitem
         id="menu_technicians_settlement"
         parent="menu_settlement_parent"
         action="action_technicians_commission_settlement"
         sequence="10"
+        groups="group_commission_manager"
+    />
+    <menuitem
+        name="My Technician Commissions"
+        id="menu_my_technicians_commission_lines"
+        parent="menu_commission"
+        action="action_my_technicians_commission_lines"
+        sequence="15"
+        groups="group_commission_user"
     />
 </odoo>

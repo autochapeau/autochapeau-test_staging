@@ -113,9 +113,17 @@
         <field name="name">Settlement lines</field>
         <field name="model">commission.settlement.line</field>
         <field name="arch" type="xml">
-            <tree create="false">
+            <tree create="false" delete="false" edit="false">
+                <field name="settlement_id" />
                 <field name="commission_id" />
+                <field name="employee_id" />
+                <field name="target" />
+                <field name="invoiced_amount" />
+                <field name="percent" />
+                <field name="amount_to_settle" />
+                <field name="discount_deduction" />
                 <field name="total_amount" sum="Total Amount" />
+                <field name="currency_id" column_invisible="1" />
             </tree>
         </field>
     </record>
@@ -170,11 +178,39 @@
         <field name="res_model">commission.settlement</field>
         <field name="view_mode">tree,form</field>
     </record>
-    <menuitem name="Settlements" id="menu_settlement_parent" parent="menu_commission" sequence="20" />
+    <record model="ir.actions.act_window" id="action_my_commission_settlement_lines">
+        <field name="name">My Commissions</field>
+        <field name="res_model">commission.settlement.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No commission lines found for you.
+            </p>
+            <p>
+                Make sure your employee record is linked to your user account.
+            </p>
+        </field>
+    </record>
+    <menuitem
+        name="Settlements"
+        id="menu_settlement_parent"
+        parent="menu_commission"
+        sequence="20"
+        groups="group_commission_manager"
+    />
     <menuitem
         id="menu_settlement"
         parent="menu_settlement_parent"
         action="action_commission_settlement"
         sequence="10"
+        groups="group_commission_manager"
+    />
+    <menuitem
+        name="My Commissions"
+        id="menu_my_commission_settlement_lines"
+        parent="menu_commission"
+        action="action_my_commission_settlement_lines"
+        sequence="10"
+        groups="group_commission_user"
     />
 </odoo>

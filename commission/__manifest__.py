@@ -1,6 +1,6 @@
 {
     "name": "Commissions",
-    "version": "17.0.1.1.1",
+    "version": "17.0.1.2.0",
     "author": "Wellknot",
     "category": "Invoicing",
     "license": "AGPL-3",
@@ -11,6 +11,7 @@
         "views/menu.xml",
         "views/commission_views.xml",
         "views/commission_category_views.xml",
+        "views/commission_target_employee_views.xml",
         "views/commission_settlement_views.xml",
         "views/product_product_views.xml",
         "views/technicians_commission_settlement_views.xml",

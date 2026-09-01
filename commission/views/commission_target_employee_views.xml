@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Employee-facing: My Targets -->
+    <record model="ir.ui.view" id="view_commission_target_employee_tree">
+        <field name="name">commission.target.employee.tree</field>
+        <field name="model">commission.target.employee</field>
+        <field name="arch" type="xml">
+            <tree create="false" delete="false" edit="false">
+                <field name="commission_id" />
+                <field name="employee_id" />
+                <field name="target" />
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="view_commission_target_employee_form">
+        <field name="name">commission.target.employee.form</field>
+        <field name="model">commission.target.employee</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false" edit="false">
+                <sheet>
+                    <group>
+                        <field name="commission_id" />
+                        <field name="employee_id" />
+                        <field name="target" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="action_my_commission_targets">
+        <field name="name">My Targets</field>
+        <field name="res_model">commission.target.employee</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No commission target assigned to you.
+            </p>
+            <p>
+                Make sure your employee record is linked to your user account.
+            </p>
+        </field>
+    </record>
+    <menuitem
+        name="My Targets"
+        id="menu_my_commission_targets"
+        parent="menu_commission"
+        action="action_my_commission_targets"
+        sequence="5"
+        groups="group_commission_user"
+    />
+</odoo>

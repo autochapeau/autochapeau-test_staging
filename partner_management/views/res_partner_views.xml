@@ -119,7 +119,7 @@
         </field>
     </record>
 
-    <!-- Contact partner type -->
+    <!-- Contact partner type + sequence reference -->
     <record id="view_partner_form_inherit_partner_type" model="ir.ui.view">
         <field name="name">res.partner.form.inherit.partner.type</field>
         <field name="model">res.partner</field>
@@ -127,6 +127,20 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="contact_partner_type"/>
+            </xpath>
+            <xpath expr="//field[@name='ref']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_inherit_partner_ref" model="ir.ui.view">
+        <field name="name">res.partner.tree.inherit.partner.ref</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email']" position="before">
+                <field name="ref" optional="show"/>
             </xpath>
         </field>
     </record>

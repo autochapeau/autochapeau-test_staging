@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-     <data>
+    <data>
         <record id="module_category_commission" model="ir.module.category">
             <field name="name">Commissions</field>
             <field name="description">Allows to handle commission related stuff.</field>
@@ -22,18 +22,89 @@
         <record id="base.group_system" model="res.groups">
             <field name="implied_ids" eval="[(4, ref('group_commission_manager'))]" />
         </record>
+
+        <!-- Deactivate legacy "see all" rule (also updates existing DBs on module upgrade) -->
+        <record id="rule_settlement_all" model="ir.rule">
+            <field name="name">Commission settlements - See all (legacy, inactive)</field>
+            <field name="active" eval="False" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="model_id" ref="model_commission_settlement" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Settlements: employee sees only settlements that include their line -->
+        <record id="rule_settlement_user_own" model="ir.rule">
+            <field name="name">Commission settlements - Own lines only</field>
+            <field name="model_id" ref="model_commission_settlement" />
+            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
+            <field name="domain_force">[('line_ids.employee_id.user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_settlement_manager_all" model="ir.rule">
+            <field name="name">Commission settlements - Manager see all</field>
+            <field name="model_id" ref="model_commission_settlement" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Settlement lines: employee sees own row only -->
+        <record id="rule_settlement_line_user_own" model="ir.rule">
+            <field name="name">Settlement lines - Own only</field>
+            <field name="model_id" ref="model_commission_settlement_line" />
+            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
+            <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_settlement_line_manager_all" model="ir.rule">
+            <field name="name">Settlement lines - Manager see all</field>
+            <field name="model_id" ref="model_commission_settlement_line" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Employee targets: employee sees own row only -->
+        <record id="rule_commission_target_employee_user_own" model="ir.rule">
+            <field name="name">Commission target employee - Own only</field>
+            <field name="model_id" ref="model_commission_target_employee" />
+            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
+            <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_commission_target_employee_manager_all" model="ir.rule">
+            <field name="name">Commission target employee - Manager see all</field>
+            <field name="model_id" ref="model_commission_target_employee" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Technicians settlements -->
+        <record id="rule_technicians_settlement_user_own" model="ir.rule">
+            <field name="name">Technicians settlements - Own lines only</field>
+            <field name="model_id" ref="model_technicians_commission_settlement" />
+            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
+            <field name="domain_force">[('line_ids.employee_id.user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_technicians_settlement_manager_all" model="ir.rule">
+            <field name="name">Technicians settlements - Manager see all</field>
+            <field name="model_id" ref="model_technicians_commission_settlement" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_technicians_settlement_line_user_own" model="ir.rule">
+            <field name="name">Technicians settlement lines - Own only</field>
+            <field name="model_id" ref="model_technicians_commission_settlement_line" />
+            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
+            <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_technicians_settlement_line_manager_all" model="ir.rule">
+            <field name="name">Technicians settlement lines - Manager see all</field>
+            <field name="model_id" ref="model_technicians_commission_settlement_line" />
+            <field name="groups" eval="[(4, ref('group_commission_manager'))]" />
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
     </data>
     <data noupdate="1">
         <record id="rule_settlement_multi_company" model="ir.rule">
             <field name="name">Commission settlement multi company rule</field>
             <field name="model_id" ref="model_commission_settlement" />
             <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-        </record>
-        <record id="rule_settlement_all" model="ir.rule">
-            <field name="name">Commission settlements - See all</field>
-            <field name="groups" eval="[(4, ref('group_commission_user'))]" />
-            <field name="model_id" ref="model_commission_settlement" />
-            <field name="domain_force">[(1, '=', 1)]</field>
         </record>
     </data>
 </odoo>
