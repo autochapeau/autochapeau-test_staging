@@ -17,3 +17,10 @@ class ResCompany(models.Model):
         check_company=True,
         help="Liability account used until revenue is recognized.",
     )
+    deferred_expense_account_id = fields.Many2one(
+        "account.account",
+        string="Deferred Expense Account",
+        domain="[('deprecated', '=', False), ('account_type', 'in', ('asset_current', 'asset_non_current', 'asset_prepayments'))]",
+        check_company=True,
+        help="Prepaid/asset account used until expense is recognized.",
+    )

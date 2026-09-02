@@ -12,3 +12,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.deferred_revenue_account_id",
         readonly=False,
     )
+    deferred_expense_account_id = fields.Many2one(
+        related="company_id.deferred_expense_account_id",
+        readonly=False,
+    )

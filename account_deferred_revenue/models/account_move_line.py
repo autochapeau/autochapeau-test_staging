@@ -7,11 +7,11 @@ class AccountMoveLine(models.Model):
 
     deferred_start_date = fields.Date(
         string="Deferred Start Date",
-        help="Start of the revenue recognition period.",
+        help="Start of the revenue/expense recognition period.",
     )
     deferred_end_date = fields.Date(
         string="Deferred End Date",
-        help="End of the revenue recognition period.",
+        help="End of the revenue/expense recognition period.",
     )
 
     @api.constrains("deferred_start_date", "deferred_end_date")

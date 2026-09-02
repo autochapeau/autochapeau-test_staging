@@ -61,9 +61,22 @@ class AccountMove(models.Model):
         deferred_moves.filtered(lambda m: m.state == "posted").button_draft()
         deferred_moves.with_context(force_delete=True).unlink()
 
+    def _is_deferred_purchase_move(self):
+        self.ensure_one()
+        return self.move_type in ("in_invoice", "in_refund")
+
+    def _is_deferred_refund_move(self):
+        self.ensure_one()
+        return self.move_type in ("out_refund", "in_refund")
+
     def _generate_deferred_revenue_entries(self):
         for move in self:
-            if move.move_type not in ("out_invoice", "out_refund"):
+            if move.move_type not in (
+                "out_invoice",
+                "out_refund",
+                "in_invoice",
+                "in_refund",
+            ):
                 continue
             if move.deferred_move_ids:
                 continue
@@ -78,22 +91,47 @@ class AccountMove(models.Model):
         self.ensure_one()
         company = self.company_id
         journal = company.deferred_revenue_journal_id
-        account = company.deferred_revenue_account_id
-        if not journal or not account:
-            raise UserError(
-                _(
-                    "Please configure the Deferred Revenue Journal and Account "
-                    "in Accounting > Configuration > Settings before posting "
-                    "invoices with deferred dates."
+        if self._is_deferred_purchase_move():
+            account = company.deferred_expense_account_id
+            if not journal or not account:
+                raise UserError(
+                    _(
+                        "Please configure the Deferred Journal and Deferred Expense "
+                        "Account in Accounting > Configuration > Settings before "
+                        "posting vendor bills with deferred dates."
+                    )
                 )
-            )
+        else:
+            account = company.deferred_revenue_account_id
+            if not journal or not account:
+                raise UserError(
+                    _(
+                        "Please configure the Deferred Journal and Deferred Revenue "
+                        "Account in Accounting > Configuration > Settings before "
+                        "posting invoices with deferred dates."
+                    )
+                )
         return journal, account
+
+    def _deferred_transfer_debit_on_balance_sheet(self):
+        """Whether the balance-sheet (deferred) account is debited on transfer.
+
+        Customer invoice: credit deferred liability (False).
+        Vendor bill: debit prepaid asset (True).
+        Refunds flip the direction.
+        """
+        self.ensure_one()
+        debit_on_bs = self._is_deferred_purchase_move()
+        if self._is_deferred_refund_move():
+            debit_on_bs = not debit_on_bs
+        return debit_on_bs
 
     def _create_deferred_revenue_entries(self, deferred_lines):
         self.ensure_one()
         journal, deferred_account = self._get_deferred_revenue_setup()
         today = fields.Date.context_today(self)
-        sign = -1 if self.move_type == "out_refund" else 1
+        debit_deferred_on_transfer = self._deferred_transfer_debit_on_balance_sheet()
+        is_purchase = self._is_deferred_purchase_move()
         Move = self.env["account.move"]
         created_moves = Move
 
@@ -104,16 +142,67 @@ class AccountMove(models.Model):
             if not periods:
                 continue
 
-            income_account = line.account_id
-            if not income_account:
+            pl_account = line.account_id
+            if not pl_account:
                 raise UserError(
-                    _("Invoice line '%s' has no income account.") % line.display_name
+                    _("Invoice line '%s' has no account.") % line.display_name
                 )
 
             total = abs(line.balance)
             amounts = self._split_amount_equally(total, len(periods))
 
-            # 1) Move full amount from income to deferred liability on invoice date
+            # 1) Transfer full amount between P&L and deferred balance-sheet account
+            if debit_deferred_on_transfer:
+                transfer_lines = [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": _("Deferred transfer - %s") % (line.name or "/"),
+                            "account_id": deferred_account.id,
+                            "debit": total,
+                            "credit": 0.0,
+                            "partner_id": self.partner_id.id,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": _("Deferred transfer - %s") % (line.name or "/"),
+                            "account_id": pl_account.id,
+                            "debit": 0.0,
+                            "credit": total,
+                            "partner_id": self.partner_id.id,
+                        },
+                    ),
+                ]
+            else:
+                transfer_lines = [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": _("Deferred transfer - %s") % (line.name or "/"),
+                            "account_id": pl_account.id,
+                            "debit": total,
+                            "credit": 0.0,
+                            "partner_id": self.partner_id.id,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": _("Deferred transfer - %s") % (line.name or "/"),
+                            "account_id": deferred_account.id,
+                            "debit": 0.0,
+                            "credit": total,
+                            "partner_id": self.partner_id.id,
+                        },
+                    ),
+                ]
+
             transfer_move = Move.create(
                 {
                     "ref": _("Deferral transfer: %s") % (self.name or self.id),
@@ -122,71 +211,83 @@ class AccountMove(models.Model):
                     "company_id": self.company_id.id,
                     "move_type": "entry",
                     "deferred_original_move_id": self.id,
-                    "line_ids": [
-                        (
-                            0,
-                            0,
-                            {
-                                "name": _("Deferred transfer - %s") % (line.name or "/"),
-                                "account_id": income_account.id,
-                                "debit": total if sign > 0 else 0.0,
-                                "credit": 0.0 if sign > 0 else total,
-                                "partner_id": self.partner_id.id,
-                            },
-                        ),
-                        (
-                            0,
-                            0,
-                            {
-                                "name": _("Deferred transfer - %s") % (line.name or "/"),
-                                "account_id": deferred_account.id,
-                                "debit": 0.0 if sign > 0 else total,
-                                "credit": total if sign > 0 else 0.0,
-                                "partner_id": self.partner_id.id,
-                            },
-                        ),
-                    ],
+                    "line_ids": transfer_lines,
                 }
             )
             created_moves |= transfer_move
 
-            # 2) Monthly recognition entries
+            # 2) Monthly recognition entries (opposite of transfer)
+            recognition_label = (
+                _("Expense recognition %s: %s")
+                if is_purchase
+                else _("Revenue recognition %s: %s")
+            )
             for period_date, amount in zip(periods, amounts):
                 if not amount:
                     continue
+                if debit_deferred_on_transfer:
+                    # Recognition: credit deferred asset, debit expense
+                    recognition_lines = [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": _("Recognize - %s") % (line.name or "/"),
+                                "account_id": pl_account.id,
+                                "debit": amount,
+                                "credit": 0.0,
+                                "partner_id": self.partner_id.id,
+                            },
+                        ),
+                        (
+                            0,
+                            0,
+                            {
+                                "name": _("Recognize - %s") % (line.name or "/"),
+                                "account_id": deferred_account.id,
+                                "debit": 0.0,
+                                "credit": amount,
+                                "partner_id": self.partner_id.id,
+                            },
+                        ),
+                    ]
+                else:
+                    # Recognition: debit deferred liability, credit income
+                    recognition_lines = [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": _("Recognize - %s") % (line.name or "/"),
+                                "account_id": deferred_account.id,
+                                "debit": amount,
+                                "credit": 0.0,
+                                "partner_id": self.partner_id.id,
+                            },
+                        ),
+                        (
+                            0,
+                            0,
+                            {
+                                "name": _("Recognize - %s") % (line.name or "/"),
+                                "account_id": pl_account.id,
+                                "debit": 0.0,
+                                "credit": amount,
+                                "partner_id": self.partner_id.id,
+                            },
+                        ),
+                    ]
+
                 recognition = Move.create(
                     {
-                        "ref": _("Revenue recognition %s: %s")
+                        "ref": recognition_label
                         % (period_date.strftime("%Y-%m"), self.name or self.id),
                         "date": period_date,
                         "journal_id": journal.id,
                         "company_id": self.company_id.id,
                         "move_type": "entry",
                         "deferred_original_move_id": self.id,
-                        "line_ids": [
-                            (
-                                0,
-                                0,
-                                {
-                                    "name": _("Recognize - %s") % (line.name or "/"),
-                                    "account_id": deferred_account.id,
-                                    "debit": amount if sign > 0 else 0.0,
-                                    "credit": 0.0 if sign > 0 else amount,
-                                    "partner_id": self.partner_id.id,
-                                },
-                            ),
-                            (
-                                0,
-                                0,
-                                {
-                                    "name": _("Recognize - %s") % (line.name or "/"),
-                                    "account_id": income_account.id,
-                                    "debit": 0.0 if sign > 0 else amount,
-                                    "credit": amount if sign > 0 else 0.0,
-                                    "partner_id": self.partner_id.id,
-                                },
-                            ),
-                        ],
+                        "line_ids": recognition_lines,
                     }
                 )
                 created_moves |= recognition
