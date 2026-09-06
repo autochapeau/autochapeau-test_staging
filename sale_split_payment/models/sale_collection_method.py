@@ -28,7 +28,7 @@ class SaleCollectionMethod(models.Model):
         default="manual",
         help=(
             "Manual: create and post an account payment immediately "
-            "(cash, bank transfer, cheque, ...).\n"
+            "(cash, bank transfer, card, Tabby Manual, Tamara, cheque, ...).\n"
             "Card Terminal: send the amount to the configured terminal API.\n"
             "Tabby: open Tabby checkout and post the payment only after approval."
         ),
@@ -99,7 +99,8 @@ class SaleCollectionMethod(models.Model):
         self.ensure_one()
         if self.journal_id:
             return self.journal_id
-        preferred_type = "cash" if self.processing_type == "manual" else "bank"
+        # Cash stays on a cash journal; card / Tabby / Tamara / transfers use bank.
+        preferred_type = "cash" if self.code == "cash" else "bank"
         Journal = self.env["account.journal"]
         domain = [("company_id", "=", self.company_id.id)]
         journal = Journal.search(domain + [("type", "=", preferred_type)], limit=1)
