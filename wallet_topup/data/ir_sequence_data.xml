@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_wallet_topup_request" model="ir.sequence">
+        <field name="name">Wallet Top-up Request</field>
+        <field name="code">wallet.topup.request</field>
+        <field name="prefix">WT/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

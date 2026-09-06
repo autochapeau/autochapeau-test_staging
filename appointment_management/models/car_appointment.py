@@ -94,6 +94,7 @@ class CarAppointment(models.Model):
     partner_id = fields.Many2one(
         "res.partner", "Customer", required=True, readonly=True)
     partner_phone = fields.Char(related="partner_id.phone")
+    partner_mobile = fields.Char(related="partner_id.mobile", string="Mobile")
     partner_phone_search = fields.Char(
         string="Phone Search",
         compute="_compute_partner_phone_search",
@@ -113,6 +114,12 @@ class CarAppointment(models.Model):
     product_ids = fields.One2many(
         "car.appointment.product", "appointment_id", string="Products")
     sale_order_id = fields.Many2one("sale.order")
+    user_id = fields.Many2one(
+        related="sale_order_id.user_id",
+        string="Salesperson",
+        store=True,
+        readonly=True,
+    )
     maintenance_slot_id = fields.Many2one(
         "car.appointment.slot", string="Scheduled maintenance appointment")
     car_transportation_service = fields.Boolean()

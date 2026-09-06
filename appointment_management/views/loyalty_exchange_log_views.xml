@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_loyalty_exchange_log_tree" model="ir.ui.view">
+        <field name="name">loyalty.exchange.log.tree</field>
+        <field name="model">loyalty.exchange.log</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" delete="0" default_order="create_date desc">
+                <field name="create_date"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="type"/>
+                <field name="points"/>
+                <field name="amount"/>
+                <field name="order_id"/>
+                <field name="card_source_id" optional="show"/>
+                <field name="card_destination_id" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_loyalty_exchange_log_form" model="ir.ui.view">
+        <field name="name">loyalty.exchange.log.form</field>
+        <field name="model">loyalty.exchange.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="type"/>
+                            <field name="create_date"/>
+                            <field name="order_id"/>
+                        </group>
+                        <group>
+                            <field name="points"/>
+                            <field name="amount"/>
+                            <field name="card_source_id"/>
+                            <field name="card_destination_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

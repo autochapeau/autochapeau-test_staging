@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_loyalty_exchange_log_tree_wallet_topup" model="ir.ui.view">
+        <field name="name">loyalty.exchange.log.tree.wallet.topup</field>
+        <field name="model">loyalty.exchange.log</field>
+        <field name="inherit_id" ref="appointment_management.view_loyalty_exchange_log_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="decoration-success">direction == 'in'</attribute>
+                <attribute name="decoration-danger">direction == 'out'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="direction"/>
+                <field name="payment_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_loyalty_exchange_log_form_wallet_topup" model="ir.ui.view">
+        <field name="name">loyalty.exchange.log.form.wallet.topup</field>
+        <field name="model">loyalty.exchange.log</field>
+        <field name="inherit_id" ref="appointment_management.view_loyalty_exchange_log_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="direction"/>
+                <field name="payment_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

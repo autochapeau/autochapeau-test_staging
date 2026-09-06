@@ -43,6 +43,8 @@
             <tree js_class="appointment_dashboard_list">
                 <field name="name" />
                 <field name="partner_id" />
+                <field name="partner_mobile" />
+                <field name="user_id" widget="many2one_avatar_user" optional="show" />
                 <field name="vehicle_id" />
                 <field name="branch_id" />
                 <field name="vehicle_size" />
@@ -121,7 +123,9 @@
                         <group string="Customer information">
                             <field name="partner_id" readonly="state != 'waiting'" />
                             <field name="partner_phone" />
+                            <field name="partner_mobile" />
                             <field name="partner_email" />
+                            <field name="user_id" widget="many2one_avatar_user" />
                             <field name="branch_id" />
                         </group>
                         <group string="Car information">

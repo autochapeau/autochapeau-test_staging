@@ -1,6 +1,6 @@
 {
     "name": "Appointment management",
-    "version": "17.0.1.0.8",
+    "version": "17.0.1.1.0",
     "author": "WellKnot",
     "depends": ["resource", "cars_management", "sale_loyalty", "account", "infinito_sms"],
     "data": [
@@ -18,6 +18,7 @@
         "views/fleet_vehicle_views.xml",
         "views/message_model_views.xml",
         "views/loyalty_program_views.xml",
+        "views/loyalty_exchange_log_views.xml",
         "views/product_pricelist_views.xml",
     ],
     "assets": {

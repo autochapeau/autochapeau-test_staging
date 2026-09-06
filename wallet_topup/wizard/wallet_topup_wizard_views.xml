@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_wallet_topup_wizard_form" model="ir.ui.view">
+        <field name="name">wallet.topup.wizard.form</field>
+        <field name="model">wallet.topup.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Wallet Top-up">
+                <group>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="wallet_card_id"/>
+                        <field name="wallet_balance"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="amount"/>
+                        <field name="payment_method"/>
+                        <field name="journal_id"/>
+                        <field name="note"/>
+                        <field name="terminal_reference" invisible="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button
+                        name="action_confirm"
+                        type="object"
+                        string="Confirm Top-up"
+                        class="btn-primary"
+                        data-hotkey="q"/>
+                    <button string="Cancel" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wallet_topup_wizard" model="ir.actions.act_window">
+        <field name="name">Wallet Top-up</field>
+        <field name="res_model">wallet.topup.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

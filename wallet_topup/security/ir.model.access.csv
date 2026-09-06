@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wallet_topup_wizard_user,wallet.topup.wizard user,model_wallet_topup_wizard,base.group_user,1,1,1,1
+access_wallet_topup_request_user,wallet.topup.request user,model_wallet_topup_request,base.group_user,1,1,1,0
+access_wallet_topup_request_public,wallet.topup.request public,model_wallet_topup_request,base.group_public,1,0,0,0

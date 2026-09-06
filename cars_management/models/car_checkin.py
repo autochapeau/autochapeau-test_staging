@@ -248,6 +248,14 @@ class CarCheckin(models.Model):
     def action_cancel(self):
         self.state = "canceled"
 
+    def action_set_to_draft(self):
+        for rec in self:
+            if rec.state != "canceled":
+                raise UserError(_(
+                    "Only canceled check-ins can be reset to draft."
+                ))
+            rec.state = "draft"
+
     def action_preview_checkin(self):
         self.ensure_one()
         # Required check items verification

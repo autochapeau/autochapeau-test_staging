@@ -86,6 +86,7 @@ class ResPartner(models.Model):
 class LoyaltyExchangeLog(models.Model):
     _name = "loyalty.exchange.log"
     _description = "Loyalty card log"
+    _order = "create_date desc, id desc"
 
     partner_id = fields.Many2one("res.partner")
 

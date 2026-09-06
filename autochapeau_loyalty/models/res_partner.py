@@ -57,6 +57,22 @@ class ResPartner(models.Model):
             },
         }
 
+    def action_view_wallet_log(self):
+        """Kept for upgrade safety; wallet history lives on the eWallet card."""
+        self.ensure_one()
+        partner = self.commercial_partner_id
+        wallet_card = partner.wallet_card_id
+        if wallet_card:
+            return wallet_card.action_view_wallet_log()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Wallet History"),
+            "res_model": "loyalty.exchange.log",
+            "view_mode": "tree,form",
+            "domain": [("partner_id", "=", partner.id)],
+            "context": {"default_partner_id": partner.id},
+        }
+
     def _get_autochapeau_loyalty_card(self, create_if_missing=True):
         """Return the partner loyalty card, searching DB directly (not stored related)."""
         self.ensure_one()

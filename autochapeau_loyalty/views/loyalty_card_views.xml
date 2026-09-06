@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="loyalty_card_view_form_wallet_history" model="ir.ui.view">
+        <field name="name">loyalty.card.form.wallet.history</field>
+        <field name="model">loyalty.card</field>
+        <field name="inherit_id" ref="loyalty.loyalty_card_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button
+                        name="action_view_wallet_log"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-money"
+                        help="Wallet History">
+                        <field name="exchange_log_count" widget="statinfo" string="Wallet History"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
