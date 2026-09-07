@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name" />
+                <filter string="Main Offer" name="is_main" domain="[('is_main', '=', True)]" />
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
             </search>
         </field>
@@ -18,6 +19,7 @@
             <tree>
                 <field name="name" />
                 <field name="summary" />
+                <field name="is_main" readonly="1" />
             </tree>
         </field>
     </record>
@@ -33,6 +35,7 @@
                             <field name="name" />
                             <field name="summary" />
                             <field name="details" />
+                            <field name="is_main" />
                         </group>
                         <group>
                             <field

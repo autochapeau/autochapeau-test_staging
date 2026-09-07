@@ -93,7 +93,7 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_offers(self):
         try:
-            fields_name = ["id", "name", "summary", "details", "image_1920"]
+            fields_name = ["id", "name", "summary", "details", "image_1920", "is_main"]
             records = request.env["portal.offer"].sudo().search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [], model_name="portal.offer")
             return make_response(200, result)

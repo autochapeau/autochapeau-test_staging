@@ -47,7 +47,7 @@ fields_mapping = {
         "feature_ids",
         "image_1920",
     ],
-    "offers": ["id", "name", "summary", "details", "image_1920"],
+    "offers": ["id", "name", "summary", "details", "image_1920", "is_main"],
     "news": ["id", "name", "summary", "details", "date", "image_1920", "tag_ids"],
     "partners": ["id", "name", "summary", "image_1920"],
     "branches": ["id", "name"],
