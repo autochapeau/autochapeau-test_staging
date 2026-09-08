@@ -1,4 +1,4 @@
-from odoo import http
+from odoo import fields, http
 from odoo.http import request
 
 from .common import format_search_read_result, make_response, with_lang
@@ -165,5 +165,53 @@ class PortalContentsAPI(http.Controller):
             records = request.env["portal.banner"].sudo().search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
+
+    @http.route("/v1/portal/theme", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
+    def v1_get_theme(self):
+        try:
+            today = fields.Date.context_today(request.env.user)
+            fields_name = ["id", "name", "color", "date_start", "date_end"]
+            records = (
+                request.env["portal.theme"]
+                .sudo()
+                .search_read(
+                    [
+                        ("active", "=", True),
+                        ("date_start", "<=", today),
+                        ("date_end", ">=", today),
+                    ],
+                    fields_name,
+                    limit=1,
+                )
+            )
+            result = format_search_read_result(records, fields_name, [])
+            return make_response(200, result[0] if result else {})
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
+
+    @http.route("/v1/portal/theme", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
+    def v1_get_theme(self):
+        try:
+            today = fields.Date.context_today(request.env.user)
+            fields_name = ["id", "name", "color", "date_start", "date_end"]
+            records = (
+                request.env["portal.theme"]
+                .sudo()
+                .search_read(
+                    [
+                        ("active", "=", True),
+                        ("date_start", "<=", today),
+                        ("date_end", ">=", today),
+                    ],
+                    fields_name,
+                    limit=1,
+                )
+            )
+            result = format_search_read_result(records, fields_name, [])
+            return make_response(200, result[0] if result else {})
         except Exception as e:
             return make_response(422, {"message": str(e)})

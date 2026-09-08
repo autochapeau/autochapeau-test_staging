@@ -45,6 +45,13 @@ class CarWorkorderService(models.Model):
         copy=False,
     )
 
+    def _get_unlocked_service_fields(self):
+        return super()._get_unlocked_service_fields() | {
+            "qa_check_item_ids",
+            "qa_refuse_reason",
+            "qa_refuse_fault_type",
+        }
+
     def _compute_qa_fault_count(self):
         for service in self:
             service.qa_fault_count = len(service.qa_fault_ids)

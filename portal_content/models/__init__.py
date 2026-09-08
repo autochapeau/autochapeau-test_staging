@@ -13,3 +13,4 @@ from . import portal_privacy_policy
 from . import portal_banner
 from . import portal_terms_conditions
 from . import portal_return_change_policy
+from . import portal_theme

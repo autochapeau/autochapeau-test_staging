@@ -1,6 +1,6 @@
 {
     "name": "Portal Content",
-    "version": "17.0.1.0.1",
+    "version": "17.0.1.0.2",
     "author": "Wellknot",
     "depends": ["product"],
     "data": [
@@ -22,6 +22,7 @@
         "views/portal_terms_conditions_views.xml",
         "views/portal_banner_views.xml",
         "views/portal_return_change_policy_views.xml",
+        "views/portal_theme_views.xml",
     ],
     "application": True,
     "license": "LGPL-3",

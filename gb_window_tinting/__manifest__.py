@@ -1,6 +1,6 @@
 {
     "name": "Window Tinting Sales",
-    "version": "17.0.2.1.2",
+    "version": "17.0.2.2.0",
     "summary": "Sell window tinting once and store dynamic glass details per sale line",
     "category": "Sales",
     "author": "Custom Development",
@@ -9,6 +9,7 @@
         "sale_management",
         "product",
         "work_orders",
+        "stock",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -19,6 +20,7 @@
         "views/sale_order_views.xml",
         "views/window_tinting_menus.xml",
         "views/car_workorder_service_views.xml",
+        "views/stock_picking_views.xml",
     ],
     "installable": True,
     "application": False,

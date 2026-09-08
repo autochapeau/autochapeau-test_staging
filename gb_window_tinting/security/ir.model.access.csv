@@ -8,3 +8,6 @@ access_sale_order_line_tint_detail_manager,sale.order.line.tint.detail manager,m
 access_window_tint_glass_type_workshop,window.tint.glass.type workshop,model_window_tint_glass_type,work_orders.group_workshop_employee,1,0,0,0
 access_window_tint_percentage_workshop,window.tint.percentage workshop,model_window_tint_percentage,work_orders.group_workshop_employee,1,0,0,0
 access_sale_order_line_tint_detail_workshop,sale.order.line.tint.detail workshop,model_sale_order_line_tint_detail,work_orders.group_workshop_employee,1,0,0,0
+access_window_tint_glass_type_stock,window.tint.glass.type stock,model_window_tint_glass_type,stock.group_stock_user,1,0,0,0
+access_window_tint_percentage_stock,window.tint.percentage stock,model_window_tint_percentage,stock.group_stock_user,1,0,0,0
+access_sale_order_line_tint_detail_stock,sale.order.line.tint.detail stock,model_sale_order_line_tint_detail,stock.group_stock_user,1,0,0,0
