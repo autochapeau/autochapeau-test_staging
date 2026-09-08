@@ -172,7 +172,7 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_theme(self):
         try:
-            fields_name = ["id", "name", "color", "date_start", "date_end"]
+            fields_name = ["id", "name", "color", "date_start", "date_end", "is_current"]
             records = (
                 request.env["portal.theme"]
                 .sudo()
