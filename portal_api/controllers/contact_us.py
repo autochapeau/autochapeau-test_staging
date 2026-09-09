@@ -78,14 +78,20 @@ class ContactUs(http.Controller):
         check_data = check_params(data, ["name", "email_from", "subject", "description"])
         if check_data:
             return make_json_response(422, check_data)
+        city = ''
+        if data.get("city_id"):
+            city_name = request.env['res.city'].sudo().search([('id', '=', data.get("city_id"))])
+            city += city_name
         try:
             values = {
                 "contact_name": data.get("name"),
-                "phone": data.get("phone"),
+                "mobile": data.get("phone"),
                 "email_from": data.get("email_from"),
                 "partner_name": data.get("partner_name"),
                 "name": data.get("subject"),
                 "description": data.get("description"),
+                "country_id": data.get("country_id"),
+                "city": city
             }
             request.env["crm.lead"].with_user(SUPERUSER_ID).create(values)
             return make_json_response(200, "Lead created successfully")
