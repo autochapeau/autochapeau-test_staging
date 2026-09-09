@@ -58,6 +58,19 @@ class ContactUs(http.Controller):
         except Exception as e:
             return make_response(422, {"message": str(e)})
 
+    @http.route("/v1/contactus/tags", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
+    def v1_get_contactus_tags(self):
+        try:
+            tags = (
+                request.env["crm.tag"]
+                .sudo()
+                .search_read([], ["id", "name", "color"], order="name")
+            )
+            return make_response(200, tags)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
+
     @http.route("/v1/contactus", type="json", auth="none", csrf=False, methods=["POST", "OPTIONS"], cors="*")
     @check_request_body
     def v1_api_contactus(self):
