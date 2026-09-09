@@ -10,7 +10,7 @@ class JobAPI(http.Controller):
     @http.route("/v1/jobs", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
     def v1_get_jobs(self):
         fields_name = ["id", "name", "department_id", "no_of_recruitment", "description"]
-        jobs = request.env["hr.job"].sudo().search_read([], fields_name)
+        jobs = request.env["hr.job"].sudo().search_read([("is_published", "=", True)], fields_name)
         result = format_search_read_result(jobs, fields_name, [])
         return make_response(200, result)
 
