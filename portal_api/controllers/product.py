@@ -34,30 +34,30 @@ FIELDS_READ = [
 ALLOWED_LIMITS = (10, 20, 50, 100)
 
 
-def _parse_pagination(params, default_limit=20):
-    """Return (page, limit, offset) from request params/body."""
-    try:
-        page = int(params.get("page") or 1)
-    except (TypeError, ValueError):
-        page = 1
-    try:
-        limit = int(params.get("limit") or default_limit)
-    except (TypeError, ValueError):
-        limit = default_limit
-    page = max(page, 1)
-    if limit not in ALLOWED_LIMITS:
-        limit = default_limit
-    offset = (page - 1) * limit
-    return page, limit, offset
+# def _parse_pagination(params, default_limit=20):
+#     """Return (page, limit, offset) from request params/body."""
+#     try:
+#         page = int(params.get("page") or 1)
+#     except (TypeError, ValueError):
+#         page = 1
+#     try:
+#         limit = int(params.get("limit") or default_limit)
+#     except (TypeError, ValueError):
+#         limit = default_limit
+#     page = max(page, 1)
+#     if limit not in ALLOWED_LIMITS:
+#         limit = default_limit
+#     offset = (page - 1) * limit
+#     return page, limit, offset
 
 
-def _paginated_response(items, total, page, limit):
-    return {
-        "total": total,
-        "page": page,
-        "limit": limit,
-        "items": items,
-    }
+# def _paginated_response(items, total, page, limit):
+#     return {
+#         "total": total,
+#         "page": page,
+#         "limit": limit,
+#         "items": items,
+#     }
 
 
 def _attach_features(records):
