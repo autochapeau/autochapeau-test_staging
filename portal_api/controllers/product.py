@@ -31,7 +31,7 @@ FIELDS_READ = [
     "image_1920",
 ]
 
-ALLOWED_LIMITS = (10, 20, 50, 100)
+MAX_LIMIT = 100
 
 
 def _parse_pagination(params, default_limit=20):
@@ -45,8 +45,7 @@ def _parse_pagination(params, default_limit=20):
     except (TypeError, ValueError):
         limit = default_limit
     page = max(page, 1)
-    if limit not in ALLOWED_LIMITS:
-        limit = default_limit
+    limit = min(max(limit, 1), MAX_LIMIT)
     offset = (page - 1) * limit
     return page, limit, offset
 
