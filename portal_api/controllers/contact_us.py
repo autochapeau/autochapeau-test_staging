@@ -90,7 +90,8 @@ class ContactUs(http.Controller):
                     return make_json_response(422, {"message": "city does not belong to country"})
                 city = city_rec.name
 
-            tag_ids = data.get("tag_ids") or []
+            tag_ids = data.get("tag_ids") or data.get("tags") or []
+
             if tag_ids and not isinstance(tag_ids, list):
                 return make_json_response(422, {"message": "tag_ids must be a list"})
 
@@ -115,7 +116,7 @@ class ContactUs(http.Controller):
                 "partner_name": data.get("partner_name"),
                 "name": data.get("subject"),
                 "description": data.get("description"),
-                "country_id": int(country_id) if country_id else False,
+                "country_id": data.get("country_id"),
                 "city": city,
                 "tag_ids": [(6, 0, [int(tag_id) for tag_id in tag_ids])],
                 "model_id": model_id,
