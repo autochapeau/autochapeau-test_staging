@@ -94,6 +94,20 @@ class ContactUs(http.Controller):
             if tag_ids and not isinstance(tag_ids, list):
                 return make_json_response(422, {"message": "tag_ids must be a list"})
 
+            model_id = data.get("model_id") or False
+            if model_id:
+                model_rec = request.env["fleet.vehicle.model"].sudo().browse(int(model_id))
+                if not model_rec.exists():
+                    return make_json_response(422, {"message": "model_id invalid"})
+                model_id = model_rec.id
+
+            model_year = data.get("model_year") or False
+            if model_year not in (False, None, ""):
+                try:
+                    model_year = int(model_year)
+                except (TypeError, ValueError):
+                    return make_json_response(422, {"message": "model_year invalid"})
+
             values = {
                 "contact_name": data.get("name"),
                 "mobile": data.get("phone"),
@@ -104,6 +118,8 @@ class ContactUs(http.Controller):
                 "country_id": int(country_id) if country_id else False,
                 "city": city,
                 "tag_ids": [(6, 0, [int(tag_id) for tag_id in tag_ids])],
+                "model_id": model_id,
+                "model_year": model_year,
             }
             request.env["crm.lead"].with_user(SUPERUSER_ID).create(values)
             return make_json_response(200, "Lead created successfully")
