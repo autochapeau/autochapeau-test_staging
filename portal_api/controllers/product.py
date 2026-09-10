@@ -1,4 +1,5 @@
 import json
+import logging
 
 from odoo import http
 from odoo.http import request
@@ -12,6 +13,8 @@ from .common import (
     make_response,
     with_lang,
 )
+
+_logger = logging.getLogger(__name__)
 
 FIELDS_READ = [
     "id",
@@ -27,6 +30,42 @@ FIELDS_READ = [
     "total_sales_count",
     "image_1920",
 ]
+
+ALLOWED_LIMITS = (10, 20, 50, 100)
+
+
+def _parse_pagination(params, default_limit=20):
+    """Return (page, limit, offset) from request params/body."""
+    try:
+        page = int(params.get("page") or 1)
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        limit = int(params.get("limit") or default_limit)
+    except (TypeError, ValueError):
+        limit = default_limit
+    page = max(page, 1)
+    if limit not in ALLOWED_LIMITS:
+        limit = default_limit
+    offset = (page - 1) * limit
+    return page, limit, offset
+
+
+def _paginated_response(items, total, page, limit):
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "items": items,
+    }
+
+
+def _attach_features(records):
+    pf_env = request.env["product.feature"].sudo()
+    for record in records:
+        features = pf_env.search_read([("id", "in", record.pop("feature_ids"))], ["name"])
+        record["feature_ids"] = features
+    return records
 
 
 class ProductAPI(http.Controller):
@@ -58,8 +97,8 @@ class ProductAPI(http.Controller):
             return make_json_response(422, check_data)
         vehicle_id = data.get("vehicle_id")
         model_id = data.get("model_id", False)
+        page, limit, offset = _parse_pagination(data)
         pr_env = request.env["product.product"].sudo()
-        pf_env = request.env["product.feature"].sudo()
         if vehicle_id != -1:
             vehicle = request.env["fleet.vehicle"].sudo().browse(
                 int(data.get("vehicle_id")))
@@ -78,42 +117,29 @@ class ProductAPI(http.Controller):
             ]
         # Forcer le filtre is_published = True
         services_domain.append(("is_published", "=", True))
-        # Log the domain for debug
-        import logging
-        _logger = logging.getLogger(__name__)
-        _logger.info(
-            f"Domain used for services search: {services_domain}")
-        services = pr_env.search_read(services_domain, FIELDS_READ)
-        # Log after filtering
-        _logger.info(f"Number of services after filtering: {len(services)}")
-        for service in services:
-            features = pf_env.search_read(
-                [("id", "in", service.pop("feature_ids"))], ["name"])
-            service["feature_ids"] = features
+        _logger.info("Domain used for services search: %s", services_domain)
+        total = pr_env.search_count(services_domain)
+        services = pr_env.search_read(services_domain, FIELDS_READ, limit=limit, offset=offset)
+        _logger.info("Number of services after filtering: %s / total=%s", len(services), total)
+        _attach_features(services)
         result = format_search_read_result(
             services, FIELDS_READ, [], model_name="product.product")
-        return make_response(200, result)
+        return make_response(200, _paginated_response(result, total, page, limit))
 
     @http.route("/v1/products", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
     @with_lang
     def v1_get_products(self):
         domain = [("detailed_type", "!=", "service"),
                   ("is_published", "=", True)]
-        # Always return only published products, ignore is_published parameter
-        products = request.env["product.product"].sudo(
-        ).search_read(domain, FIELDS_READ)
-        # Log after filtering
-        import logging
-        _logger = logging.getLogger(__name__)
-        _logger.info(f"Number of products after filtering: {len(products)}")
-        pf_env = request.env["product.feature"].sudo()
-        for product in products:
-            features = pf_env.search_read(
-                [("id", "in", product.pop("feature_ids"))], ["name"])
-            product["feature_ids"] = features
+        page, limit, offset = _parse_pagination(request.httprequest.args)
+        product_env = request.env["product.product"].sudo()
+        total = product_env.search_count(domain)
+        products = product_env.search_read(domain, FIELDS_READ, limit=limit, offset=offset)
+        _logger.info("Number of products after filtering: %s / total=%s", len(products), total)
+        _attach_features(products)
         result = format_search_read_result(
             products, FIELDS_READ, [], model_name="product.product")
-        return make_response(200, result)
+        return make_response(200, _paginated_response(result, total, page, limit))
 
     @http.route(
         "/v1/services/<int:service_id>", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*"
@@ -178,6 +204,7 @@ class ProductAPI(http.Controller):
         if check_data:
             return make_response(422, check_data)
         vehicle_id = int(data.get("vehicle_id"))
+        page, limit, offset = _parse_pagination(data)
         # vehicle_id == -1 (or unknown) "no vehicle": empty recordset so
         # no size filtering is applied (all published services are returned).
         vehicle = request.env["fleet.vehicle"].sudo().browse(
@@ -186,8 +213,14 @@ class ProductAPI(http.Controller):
             ("detailed_type", "=", "service"),
             ("product_variant_ids.is_published", "=", True),
         ])
+        matched_templates = request.env["product.template"].sudo()
+        for template in templates:
+            if template._get_published_variants_for_vehicle(vehicle):
+                matched_templates |= template
+        total = len(matched_templates)
+        page_templates = matched_templates[offset: offset + limit]
         result = []
-        for t in templates:
+        for t in page_templates:
             variants = t._get_published_variants_for_vehicle(vehicle)
             if not variants:
                 continue
@@ -235,7 +268,7 @@ class ProductAPI(http.Controller):
                     "work_hours": v.expected_duration,
                 } for v in variants],
             })
-        return make_response(200, result)
+        return make_response(200, _paginated_response(result, total, page, limit))
 
     @http.route(
         "/v1/services/<int:service_id>/product-variants",
