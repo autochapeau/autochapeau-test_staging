@@ -162,11 +162,18 @@ class ProductAPI(http.Controller):
         # format image_ids
         image_ids = result.get("image_ids", False)
         if image_ids:
-            images = request.env["ir.attachment"].sudo().search_read(
-                [("id", "in", image_ids)], ["datas"])
-            images_url = format_search_read_result(
-                images, ["datas"], [], model_name="ir.attachment")
-            result.update({"image_ids": images_url})
+            images = request.env["ir.attachment"].sudo().browse(image_ids).exists()
+            # Keep key "datas" for the website; serve via /portal/image/.../raw
+            result["image_ids"] = [
+                {
+                    "id": attachment.id,
+                    "datas": get_binary_url("ir.attachment", attachment.id, "raw"),
+                }
+                for attachment in images
+                if attachment.raw or attachment.datas
+            ]
+        else:
+            result["image_ids"] = []
         # format review_ids
         review_ids = result.get("review_ids", False)
         if review_ids:

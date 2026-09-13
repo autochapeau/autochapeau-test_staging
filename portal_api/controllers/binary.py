@@ -8,7 +8,7 @@ from odoo.tools.image import image_guess_size_from_field_name
 _logger = logging.getLogger(__name__)
 api_public_fields = {
     "product.product": ["image_1920"],
-    "ir.attachment": ["datas"],
+    "ir.attachment": ["datas", "raw"],
     "res.users": ["image_1920"],
     "fleet.vehicle": ["image_128"],
     "portal.news": ["image_1920"],
@@ -44,10 +44,14 @@ class Binary(http.Controller):
             IrBinaryModel = request.env["ir.binary"]
             if field in api_public_fields.get(model, []):
                 IrBinaryModel = IrBinaryModel.sudo()
+            # Prefer raw for attachments when clients ask for datas
+            stream_field = field
+            if model == "ir.attachment" and field == "datas":
+                stream_field = "raw"
             record = IrBinaryModel._find_record(xmlid, model, record_id and int(record_id), access_token)
             stream = IrBinaryModel._get_image_stream_from(
                 record,
-                field,
+                stream_field,
                 filename=filename,
                 filename_field=filename_field,
                 mimetype=mimetype,
@@ -55,8 +59,8 @@ class Binary(http.Controller):
                 height=int(height),
                 crop=crop,
             )
-            if request.httprequest.args.get("access_token"):
-                stream.public = True
+            # Portal images must be publicly cacheable for the website <img> tags
+            stream.public = True
         except UserError as exc:
             if download:
                 raise request.not_found() from exc
@@ -64,14 +68,14 @@ class Binary(http.Controller):
             if (int(width), int(height)) == (0, 0):
                 width, height = image_guess_size_from_field_name(field)
             record = request.env.ref("web.image_placeholder").sudo()
-            stream = IrBinaryModel._get_image_stream_from(
+            stream = request.env["ir.binary"].sudo()._get_image_stream_from(
                 record,
                 "raw",
                 width=int(width),
                 height=int(height),
                 crop=crop,
             )
-            stream.public = False
+            stream.public = True
 
         send_file_kwargs = {"as_attachment": download}
         if unique:
