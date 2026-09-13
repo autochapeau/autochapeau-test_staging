@@ -59,6 +59,81 @@ def _paginated_response(items, total, page, limit):
     }
 
 
+def _parse_ids(value):
+    """Parse int / list / comma-separated string into a list of ints."""
+    if value in (None, False, ""):
+        return []
+    if isinstance(value, int):
+        return [value]
+    if isinstance(value, (list, tuple)):
+        ids = []
+        for item in value:
+            try:
+                ids.append(int(item))
+            except (TypeError, ValueError):
+                continue
+        return ids
+    ids = []
+    for part in str(value).replace(" ", "").split(","):
+        if not part:
+            continue
+        try:
+            ids.append(int(part))
+        except ValueError:
+            continue
+    return ids
+
+
+def _get_categ_ids(params):
+    """Read categ_ids or categ_id from request params/body."""
+    categ_ids = _parse_ids(params.get("categ_ids"))
+    if not categ_ids:
+        categ_ids = _parse_ids(params.get("categ_id"))
+    return categ_ids
+
+
+def _append_categ_domain(domain, categ_ids):
+    """Filter by product category (includes child categories)."""
+    if categ_ids:
+        domain = list(domain) + [("categ_id", "child_of", categ_ids)]
+    return domain
+
+
+def _sizes_for_brand(brand_id):
+    """Return vehicle model sizes for a fleet brand, or None if no brand filter."""
+    if brand_id in (None, False, "", 0, "0"):
+        return None
+    try:
+        brand_id = int(brand_id)
+    except (TypeError, ValueError):
+        return []
+    models = (
+        request.env["fleet.vehicle.model"]
+        .sudo()
+        .search([("brand_id", "=", brand_id)])
+    )
+    return [size for size in models.mapped("size") if size]
+
+
+def _append_brand_size_domain(domain, brand_id):
+    """
+    Filter services by vehicle brand via model sizes.
+    Used when no specific vehicle is selected.
+    """
+    sizes = _sizes_for_brand(brand_id)
+    if sizes is None:
+        return domain
+    if not sizes:
+        return list(domain) + [("id", "=", False)]
+    return list(domain) + [
+        (
+            "product_template_variant_value_ids.product_attribute_value_id.code",
+            "in",
+            sizes,
+        )
+    ]
+
+
 def _attach_features(records):
     pf_env = request.env["product.feature"].sudo()
     for record in records:
@@ -96,8 +171,11 @@ class ProductAPI(http.Controller):
             return make_json_response(422, check_data)
         vehicle_id = data.get("vehicle_id")
         model_id = data.get("model_id", False)
+        brand_id = data.get("brand_id", False)
+        categ_ids = _get_categ_ids(data)
         page, limit, offset = _parse_pagination(data)
         pr_env = request.env["product.product"].sudo()
+        # Specific vehicle wins over brand/model size filters
         if vehicle_id != -1:
             vehicle = request.env["fleet.vehicle"].sudo().browse(
                 int(data.get("vehicle_id")))
@@ -112,10 +190,21 @@ class ProductAPI(http.Controller):
         else:
             services_domain = [
                 ("detailed_type", "=", "service"),
-                ("product_template_variant_value_ids.product_attribute_value_id.code", "=", "small"),
             ]
+            # Optional brand filter (fleet brand → model sizes)
+            services_domain = _append_brand_size_domain(services_domain, brand_id)
+            # Backward compatible default when no vehicle/model/brand
+            if brand_id in (None, False, "", 0, "0"):
+                services_domain.append(
+                    (
+                        "product_template_variant_value_ids.product_attribute_value_id.code",
+                        "=",
+                        "small",
+                    )
+                )
         # Forcer le filtre is_published = True
         services_domain.append(("is_published", "=", True))
+        services_domain = _append_categ_domain(services_domain, categ_ids)
         _logger.info("Domain used for services search: %s", services_domain)
         total = pr_env.search_count(services_domain)
         services = pr_env.search_read(services_domain, FIELDS_READ, limit=limit, offset=offset)
@@ -128,9 +217,11 @@ class ProductAPI(http.Controller):
     @http.route("/v1/products", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
     @with_lang
     def v1_get_products(self):
+        params = request.httprequest.args
         domain = [("detailed_type", "!=", "service"),
                   ("is_published", "=", True)]
-        page, limit, offset = _parse_pagination(request.httprequest.args)
+        domain = _append_categ_domain(domain, _get_categ_ids(params))
+        page, limit, offset = _parse_pagination(params)
         product_env = request.env["product.product"].sudo()
         total = product_env.search_count(domain)
         products = product_env.search_read(domain, FIELDS_READ, limit=limit, offset=offset)
@@ -214,24 +305,50 @@ class ProductAPI(http.Controller):
         if check_data:
             return make_response(422, check_data)
         vehicle_id = int(data.get("vehicle_id"))
+        brand_id = data.get("brand_id", False)
+        categ_ids = _get_categ_ids(data)
         page, limit, offset = _parse_pagination(data)
         # vehicle_id == -1 (or unknown) "no vehicle": empty recordset so
-        # no size filtering is applied (all published services are returned).
+        # no size filtering is applied (all published services are returned),
+        # unless brand_id is provided (then filter by that brand's model sizes).
         vehicle = request.env["fleet.vehicle"].sudo().browse(
             vehicle_id).exists()
-        templates = request.env["product.template"].sudo().search([
+        template_domain = [
             ("detailed_type", "=", "service"),
             ("product_variant_ids.is_published", "=", True),
-        ])
+        ]
+        template_domain = _append_categ_domain(template_domain, categ_ids)
+        templates = request.env["product.template"].sudo().search(template_domain)
+        brand_sizes = None if vehicle else _sizes_for_brand(brand_id)
         matched_templates = request.env["product.template"].sudo()
         for template in templates:
-            if template._get_published_variants_for_vehicle(vehicle):
-                matched_templates |= template
+            variants = template._get_published_variants_for_vehicle(vehicle)
+            if not variants:
+                continue
+            if brand_sizes is not None:
+                if not brand_sizes:
+                    continue
+                variants = variants.filtered(
+                    lambda v: any(
+                        code in brand_sizes
+                        for code in v.product_template_variant_value_ids.product_attribute_value_id.mapped("code")
+                    )
+                )
+                if not variants:
+                    continue
+            matched_templates |= template
         total = len(matched_templates)
         page_templates = matched_templates[offset: offset + limit]
         result = []
         for t in page_templates:
             variants = t._get_published_variants_for_vehicle(vehicle)
+            if brand_sizes:
+                variants = variants.filtered(
+                    lambda v: any(
+                        code in brand_sizes
+                        for code in v.product_template_variant_value_ids.product_attribute_value_id.mapped("code")
+                    )
+                )
             if not variants:
                 continue
             # The cheapest variant is used as the "default" of the service:
