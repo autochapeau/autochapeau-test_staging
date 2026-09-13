@@ -163,6 +163,10 @@ class ProductAPI(http.Controller):
         image_ids = result.get("image_ids", False)
         if image_ids:
             images = request.env["ir.attachment"].sudo().browse(image_ids).exists()
+            # Ensure attachments are publicly streamable for website <img>
+            private_images = images.filtered(lambda a: not a.public)
+            if private_images:
+                private_images.write({"public": True})
             # Keep key "datas" for the website; serve via /portal/image/.../raw
             result["image_ids"] = [
                 {

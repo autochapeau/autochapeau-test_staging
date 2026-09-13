@@ -133,6 +133,9 @@ def format_message(message):
 def get_binary_url(model_name, record_id, field_name):
     base_url = request.env["ir.config_parameter"].sudo(
     ).get_param("web.base.url")
+    # Attachments must use /raw — /datas raises 500 on some Odoo builds
+    if model_name == "ir.attachment" and field_name == "datas":
+        field_name = "raw"
     return f"{base_url}/portal/image/{model_name}/{record_id}/{field_name}"
 
 

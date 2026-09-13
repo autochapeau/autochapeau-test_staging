@@ -1,6 +1,6 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.18",
+    "version": "17.0.1.0.19",
     "author": "Wellknot",
     "depends": [
         "cars_management",
