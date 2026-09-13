@@ -8,10 +8,10 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     partner_type = fields.Selection(
-        [("internal", _("Internal")),
-         ("external", _("External")),
+        [("internal", _("Branch")),
+         ("external", _("Online")),
          ("contract", _("Contract"))],
-        default="external")
+        default="internal")
     source_id = fields.Many2one("utm.source")
     vehicle_ids = fields.One2many("fleet.vehicle", "partner_id", string="Cars")
     cars_count = fields.Integer(compute="_compute_cars_count")

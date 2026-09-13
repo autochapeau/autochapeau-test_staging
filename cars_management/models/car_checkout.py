@@ -1,8 +1,11 @@
+import logging
 import math
 import random
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class CarCheckout(models.Model):
@@ -370,19 +373,27 @@ class CarCheckout(models.Model):
         if existing_invoices:
             return  # Invoice already exists, skip
 
-        # Create invoice(s) from the sale order
+        # Create draft invoice(s); accountant posts later and email is sent then.
         try:
-            invoices = sale_order._create_invoices()
-            if invoices:
-                # Post the invoices if needed
-                for invoice in invoices:
-                    invoice.action_post()
-        except Exception as e:
-            # Log the error but don't fail the checkout confirmation
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(
-                f"Failed to create invoice for sale order {sale_order.name}: {str(e)}")
+            sale_order._create_invoices()
+        except Exception:
+            _logger.exception(
+                "Failed to create invoice for sale order %s", sale_order.name
+            )
+
+    def _post_and_email_invoices(self, invoices):
+        """Compatibility hook for upsell modules.
+
+        Checkout invoices stay in draft. Posting + customer email happen when
+        the accountant confirms the invoice (account.move.action_post).
+        """
+        self.ensure_one()
+        return
+
+    def _send_checkout_invoice_email(self, invoice):
+        """Delegate to account.move email-on-post helper."""
+        self.ensure_one()
+        invoice._send_customer_invoice_email()
 
     def get_portal_url(self, suffix=None, report_type=None, download=None, query_string=None, anchor=None):
         """

@@ -14,3 +14,4 @@ from . import sale_order
 from . import avatar_mixin
 from . import mail_guest
 from . import customer_membership_level
+from . import account_move
