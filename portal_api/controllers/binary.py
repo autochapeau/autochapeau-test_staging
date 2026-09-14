@@ -8,6 +8,7 @@ from odoo.tools.image import image_guess_size_from_field_name
 _logger = logging.getLogger(__name__)
 api_public_fields = {
     "product.product": ["image_1920"],
+    "product.template": ["image_1920"],
     "ir.attachment": ["datas", "raw"],
     "res.users": ["image_1920"],
     "fleet.vehicle": ["image_128"],
@@ -140,9 +141,15 @@ class Binary(http.Controller):
         if field not in api_public_fields.get(model, []):
             raise UserError("Field is not publicly available")
 
-        record = IrBinary._find_record(
-            xmlid, model, record_id and int(record_id), access_token
+        # Browse with sudo so website <img> works without a logged-in Odoo user
+        record = (
+            request.env[model]
+            .sudo()
+            .browse(int(record_id))
+            .exists()
         )
+        if not record:
+            raise UserError("Record not found")
         return IrBinary._get_image_stream_from(
             record,
             field,

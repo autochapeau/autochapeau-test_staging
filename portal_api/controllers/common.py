@@ -136,7 +136,12 @@ def get_binary_url(model_name, record_id, field_name):
     # Attachments must use /raw — /datas raises 500 on some Odoo builds
     if model_name == "ir.attachment" and field_name == "datas":
         field_name = "raw"
-    return f"{base_url}/portal/image/{model_name}/{record_id}/{field_name}"
+    url = f"{base_url}/portal/image/{model_name}/{record_id}/{field_name}"
+    # Multi-DB hosts (erp-test) need ?db= so <img> works without an Odoo session
+    db_name = getattr(request, "db", None) or request.env.cr.dbname
+    if db_name:
+        url = f"{url}?db={db_name}"
+    return url
 
 
 def format_search_read_result(search_result, fields, duration_fields, model_name=None):

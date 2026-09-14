@@ -153,7 +153,7 @@ class ProductAPI(http.Controller):
     )
     @with_lang
     def v1_get_categories(self):
-        """Return Product Categories (product.category).
+        """Return Product Categories that have published products/services.
 
         GET  /v1/categories
         GET  /v1/categories?category_type=service|other
@@ -176,10 +176,27 @@ class ProductAPI(http.Controller):
                     },
                 )
 
+            # Only categories used by published portal products/services
+            product_domain = [("is_published", "=", True)]
+            if category_type == "service":
+                product_domain.append(("detailed_type", "=", "service"))
+            elif category_type == "other":
+                product_domain.append(("detailed_type", "!=", "service"))
+
+            used_categ_ids = (
+                request.env["product.product"]
+                .sudo()
+                .search(product_domain)
+                .mapped("categ_id")
+                .ids
+            )
+            if not used_categ_ids:
+                return make_response(200, [])
+
             fields_name = ["id", "name", "category_type"]
-            domain = []
+            domain = [("id", "in", used_categ_ids)]
             if category_type:
-                domain = [("category_type", "=", category_type)]
+                domain.append(("category_type", "=", category_type))
             categories = (
                 request.env["product.category"]
                 .sudo()
