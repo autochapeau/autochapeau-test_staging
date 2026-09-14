@@ -131,6 +131,7 @@ class SaleOrder(models.Model):
             date=date,
         )
         self._add_ehsan_donation_to_invoices(invoices)
+        invoices._sync_draft_invoice_accounting()
         return invoices
 
     def _add_ehsan_donation_to_invoices(self, invoices):

@@ -127,3 +127,12 @@ class SaleOrder(models.Model):
                 )
 
         return result
+
+    def _create_invoices(self, grouped=False, final=False, date=None):
+        invoices = super()._create_invoices(
+            grouped=grouped,
+            final=final,
+            date=date,
+        )
+        invoices._sync_draft_invoice_accounting()
+        return invoices

@@ -371,7 +371,8 @@ class CarCheckout(models.Model):
         ])
 
         if existing_invoices:
-            return  # Invoice already exists, skip
+            existing_invoices._sync_draft_invoice_accounting()
+            return
 
         # Create draft invoice(s); accountant posts later and email is sent then.
         try:
@@ -380,6 +381,7 @@ class CarCheckout(models.Model):
             _logger.exception(
                 "Failed to create invoice for sale order %s", sale_order.name
             )
+            raise
 
     def _post_and_email_invoices(self, invoices):
         """Compatibility hook for upsell modules.

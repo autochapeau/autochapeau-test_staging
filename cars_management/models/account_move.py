@@ -1,13 +1,42 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from odoo import models
+from odoo import Command, models
 
 _logger = logging.getLogger(__name__)
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    def _sync_draft_invoice_accounting(self):
+        """Persist debit/credit and tax/receivable lines after programmatic create.
+
+        Sale `_create_invoices()` can leave price_unit on invoice lines while
+        stored balances stay 0. Rewriting quantity follows the same path as
+        saving the invoice form.
+        """
+        for invoice in self.filtered(
+            lambda move: move.state == "draft" and move.is_invoice(include_receipts=True)
+        ):
+            product_lines = invoice.invoice_line_ids.filtered(
+                lambda line: line.display_type not in ("line_section", "line_note")
+            )
+            if not product_lines:
+                continue
+            currency = invoice.currency_id
+            if invoice.amount_total and all(
+                not currency.is_zero(abs(line.balance)) for line in product_lines
+            ):
+                continue
+            invoice.with_context(check_move_validity=False).write(
+                {
+                    "invoice_line_ids": [
+                        Command.update(line.id, {"quantity": line.quantity})
+                        for line in product_lines
+                    ]
+                }
+            )
 
     def action_post(self):
         res = super().action_post()
