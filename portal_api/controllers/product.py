@@ -143,19 +143,47 @@ def _attach_features(records):
 
 
 class ProductAPI(http.Controller):
-    @http.route("/v1/categories", type="http", auth="none", csrf=False, methods=["POST", "OPTIONS"], cors="*")
+    @http.route(
+        "/v1/categories",
+        type="http",
+        auth="none",
+        csrf=False,
+        methods=["GET", "POST", "OPTIONS"],
+        cors="*",
+    )
     @with_lang
     def v1_get_categories(self):
-        data = json.loads(request.httprequest.data)
-        check_data = check_params(data, ["category_type"])
-        if check_data:
-            return make_json_response(422, check_data)
+        """Return Product Categories (product.category).
+
+        GET  /v1/categories
+        GET  /v1/categories?category_type=service|other
+        POST /v1/categories  body: { "category_type": "service"|"other" }  (optional)
+        """
         try:
-            fields_name = ["id", "name"]
-            category_type = data.get("category_type")
+            category_type = None
+            if request.httprequest.method == "POST":
+                raw = request.httprequest.data
+                data = json.loads(raw) if raw else {}
+                category_type = data.get("category_type") or None
+            else:
+                category_type = request.httprequest.args.get("category_type") or None
+
+            if category_type and category_type not in ("service", "other"):
+                return make_response(
+                    422,
+                    {
+                        "message": "category_type must be 'service' or 'other'",
+                    },
+                )
+
+            fields_name = ["id", "name", "category_type"]
+            domain = []
+            if category_type:
+                domain = [("category_type", "=", category_type)]
             categories = (
-                request.env["product.category"].sudo().search_read(
-                    [("category_type", "=", category_type)], fields_name)
+                request.env["product.category"]
+                .sudo()
+                .search_read(domain, fields_name, order="name")
             )
             result = format_search_read_result(categories, fields_name, [])
             return make_response(200, result)
