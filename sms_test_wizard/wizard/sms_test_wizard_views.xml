@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sms_test_wizard_form" model="ir.ui.view">
+        <field name="name">sms.test.wizard.form</field>
+        <field name="model">sms.test.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Test SMS">
+                <group>
+                    <field name="mobile" placeholder="+96279xxxxxxx" />
+                    <field name="sender" />
+                    <field name="message" />
+                    <field name="result_status" invisible="not last_response" />
+                    <field name="last_response" invisible="not last_response" />
+                </group>
+                <footer>
+                    <button name="action_send_sms" string="Send SMS" type="object" class="btn-primary" />
+                    <button string="Close" special="cancel" class="btn-secondary" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sms_test_wizard_action" model="ir.actions.act_window">
+        <field name="name">Test SMS</field>
+        <field name="res_model">sms.test.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem
+        id="sms_test_wizard_menu"
+        name="Test SMS"
+        parent="base.menu_administration"
+        action="sms_test_wizard_action"
+        sequence="90"
+        groups="base.group_system"
+    />
+</odoo>
