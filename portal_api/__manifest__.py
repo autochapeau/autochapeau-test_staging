@@ -1,6 +1,6 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.23",
+    "version": "17.0.1.0.25",
     "author": "Wellknot",
     "depends": [
         "cars_management",
@@ -9,6 +9,7 @@
         "account",
         "crm",
         "autochapeau_loyalty",
+        "gb_window_tinting",
     ],
     "data": [
         "data/portal_api_data.xml",

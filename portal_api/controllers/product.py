@@ -142,6 +142,94 @@ def _attach_features(records):
     return records
 
 
+def _window_tinting_payload_from_template(template):
+    """Return window-tinting options for a product.template."""
+    if not template or not template.is_window_tinting:
+        return {
+            "is_window_tinting": False,
+            "glass_types": [],
+            "tint_percentages": [],
+        }
+    glass_types = template.allowed_glass_type_ids or request.env[
+        "window.tint.glass.type"
+    ].sudo().search([("active", "=", True)])
+    tint_percentages = template.allowed_tint_percentage_ids or request.env[
+        "window.tint.percentage"
+    ].sudo().search([("active", "=", True)])
+    return {
+        "is_window_tinting": True,
+        "glass_types": [
+            {
+                "id": glass.id,
+                "name": glass.name,
+                "sequence": glass.sequence,
+            }
+            for glass in glass_types
+        ],
+        "tint_percentages": [
+            {
+                "id": percent.id,
+                "name": percent.name,
+                "percentage": percent.percentage,
+            }
+            for percent in tint_percentages
+        ],
+    }
+
+
+def _window_tinting_payload_from_product(product):
+    """Return window-tinting options for a product.product."""
+    if not product:
+        return {
+            "is_window_tinting": False,
+            "glass_types": [],
+            "tint_percentages": [],
+        }
+    return _window_tinting_payload_from_template(product.product_tmpl_id)
+
+
+def _variant_attributes_payload(template, vehicle=None):
+    """Build variant_attributes including price_extra per value.
+
+    price_extra comes from product.template.attribute.value (Value Price Extra
+    on the product), e.g. +500 for "ازالة عازل حراري = True".
+    """
+    attributes = template.attribute_line_ids.attribute_id.with_context(lang="en_US")
+    attr_keys = {
+        a.id: (a.name or "").strip().lower().replace(" ", "_")
+        for a in attributes
+    }
+    vehicle_size = vehicle.size if vehicle else False
+    ptav_by_pav = {
+        ptav.product_attribute_value_id.id: ptav
+        for ptav in template.attribute_line_ids.product_template_value_ids
+    }
+
+    variant_attributes = {}
+    for line in template.attribute_line_ids:
+        key = attr_keys.get(line.attribute_id.id)
+        if not key:
+            continue
+        # keep "size" selectable when there is no vehicle size
+        if key == "size" and vehicle_size:
+            continue
+        values = []
+        for pav in line.value_ids:
+            ptav = ptav_by_pav.get(pav.id)
+            values.append(
+                {
+                    "id": pav.id,
+                    "label": pav.name,
+                    "price_extra": ptav.price_extra if ptav else 0.0,
+                }
+            )
+        variant_attributes[key] = {
+            "label": line.attribute_id.name,
+            "values": values,
+        }
+    return attr_keys, variant_attributes
+
+
 class ProductAPI(http.Controller):
     @http.route(
         "/v1/categories",
@@ -338,6 +426,9 @@ class ProductAPI(http.Controller):
             questions_format = format_search_read_result(
                 questions, questions_fields, [])
             result.update({"question_ids": questions_format})
+        # Window tinting options for website selectors
+        product_rec = request.env["product.product"].sudo().browse(service_id)
+        result.update(_window_tinting_payload_from_product(product_rec))
         return make_response(200, result)
 
     @http.route(
@@ -399,10 +490,7 @@ class ProductAPI(http.Controller):
             # The cheapest variant is used as the "default" of the service:
             # its price, warranty and work hours are shown on the service card.
             default_variant = variants.sorted(key=lambda v: v.lst_price)[0]
-            attributes = t.attribute_line_ids.attribute_id.with_context(
-                lang="en_US")
-            attr_keys = {a.id: (a.name or "").strip().lower().replace(
-                " ", "_") for a in attributes}
+            attr_keys, variant_attributes = _variant_attributes_payload(t, vehicle)
             result.append({
                 "id": t.id,
                 "name": t.name,
@@ -411,21 +499,14 @@ class ProductAPI(http.Controller):
                 "description_website": t.description_website or False,
                 "feature_ids": [{"id": f.id, "name": f.name} for f in t.feature_ids],
                 "image_1920": get_binary_url("product.template", t.id, "image_1920") if t.image_1920 else False,
+                "is_window_tinting": bool(t.is_window_tinting),
                 # Default values (taken from the cheapest variant)
                 "price_from": default_variant.lst_price,
                 "lst_price_discount": default_variant.lst_price_discount,
                 "warranty": default_variant.warranty,
                 "work_hours": default_variant.expected_duration,
                 "variant_count": len(variants),
-                "variant_attributes": {
-                    attr_keys[line.attribute_id.id]: {
-                        "label": line.attribute_id.name,
-                        "values": [{"id": v.id, "label": v.name} for v in line.value_ids],
-                    }
-                    for line in t.attribute_line_ids
-                    # keep "size" selectable when there is no vehicle (id -1)
-                    if attr_keys[line.attribute_id.id] != "size" or not vehicle.size
-                },
+                "variant_attributes": variant_attributes,
                 # Detailed list of every variant of the service
                 "variants": [{
                     "id": v.id,
@@ -467,10 +548,7 @@ class ProductAPI(http.Controller):
         if not variants:
             return make_response(200, [])
 
-        attributes = template.attribute_line_ids.attribute_id.with_context(
-            lang="en_US")
-        attr_keys = {a.id: (a.name or "").strip().lower().replace(
-            " ", "_") for a in attributes}
+        attr_keys, variant_attributes = _variant_attributes_payload(template, vehicle)
 
         data = {
             "id": template.id,
@@ -481,14 +559,7 @@ class ProductAPI(http.Controller):
             "feature_ids": [{"id": f.id, "name": f.name} for f in template.feature_ids],
             "image_1920": get_binary_url(
                 "product.template", template.id, "image_1920") if template.image_1920 else False,
-            "variant_attributes": {
-                attr_keys[line.attribute_id.id]: {
-                    "label": line.attribute_id.name,
-                    "values": [{"id": v.id, "label": v.name} for v in line.value_ids],
-                }
-                for line in template.attribute_line_ids
-                if attr_keys[line.attribute_id.id] != "size" or not vehicle.size
-            },
+            "variant_attributes": variant_attributes,
             "variants": [{
                 "id": v.id,
                 "name": v.display_name,
@@ -504,7 +575,37 @@ class ProductAPI(http.Controller):
                 "is_published": v.is_published,
             } for v in variants],
         }
+        data.update(_window_tinting_payload_from_template(template))
         return make_response(200, [data])
+
+    @http.route(
+        "/v1/window-tinting/<int:product_id>",
+        type="http",
+        auth="none",
+        csrf=False,
+        methods=["GET", "OPTIONS"],
+        cors="*",
+    )
+    @with_lang
+    def v1_window_tinting_options(self, product_id):
+        """Return glass types + tint percentages for a product/service variant."""
+        product = request.env["product.product"].sudo().browse(product_id).exists()
+        if not product:
+            # Also accept product.template id (services/list uses template ids)
+            template = (
+                request.env["product.template"].sudo().browse(product_id).exists()
+            )
+            if not template:
+                return make_response(404)
+            payload = _window_tinting_payload_from_template(template)
+            payload["product_id"] = False
+            payload["product_tmpl_id"] = template.id
+            return make_response(200, payload)
+
+        payload = _window_tinting_payload_from_product(product)
+        payload["product_id"] = product.id
+        payload["product_tmpl_id"] = product.product_tmpl_id.id
+        return make_response(200, payload)
 
     @http.route("/v1/services/review", type="json", auth="none", csrf=False, methods=["POST", "OPTIONS"], cors="*")
     @authorization_required

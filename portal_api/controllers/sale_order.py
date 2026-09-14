@@ -11,22 +11,50 @@ _logger = logging.getLogger(__name__)
 
 
 class SaleOrderAPI(http.Controller):
+    def _prepare_tint_detail_commands(self, product, tint_details):
+        """Build One2many commands for sale.order.line.tint.detail."""
+        if not tint_details:
+            return []
+        if not product.product_tmpl_id.is_window_tinting:
+            return []
+        commands = []
+        for idx, detail in enumerate(tint_details):
+            glass_type_id = detail.get("glass_type_id")
+            tint_percentage_id = detail.get("tint_percentage_id")
+            if not glass_type_id or not tint_percentage_id:
+                continue
+            commands.append(
+                (
+                    0,
+                    0,
+                    {
+                        "sequence": detail.get("sequence", (idx + 1) * 10),
+                        "glass_type_id": int(glass_type_id),
+                        "tint_percentage_id": int(tint_percentage_id),
+                        "note": detail.get("note") or False,
+                    },
+                )
+            )
+        return commands
+
+    def _prepare_line_with_discount(self, item_id, qty=1.0, tint_details=None):
+        """Prepare order line with discounted price and optional tint details."""
+        product = request.env["product.product"].sudo().browse(item_id)
+        line_vals = {
+            "product_id": product.id,
+            "product_uom_qty": qty,
+        }
+        discounted_price = product.lst_price_discount or 0.0
+        if product.exists() and discounted_price > 0 and discounted_price < product.lst_price:
+            line_vals["price_unit"] = discounted_price
+        tint_commands = self._prepare_tint_detail_commands(product, tint_details)
+        if tint_commands:
+            line_vals["tint_detail_ids"] = tint_commands
+        return (0, 0, line_vals)
+
     @http.route("/v1/shop", type="json", auth="none", csrf=False, methods=["POST", "OPTIONS"], cors="*")
     @authorization_required
     def v1_create_sale_order(self):
-        def _prepare_line_with_discount(item_id, qty=1.0):
-            """Prepare order line with discounted price if available."""
-            product = request.env["product.product"].sudo().browse(item_id)
-            line_vals = {
-                "product_id": product.id,
-                "product_uom_qty": qty,
-            }
-            # Apply discounted price if it exists and is lower than standard price
-            discounted_price = product.lst_price_discount or 0.0
-            if product.exists() and discounted_price > 0 and discounted_price < product.lst_price:
-                line_vals["price_unit"] = discounted_price
-            return (0, 0, line_vals)
-
         data = json.loads(request.httprequest.data)
         required_keys = ["company_id", "cart_id"]
         check_required_data = check_params(data, required_keys)
@@ -35,22 +63,39 @@ class SaleOrderAPI(http.Controller):
         optional_keys = ["vehicle_id", "appointment_slot_id", "branch_id"]
         sale_order_vals = {key: data.get(key)
                            for key in required_keys + optional_keys}
-        # Si branch_id est fourni, lier la branche au sale.order
         if data.get("branch_id"):
             sale_order_vals["branch_id"] = data.get("branch_id")
         sale_order_vals["partner_id"] = request.env.user.partner_id.id
         sale_order_vals.setdefault("order_type", "intern")
         order_lines = [(5, 0, 0)]
-        # Add services with discount support
-        order_lines.extend([
-            _prepare_line_with_discount(service_id)
-            for service_id in data.get("service_ids")
-        ])
-        # Add products with discount support
-        order_lines.extend([
-            _prepare_line_with_discount(product.get("id"), product.get("qty"))
-            for product in data.get("products")
-        ])
+
+        # Preferred: services as objects (supports tint_details)
+        # Backward compatible: service_ids as plain ids
+        services_payload = data.get("services")
+        if services_payload:
+            for service in services_payload:
+                order_lines.append(
+                    self._prepare_line_with_discount(
+                        service.get("id"),
+                        service.get("qty", 1.0),
+                        service.get("tint_details") or service.get("tint_detail_ids"),
+                    )
+                )
+        else:
+            order_lines.extend([
+                self._prepare_line_with_discount(service_id)
+                for service_id in data.get("service_ids") or []
+            ])
+
+        for product in data.get("products") or []:
+            order_lines.append(
+                self._prepare_line_with_discount(
+                    product.get("id"),
+                    product.get("qty"),
+                    product.get("tint_details") or product.get("tint_detail_ids"),
+                )
+            )
+
         sale_order_vals["order_line"] = order_lines
         try:
             sale_order = (
