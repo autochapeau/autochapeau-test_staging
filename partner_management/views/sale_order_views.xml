@@ -26,7 +26,8 @@
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="domain">
-                    [('type', '!=', 'private'), ('company_id', 'in', (False, company_id)), ('contact_partner_type', '=', 'customer')]
+                    [('type', '!=', 'private'), ('company_id', 'in', (False, company_id)), ('contact_partner_type', '=',
+                    'customer')]
                     + ([('partner_type', '=', 'contract')] if order_type == 'contract' else [])
                 </attribute>
                 <attribute name="context">{
@@ -34,7 +35,8 @@
                     'show_address': 1,
                     'show_vat': True,
                     'default_contact_partner_type': 'customer',
-                }</attribute>
+                    }
+                </attribute>
             </xpath>
             <xpath expr="//header" position="inside">
                 <button name="action_create_extra_sale_order"
@@ -70,9 +72,9 @@
                 <field name="subordinate_email"
                        invisible="order_type != 'contract' or not subordinate_id"/>
                 <field name="related_sale_id"
-                         options="{'no_create': True}"
-                         readonly="1"
-                         invisible="not related_sale_id"/>
+                       options="{'no_create': True}"
+                       readonly="1"
+                       invisible="not related_sale_id"/>
             </xpath>
             <xpath expr="//field[@name='pricelist_id']" position="attributes">
                 <attribute name="readonly">related_sale_id or state in ['cancel', 'sale', 'done']</attribute>
@@ -80,23 +82,31 @@
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
                 <field name="vehicle_id"
-                         options="{'no_create_edit': True}"
-                         context="{
+                       options="{'no_create_edit': True}"
+                       context="{
                              'default_partner_id': subordinate_id if order_type == 'contract' else partner_id,
                          }"/>
                 <field name="vehicle_size" invisible="1"/>
+                <field name="vehicle_color_id" readonly="1" invisible="not vehicle_id"/>
+                <field name="vehicle_vin_sn" readonly="1" invisible="not vehicle_id"/>
+                <field name="vehicle_model_year" readonly="1" invisible="not vehicle_id"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">not vehicle_id or not order_type</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
                 <attribute name="context">{
                     'default_sale_ok': True,
                     'vehicle_size_filter': parent.vehicle_size,
-                }</attribute>
+                    }
+                </attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
                 <attribute name="context">{
                     'default_sale_ok': True,
                     'vehicle_size_filter': parent.vehicle_size,
-                }</attribute>
+                    }
+                </attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="attributes">
                 <attribute name="readonly">parent.vehicle_id != False or product_type == 'service'</attribute>
@@ -120,6 +130,22 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="related_sale_id" optional="hide"/>
+                <field name="subordinate_id" optional="hide" string="Car Owner"/>
+                <field name="vehicle_id" optional="hide" string="Vehicle"/>
+                <field name="vehicle_vin_sn" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_order_tree_inherit_vehicle_info" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherit.vehicle.info</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="subordinate_id" optional="hide" string="Car Owner"/>
+                <field name="vehicle_id" optional="hide" string="Vehicle"/>
+                <field name="vehicle_vin_sn" optional="hide"/>
             </xpath>
         </field>
     </record>

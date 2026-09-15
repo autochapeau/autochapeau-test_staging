@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_order_form_line_discount_amount" model="ir.ui.view">
+        <field name="name">sale.order.form.line.discount.amount</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_discount_wizard']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="before">
+                <field name="discount_type"
+                       string="Disc. Type"
+                       groups="product.group_discount_per_so_line"
+                       optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="after">
+                <field name="discount_amount"
+                       string="Disc. Amount"
+                       groups="product.group_discount_per_so_line"
+                       optional="show"
+                       readonly="discount_type != 'amount'"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="attributes">
+                <attribute name="readonly">discount_type == 'amount'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//form//div[@name='discount']" position="replace">
+                <div name="discount">
+                    <field name="discount_type" class="oe_inline"/>
+                    <field name="discount"
+                           class="oe_inline"
+                           invisible="discount_type == 'amount'"/>
+                    <span invisible="discount_type == 'amount'"> %</span>
+                    <field name="discount_amount"
+                           class="oe_inline"
+                           invisible="discount_type != 'amount'"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

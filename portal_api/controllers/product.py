@@ -230,6 +230,95 @@ def _variant_attributes_payload(template, vehicle=None):
     return attr_keys, variant_attributes
 
 
+def _serialize_tree_product(product):
+    """Compact product payload for category tree nodes."""
+    return {
+        "id": product.id,
+        "name": product.name,
+        "lst_price": product.lst_price,
+        "lst_price_discount": product.lst_price_discount,
+        "image_1920": (
+            get_binary_url("product.product", product.id, "image_1920")
+            if product.image_1920
+            else False
+        ),
+        "is_window_tinting": bool(product.product_tmpl_id.is_window_tinting),
+    }
+
+
+def _build_categories_tree(category_type=None):
+    """Build category tree with published products under each category."""
+    product_domain = [("is_published", "=", True)]
+    if category_type == "service":
+        product_domain.append(("detailed_type", "=", "service"))
+    elif category_type == "other":
+        product_domain.append(("detailed_type", "!=", "service"))
+
+    products = request.env["product.product"].sudo().search(product_domain)
+    if not products:
+        return []
+
+    products_by_categ = {}
+    for product in products:
+        products_by_categ.setdefault(product.categ_id.id, []).append(product)
+
+    Category = request.env["product.category"].sudo()
+    categ_ids = set(products_by_categ.keys())
+    pending = Category.browse(list(categ_ids))
+    while pending:
+        parents = pending.mapped("parent_id").filtered(
+            lambda categ: categ.id and categ.id not in categ_ids
+        )
+        for parent in parents:
+            categ_ids.add(parent.id)
+        pending = parents
+
+    nodes = {}
+    for categ in Category.browse(list(categ_ids)):
+        nodes[categ.id] = {
+            "id": categ.id,
+            "name": categ.name,
+            "category_type": categ.category_type or False,
+            "parent_id": categ.parent_id.id if categ.parent_id else False,
+            "products": [
+                _serialize_tree_product(product)
+                for product in products_by_categ.get(categ.id, [])
+            ],
+            "children": [],
+        }
+
+    roots = []
+    for node in nodes.values():
+        parent_id = node["parent_id"]
+        if parent_id and parent_id in nodes:
+            nodes[parent_id]["children"].append(node)
+        else:
+            roots.append(node)
+
+    def _prune_and_clean(node_list):
+        kept = []
+        for node in sorted(node_list, key=lambda item: (item["name"] or "").lower()):
+            node["children"] = _prune_and_clean(node["children"])
+            node["products"] = sorted(
+                node["products"], key=lambda item: (item["name"] or "").lower()
+            )
+            # Drop empty branches (no products and no children)
+            if not node["products"] and not node["children"]:
+                continue
+            if (
+                category_type
+                and node["category_type"]
+                and node["category_type"] != category_type
+                and not node["children"]
+            ):
+                continue
+            node.pop("parent_id", None)
+            kept.append(node)
+        return kept
+
+    return _prune_and_clean(roots)
+
+
 class ProductAPI(http.Controller):
     @http.route(
         "/v1/categories",
@@ -292,6 +381,32 @@ class ProductAPI(http.Controller):
             )
             result = format_search_read_result(categories, fields_name, [])
             return make_response(200, result)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
+
+    @http.route(
+        "/v1/categories/tree",
+        type="http",
+        auth="none",
+        csrf=False,
+        methods=["GET", "OPTIONS"],
+        cors="*",
+    )
+    @with_lang
+    def v1_get_categories_tree(self):
+        """Return categories as a tree with published products under each node.
+
+        GET /v1/categories/tree
+        GET /v1/categories/tree?category_type=service|other
+        """
+        try:
+            category_type = request.httprequest.args.get("category_type") or None
+            if category_type and category_type not in ("service", "other"):
+                return make_response(
+                    422,
+                    {"message": "category_type must be 'service' or 'other'"},
+                )
+            return make_response(200, _build_categories_tree(category_type))
         except Exception as e:
             return make_response(422, {"message": str(e)})
 

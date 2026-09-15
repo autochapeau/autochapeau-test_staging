@@ -153,8 +153,8 @@
                     </div>
                     <group col="2">
                         <group string="Vehicle">
-                            <field name="company_id" />
-                            <field name="category_id" />
+                            <field name="company_id" readonly="1" />
+                            <field name="category_id" readonly="1" />
                             <field name="vin_sn" required="1" />
                             <field name="location" />
                         </group>
@@ -173,9 +173,9 @@
                                     <field name="model_year" required="1" />
                                     <field name="transmission" />
                                     <field name="vehicle_color_id" />
-                                    <field name="size" />
-                                    <field name="seats" />
-                                    <field name="doors" />
+                                    <field name="size" readonly="1" />
+                                    <field name="seats" readonly="1" />
+                                    <field name="doors" readonly="1" />
                                     <div class="o_row">
                                         <field name="frame_size" /><span>cm</span>
                                     </div>

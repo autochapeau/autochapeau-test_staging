@@ -16,6 +16,19 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
+    _sql_constraints = [
+        (
+            "partner_mobile_normalized_uniq",
+            "unique(mobile_normalized)",
+            "This mobile number is already used by another contact.",
+        ),
+        (
+            "partner_email_normalized_uniq",
+            "unique(email_normalized_unique)",
+            "This email is already used by another contact.",
+        ),
+    ]
+
     # ── Contact type ──────────────────────────────────────────────────
     contact_partner_type = fields.Selection(
         [
@@ -416,10 +429,32 @@ class ResPartner(models.Model):
     # code is allowed; the customer stays active and unverified.
     # Contract / child-of-parent: no OTP, mobile stays unverified.
 
+    @api.model
+    def _partner_sequence_code(self, contact_type):
+        if contact_type == "customer":
+            return "res.partner.customer"
+        if contact_type == "supplier":
+            return "res.partner.supplier"
+        return False
+
+    @api.model
+    def _assign_partner_sequence(self, vals):
+        """Fill Reference (ref) from customer/vendor sequence when missing."""
+        if vals.get("ref") or vals.get("parent_id"):
+            return
+        contact_type = vals.get("contact_partner_type") or self.env.context.get(
+            "default_contact_partner_type", "customer"
+        )
+        seq_code = self._partner_sequence_code(contact_type)
+        if not seq_code:
+            return
+        vals["ref"] = self.env["ir.sequence"].next_by_code(seq_code) or False
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             self._sync_city_from_city_id(vals)
+            self._assign_partner_sequence(vals)
             contact_type = vals.get("contact_partner_type") or self.env.context.get(
                 "default_contact_partner_type", "customer"
             )
@@ -522,7 +557,7 @@ class ResPartner(models.Model):
             "tag": "display_notification",
             "params": {
                 "title": _("OTP Sent"),
-                "message": _("A verification code has been sent to %s. OTP: " + otp) % phone,
+                "message": _("A verification code has been sent to %s.") % phone,
                 "type": "success",
                 "sticky": False,
             },

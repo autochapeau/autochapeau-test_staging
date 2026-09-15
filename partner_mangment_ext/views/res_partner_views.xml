@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_partner_form_partner_mangment_ext" model="ir.ui.view">
+        <field name="name">res.partner.form.partner.mangment.ext</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//span[@name='address_name']/b" position="replace">
+                <b invisible="not is_company">National Address</b>
+            </xpath>
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="required">is_company and not parent_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="required">is_company and not parent_id</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[hasclass('o_address_format')]" position="after">
+                <field name="gender" invisible="is_company"/>
+                <field name="nationality_id" options="{'no_open': True, 'no_create': True}"/>
+            </xpath>
+            <xpath expr="//div[@name='vat_vies_container']" position="after">
+                <field name="company_registry"
+                       string="Commercial Registration (CR)"
+                       required="is_company and not parent_id"
+                       invisible="not is_company"
+                       readonly="parent_id"/>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']//field[@name='company_registry']" position="attributes">
+                <attribute name="string">Commercial Registration (CR)</attribute>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="attributes">
+                <attribute name="readonly">not country_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_simple_form_partner_mangment_ext" model="ir.ui.view">
+        <field name="name">res.partner.simple.form.partner.mangment.ext</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_simple_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="required">is_company</attribute>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="attributes">
+                <attribute name="readonly">not country_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="gender" invisible="is_company"/>
+                <field name="nationality_id" options="{'no_open': True, 'no_create': True}"/>
+                <field name="vat" string="Tax ID" required="is_company"/>
+                <field name="company_registry"
+                       string="Commercial Registration (CR)"
+                       required="is_company"
+                       invisible="not is_company"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

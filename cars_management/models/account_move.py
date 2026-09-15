@@ -9,26 +9,55 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    def _needs_draft_invoice_accounting_sync(self):
+        """True when draft invoice AMLs are incomplete vs invoice totals.
+
+        Programmatic `_create_invoices()` can leave product balances filled
+        (tax-excluded) while tax and receivable counterpart lines are missing.
+        """
+        self.ensure_one()
+        product_lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type not in ("line_section", "line_note")
+        )
+        if not product_lines:
+            return False
+        currency = self.currency_id
+        if any(currency.is_zero(abs(line.balance)) for line in product_lines):
+            return True
+        tax_amls = self.line_ids.filtered(
+            lambda line: line.tax_line_id or line.display_type == "tax"
+        )
+        if any(line.tax_ids for line in product_lines) and not tax_amls:
+            return True
+        term_lines = self.line_ids.filtered(
+            lambda line: line.display_type == "payment_term"
+        )
+        if self.amount_total:
+            if not term_lines:
+                return True
+            counterpart = abs(sum(term_lines.mapped("amount_currency")))
+            if currency.is_zero(counterpart):
+                counterpart = abs(sum(term_lines.mapped("balance")))
+            if not currency.is_zero(counterpart - self.amount_total):
+                return True
+        return False
+
     def _sync_draft_invoice_accounting(self):
         """Persist debit/credit and tax/receivable lines after programmatic create.
 
         Sale `_create_invoices()` can leave price_unit on invoice lines while
-        stored balances stay 0. Rewriting quantity follows the same path as
-        saving the invoice form.
+        stored balances stay 0, or extract included tax from revenue without
+        creating the tax / receivable counterpart. Rewriting quantity follows
+        the same path as saving the invoice form.
         """
         for invoice in self.filtered(
             lambda move: move.state == "draft" and move.is_invoice(include_receipts=True)
         ):
+            if not invoice._needs_draft_invoice_accounting_sync():
+                continue
             product_lines = invoice.invoice_line_ids.filtered(
                 lambda line: line.display_type not in ("line_section", "line_note")
             )
-            if not product_lines:
-                continue
-            currency = invoice.currency_id
-            if invoice.amount_total and all(
-                not currency.is_zero(abs(line.balance)) for line in product_lines
-            ):
-                continue
             invoice.with_context(check_move_validity=False).write(
                 {
                     "invoice_line_ids": [
