@@ -1,7 +1,7 @@
 {
     "name": "Partner Management",
-    "summary": "Contact type, city selection, customer mobile OTP, and related sale orders",
-    "version": "17.0.1.4.1",
+    "summary": "Contact type, city selection, customer mobile OTP, partner sequences, and related sale orders",
+    "version": "17.0.1.4.3",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
@@ -21,6 +21,7 @@
     "data": [
         "security/groups.xml",
         "security/ir.model.access.csv",
+        "data/ir_sequence_data.xml",
         "wizard/send_otp_wizard_views.xml",
         "wizard/sale_extra_order_otp_wizard_views.xml",
         "wizard/sale_extra_order_type_wizard_views.xml",

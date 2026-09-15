@@ -11,6 +11,10 @@ class HrEmployee(models.Model):
         domain="[('department_type', '=', 'branche')]",
         help="Branch/subsidiary related to the employee",
     )
+    is_technician = fields.Boolean(
+        string="Technician",
+        help="Technicians can be assigned as staff on work order services.",
+    )
 
     @api.constrains('branch_id')
     def _check_branch_is_branche(self):

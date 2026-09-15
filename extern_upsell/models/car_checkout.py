@@ -42,15 +42,16 @@ class CarCheckout(models.Model):
             ("state", "!=", "cancel"),
         ])
         if existing_invoices:
+            existing_invoices._sync_draft_invoice_accounting()
             return
 
         try:
             invoices = sale_order._create_invoices()
-            for invoice in invoices:
-                if invoice.state == "draft":
-                    invoice.action_post()
+            if invoices:
+                self._post_and_email_invoices(invoices)
         except Exception:
             _logger.exception(
                 "Failed to create invoice for extern upsell sale order %s",
                 sale_order.name,
             )
+            raise

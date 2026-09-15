@@ -303,7 +303,9 @@ class SaleOrder(models.Model):
         Service = self.env["car.workorder.service"].with_context(
             contract_upsell_sync=True
         )
-        ProductLine = self.env["car.workorder.product"]
+        ProductLine = self.env["car.workorder.product"].with_context(
+            contract_upsell_sync=True
+        )
 
         for order in self:
             if not order._is_contract_upsell_order():

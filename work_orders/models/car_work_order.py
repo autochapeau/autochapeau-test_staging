@@ -36,6 +36,24 @@ def retry_on_serialization_failure(max_tries=5, delay=0.1, backoff=2.0):
     return decorator
 
 
+_WORKORDER_LOCKED_FIELDS = frozenset({"notes", "attachment_ids"})
+_SERVICE_TASK_FIELDS = frozenset({
+    "state",
+    "date_start",
+    "date_end",
+    "pause_start",
+    "pause_duration",
+})
+_PRODUCT_LOCKED_FIELDS = frozenset({"product_id", "service_id", "quantity", "workorder_id"})
+
+
+def _is_upsell_sync(env):
+    return bool(
+        env.context.get("contract_upsell_sync")
+        or env.context.get("extern_upsell_sync")
+    )
+
+
 class CarWorkcenter(models.Model):
     _name = "car.workcenter"
     _description = "Work center"
@@ -414,6 +432,13 @@ class CarWorkOrder(models.Model):
                     rec.sale_order_id = False
 
     def write(self, vals):
+        locked_vals = set(vals) & _WORKORDER_LOCKED_FIELDS
+        if locked_vals:
+            locked_orders = self.filtered(lambda order: order.state != "new")
+            if locked_orders:
+                raise UserError(_(
+                    "You cannot modify a work order after it has been confirmed."
+                ))
         res = super().write(vals)
         # Handle appointment change propagation
         if 'appointment_id' in vals:
@@ -520,6 +545,7 @@ class CarWorkOrder(models.Model):
             branch = self.branch_id
             if branch:
                 employees = employees.filtered(lambda emp: emp.branch_id == branch)
+            employees = employees.filtered(lambda emp: emp.is_technician)
             if employees:
                 service.staff_ids = employees
         has_staff = any(service.staff_ids for service in self.service_ids)
@@ -799,28 +825,53 @@ class CarWorkOrderService(models.Model):
     staff_ids = fields.Many2many(
         'hr.employee', 'car_workorder_service_staff_rel', 'service_id', 'employee_id', string='Staff', required=True)
 
+    def _filter_technicians_for_branch(self, employees, branch):
+        employees = employees.filtered(lambda emp: emp.is_technician)
+        if branch:
+            employees = employees.filtered(lambda emp: emp.branch_id == branch)
+        return employees
+
+    def _staff_ids_domain(self, branch):
+        if not branch:
+            return [("id", "=", False)]
+        return [
+            ("branch_id", "!=", False),
+            ("branch_id", "=", branch.id),
+            ("is_technician", "=", True),
+        ]
+
     @api.onchange("workcenter_id")
     def _onchange_workcenter_staff(self):
         """Prefill staff from the selected workcenter employees."""
         for service in self:
             employees = service.workcenter_id.employee_ids
             branch = service.workorder_id.branch_id or service.branch_id
-            if branch:
-                employees = employees.filtered(lambda emp: emp.branch_id == branch)
-            service.staff_ids = employees
+            service.staff_ids = service._filter_technicians_for_branch(
+                employees, branch
+            )
 
     @api.onchange('workorder_id')
     def _onchange_workorder_staff(self):
         """Filter staff by the selected workorder branch."""
         self.ensure_one()
-        if self.workorder_id and self.workorder_id.branch_id:
-            branch = self.workorder_id.branch_id
-            self.staff_ids = self.staff_ids.filtered(
-                lambda emp: emp.branch_id == branch)
-            return {'domain': {'staff_ids': [('branch_id', '=', branch.id)]}}
+        branch = self.workorder_id.branch_id if self.workorder_id else self.branch_id
+        if branch:
+            self.staff_ids = self._filter_technicians_for_branch(
+                self.staff_ids, branch
+            )
+            return {'domain': {'staff_ids': self._staff_ids_domain(branch)}}
 
         self.staff_ids = [(5, 0, 0)]
         return {'domain': {'staff_ids': [('id', '=', False)]}}
+
+    @api.constrains('staff_ids')
+    def _check_staff_are_technicians(self):
+        for service in self:
+            invalid_staff = service.staff_ids.filtered(lambda emp: not emp.is_technician)
+            if invalid_staff:
+                raise ValidationError(_(
+                    "Only employees marked as technicians can be assigned as staff."
+                ))
     expected_finish_date = fields.Datetime()
     date_start = fields.Datetime()
     date_end = fields.Datetime()
@@ -902,6 +953,14 @@ class CarWorkOrderService(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not _is_upsell_sync(self.env):
+            WorkOrder = self.env["car.work.order"]
+            for vals in vals_list:
+                workorder = WorkOrder.browse(vals.get("workorder_id"))
+                if workorder and workorder.state != "new":
+                    raise UserError(_(
+                        "You cannot add services after the work order has been confirmed."
+                    ))
         Product = self.env["product.product"]
         for vals in vals_list:
             if vals.get("product_id") and not vals.get("workshop_id"):
@@ -910,7 +969,21 @@ class CarWorkOrderService(models.Model):
                 )
         return super().create(vals_list)
 
+    def _get_unlocked_service_fields(self):
+        """Fields that may still be written after the work order is confirmed."""
+        return _SERVICE_TASK_FIELDS
+
     def write(self, vals):
+        if not _is_upsell_sync(self.env):
+            locked_vals = set(vals) - self._get_unlocked_service_fields()
+            if locked_vals:
+                locked_services = self.filtered(
+                    lambda service: service.workorder_id.state != "new"
+                )
+                if locked_services:
+                    raise UserError(_(
+                        "You cannot modify services after the work order has been confirmed."
+                    ))
         if "product_id" in vals and "workshop_id" not in vals:
             vals["workshop_id"] = self._workshop_id_from_product(
                 self.env["product.product"].browse(vals["product_id"])
@@ -918,6 +991,17 @@ class CarWorkOrderService(models.Model):
                 else self.env["product.product"]
             )
         return super().write(vals)
+
+    def unlink(self):
+        if not _is_upsell_sync(self.env):
+            locked_services = self.filtered(
+                lambda service: service.workorder_id.state != "new"
+            )
+            if locked_services:
+                raise UserError(_(
+                    "You cannot remove services after the work order has been confirmed."
+                ))
+        return super().unlink()
 
     @api.onchange("product_id")
     def onchange_method(self):
@@ -934,3 +1018,39 @@ class CarWorkOrderProduct(models.Model):
     service_id = fields.Many2one("product.product", string="Service")
     quantity = fields.Float()
     workorder_id = fields.Many2one("car.work.order", string="Workorder")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not _is_upsell_sync(self.env):
+            WorkOrder = self.env["car.work.order"]
+            for vals in vals_list:
+                workorder = WorkOrder.browse(vals.get("workorder_id"))
+                if workorder and workorder.state != "new":
+                    raise UserError(_(
+                        "You cannot add products after the work order has been confirmed."
+                    ))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if not _is_upsell_sync(self.env):
+            locked_vals = set(vals) & _PRODUCT_LOCKED_FIELDS
+            if locked_vals:
+                locked_lines = self.filtered(
+                    lambda line: line.workorder_id.state != "new"
+                )
+                if locked_lines:
+                    raise UserError(_(
+                        "You cannot modify products after the work order has been confirmed."
+                    ))
+        return super().write(vals)
+
+    def unlink(self):
+        if not _is_upsell_sync(self.env):
+            locked_lines = self.filtered(
+                lambda line: line.workorder_id.state != "new"
+            )
+            if locked_lines:
+                raise UserError(_(
+                    "You cannot remove products after the work order has been confirmed."
+                ))
+        return super().unlink()

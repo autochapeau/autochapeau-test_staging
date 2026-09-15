@@ -45,6 +45,22 @@ class SaleOrder(models.Model):
         string="Car Size",
     )
 
+    vehicle_color_id = fields.Many2one(
+        related="vehicle_id.vehicle_color_id",
+        string="Car Color",
+        readonly=True,
+    )
+    vehicle_vin_sn = fields.Char(
+        related="vehicle_id.vin_sn",
+        string="Chassis Number",
+        readonly=True,
+    )
+    vehicle_model_year = fields.Char(
+        related="vehicle_id.model_year",
+        string="Model Year",
+        readonly=True,
+    )
+
     related_sale_id = fields.Many2one(
         "sale.order",
         string="Related Sale Order",
@@ -169,16 +185,35 @@ class SaleOrder(models.Model):
                     raise UserError(_(
                         "You cannot change the pricelist on a sub sale order."
                     ))
+        if "vehicle_id" in vals or "order_type" in vals:
+            for order in self:
+                if order._must_clear_lines_on_header_change(vals) and order.order_line:
+                    order.order_line.unlink()
         return super().write(vals)
+
+    @api.constrains("order_line", "vehicle_id", "order_type")
+    def _check_order_lines_require_vehicle_and_type(self):
+        for order in self:
+            if order.order_line.filtered(lambda line: not line.display_type) and (
+                not order.vehicle_id or not order.order_type
+            ):
+                raise ValidationError(_(
+                    "Select the order type and car before adding order lines."
+                ))
 
     @api.onchange("partner_id")
     def _onchange_partner_id_reset_vehicle(self):
         self._reset_vehicle_if_invalid()
 
+    @api.onchange("vehicle_id")
+    def _onchange_vehicle_id_clear_lines(self):
+        self._clear_order_lines()
+
     @api.onchange("order_type")
     def _onchange_order_type_reset_vehicle(self):
         if self.order_type != "contract":
             self.subordinate_id = False
+        self._clear_order_lines()
         self._reset_vehicle_if_invalid()
 
     @api.onchange("subordinate_id")
@@ -216,23 +251,41 @@ class SaleOrder(models.Model):
             },
         }
 
-    def action_confirm(self):
-        if self.env.context.get("skip_confirm_otp_wizard"):
-            return super().action_confirm()
-        unverified = self._unverified_intern_extern_orders()
-        if not unverified:
-            return super().action_confirm()
-        if len(self) == 1:
-            return self._action_open_confirm_otp_wizard()
-        raise UserError(_(
-            "Cannot confirm Intern/Extern orders until each customer's "
-            "mobile number is verified via OTP."
-        ))
+    # def action_confirm(self):
+    #     if self.env.context.get("skip_confirm_otp_wizard"):
+    #         return super().action_confirm()
+    #     unverified = self._unverified_intern_extern_orders()
+    #     if not unverified:
+    #         return super().action_confirm()
+    #     if len(self) == 1:
+    #         return self._action_open_confirm_otp_wizard()
+    #     raise UserError(_(
+    #         "Cannot confirm Intern/Extern orders until each customer's "
+    #         "mobile number is verified via OTP."
+    #     ))
 
     def _reset_vehicle_if_invalid(self):
         owner = self._vehicle_owner_partner()
         if self.vehicle_id and self.vehicle_id.partner_id != owner:
             self.vehicle_id = False
+
+    def _clear_order_lines(self):
+        if self.order_line:
+            self.order_line = [(5, 0, 0)]
+
+    def _must_clear_lines_on_header_change(self, vals):
+        """Drop order lines when car or order type changes on draft orders."""
+        self.ensure_one()
+        if self.state not in ("draft", "sent"):
+            return False
+        if "vehicle_id" in vals:
+            new_vehicle_id = vals.get("vehicle_id") or False
+            current_vehicle_id = self.vehicle_id.id if self.vehicle_id else False
+            if new_vehicle_id != current_vehicle_id:
+                return True
+        if "order_type" in vals and vals["order_type"] != self.order_type:
+            return True
+        return False
 
     def action_create_appointment(self):
         """Open an appointment linked to this order, without creating duplicates."""
@@ -479,6 +532,17 @@ class SaleOrder(models.Model):
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
+
+    @api.constrains("product_id", "order_id")
+    def _check_line_requires_vehicle_and_type(self):
+        for line in self:
+            if line.display_type or not line.product_id:
+                continue
+            order = line.order_id
+            if not order.vehicle_id or not order.order_type:
+                raise ValidationError(_(
+                    "Select the order type and car before adding order lines."
+                ))
 
     def _get_size_attribute_values(self):
         """Size values selected on the line (variant and no_variant attributes)."""

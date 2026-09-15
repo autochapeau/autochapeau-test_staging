@@ -55,9 +55,9 @@ class SaleOrderConfirmOtpWizard(models.TransientModel):
                 "title": _("OTP Sent"),
                 "message": _(
                     "A verification code has been sent to %s. "
-                    "Enter it below, then confirm. %s"
+                    "Enter it below, then confirm"
                 )
-                % (phone, otp),
+                % phone,
                 "type": "success",
                 "sticky": False,
             },

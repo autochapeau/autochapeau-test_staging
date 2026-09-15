@@ -1,6 +1,6 @@
 {
     "name": "HR Branch & Department enhancements",
-    "version": "17.0.1.0.1",
+    "version": "17.0.1.0.2",
     "summary": "Adds department types and a 'Branch' field for employees",
     "category": "Human Resources",
     "author": "Wellknot",
