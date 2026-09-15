@@ -66,8 +66,11 @@
                 Create a discount limit for one or more users.
             </p>
             <p>
-                Users without a rule cannot apply any discount (0%).
+                Users without a rule have a 0% limit.
                 If a user is in several rules, the highest percentage is used.
+                Discounts above the salesperson limit can be entered, but
+                confirmation requires approval from a user whose limit is at
+                least the order maximum line discount.
             </p>
         </field>
     </record>

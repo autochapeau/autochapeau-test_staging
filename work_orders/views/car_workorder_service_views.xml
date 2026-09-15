@@ -48,7 +48,8 @@
                         <group>
                             <field name="branch_id" invisible="1"/>
                             <field name="staff_ids" widget="many2many_tags"
-                                   domain="[('branch_id', '!=', False), ('branch_id', '=', workorder_id.branch_id)]"/>
+                                   readonly="workorder_id.state != 'new'"
+                                   domain="[('branch_id', '!=', False), ('branch_id', '=', workorder_id.branch_id), ('is_technician', '=', True)]"/>
                         </group>
                     </group>
                     <group>

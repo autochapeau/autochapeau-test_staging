@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_order_form_sale_discount_approval" model="ir.ui.view">
+        <field name="name">sale.order.form.discount.approval</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_approve_discount"
+                        string="Approve Discount"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not can_approve_discount"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="not discount_approval_required or discount_approved or state not in ('draft', 'sent')">
+                    Maximum line discount exceeds the salesperson limit.
+                    A user with at least the same discount limit must approve
+                    before confirmation.
+                </div>
+                <div class="alert alert-success mb-0" role="alert"
+                     invisible="not discount_approved or state not in ('draft', 'sent')">
+                    Discount approved.
+                </div>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <field name="discount_approval_required" invisible="1"/>
+                <field name="discount_approved" invisible="1"/>
+                <field name="can_approve_discount" invisible="1"/>
+                <field name="discount_max_percent" invisible="1"/>
+                <field name="discount_approved_by_id" invisible="1"/>
+                <field name="discount_approved_percent" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
