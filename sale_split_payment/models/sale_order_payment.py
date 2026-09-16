@@ -256,16 +256,72 @@ class SaleOrderPayment(models.Model):
             "target": "current",
         }
 
+    def _get_reconciled_invoice_ids(self):
+        """Invoices already reconciled with the linked customer payment."""
+        self.ensure_one()
+        account_payment = self.account_payment_id
+        if not account_payment:
+            return self.env["account.move"]
+        if "reconciled_invoice_ids" in account_payment._fields:
+            return account_payment.reconciled_invoice_ids
+        move = account_payment.move_id
+        if not move:
+            return self.env["account.move"]
+        invoice_moves = self.env["account.move"]
+        for line in move.line_ids.filtered(
+            lambda l: l.account_id.account_type == "asset_receivable"
+        ):
+            for matched in line.matched_debit_ids | line.matched_credit_ids:
+                counterpart = (
+                    matched.debit_move_id
+                    if matched.credit_move_id == line
+                    else matched.credit_move_id
+                )
+                if (
+                    counterpart
+                    and counterpart.move_id.move_type in ("out_invoice", "out_refund")
+                ):
+                    invoice_moves |= counterpart.move_id
+        return invoice_moves
+
+    def _cancel_linked_account_payment(self):
+        """Cancel the posted customer payment when it is not invoice-reconciled."""
+        self.ensure_one()
+        account_payment = self.account_payment_id.sudo()
+        if not account_payment:
+            return
+        reconciled_invoices = self._get_reconciled_invoice_ids()
+        if reconciled_invoices:
+            raise UserError(
+                _(
+                    "Cannot cancel payment %(name)s because it is reconciled with "
+                    "invoice(s): %(invoices)s.\n"
+                    "Unreconcile it from Accounting first, or leave it as is."
+                )
+                % {
+                    "name": self.display_name,
+                    "invoices": ", ".join(reconciled_invoices.mapped("name")),
+                }
+            )
+        if account_payment.state == "posted":
+            account_payment.action_draft()
+        if account_payment.state == "draft":
+            account_payment.action_cancel()
+        self.account_payment_id = False
+
     def action_cancel(self):
         for payment in self:
-            if payment.state == "paid":
-                raise UserError(
-                    _(
-                        "A posted payment must be reversed from Accounting; "
-                        "it cannot be cancelled here."
-                    )
-                )
-            payment.state = "cancelled"
+            if payment.state == "cancelled":
+                continue
+            if payment.account_payment_id:
+                payment._cancel_linked_account_payment()
+            payment.write(
+                {
+                    "state": "cancelled",
+                    "error_message": False,
+                }
+            )
+        return True
 
     def action_reconcile(self):
         self._reconcile_available_invoices(raise_if_missing=True)

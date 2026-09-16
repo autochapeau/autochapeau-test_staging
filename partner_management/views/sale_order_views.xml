@@ -137,6 +137,17 @@
         </field>
     </record>
 
+    <record id="view_sales_order_filter_chassis" model="ir.ui.view">
+        <field name="name">sale.order.search.chassis</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="vehicle_vin_sn" string="Chassis Number"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_order_tree_inherit_vehicle_info" model="ir.ui.view">
         <field name="name">sale.order.tree.inherit.vehicle.info</field>
         <field name="model">sale.order</field>

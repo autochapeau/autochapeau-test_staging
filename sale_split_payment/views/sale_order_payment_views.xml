@@ -98,7 +98,8 @@
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
-                            invisible="state in ('paid', 'cancelled')"/>
+                            invisible="state == 'cancelled'"
+                            confirm="Cancel this payment? If paid and not linked to an invoice, the customer payment will be cancelled too. To change the amount, cancel then collect a new payment."/>
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,processing,pending,paid,failed,needs_review,cancelled"/>
