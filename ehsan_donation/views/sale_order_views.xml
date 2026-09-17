@@ -19,14 +19,15 @@
                     string="Cancel Ehsan Donation"
                     class="btn-secondary"
                     groups="ehsan_donation.group_cancel_ehsan_donation"
-                    invisible="order_type == 'contract' or (ehsan_donation_amount &lt;= 0 and not ehsan_donation_invoice_id) or ehsan_donation_move_id"
-                    confirm="Cancel the Ehsan donation on this order? This is only allowed before the donation journal entry is posted and before the donation invoice is posted/paid."
+                    invisible="not ehsan_donation_cancel_allowed"
+                    confirm="Cancel the Ehsan donation on this order? Allowed only when the remaining amount to collect is at least the donation amount."
                 />
             </xpath>
             <xpath expr="//group[@name='donation_details']" position="attributes">
                 <attribute name="invisible">order_type == 'contract'</attribute>
             </xpath>
             <xpath expr="//group[@name='donation_details']/field[@name='donation_amount']" position="after">
+                <field name="ehsan_donation_cancel_allowed" invisible="1"/>
                 <field name="ehsan_donation_amount" invisible="order_type == 'contract'"/>
                 <field name="ehsan_donation_declined" invisible="order_type == 'contract'"/>
                 <field name="ehsan_donation_invoice_id" readonly="1" invisible="order_type == 'contract' or not ehsan_donation_invoice_id"/>

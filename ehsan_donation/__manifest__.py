@@ -1,7 +1,7 @@
 {
     "name": "Ehsan Donation",
     "summary": "Customer and company Ehsan donations with reports and paid-invoice journal entries",
-    "version": "17.0.1.5.3",
+    "version": "17.0.1.5.4",
     "author": "Wellknot",
     "category": "Sales",
     "depends": [

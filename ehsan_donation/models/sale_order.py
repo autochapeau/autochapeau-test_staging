@@ -60,6 +60,11 @@ class SaleOrder(models.Model):
         copy=False, tracking=1,
         help="Customer does not want to donate. Hides the Ehsan Donation button.",
     )
+    ehsan_donation_cancel_allowed = fields.Boolean(
+        string="Can Cancel Ehsan Donation",
+        compute="_compute_ehsan_donation_cancel_allowed",
+        help="Technical: True when remaining to collect is at least the donation amount.",
+    )
 
     @api.depends(
         "transaction_ids",
@@ -71,6 +76,38 @@ class SaleOrder(models.Model):
         for order in self:
             tx_total = sum(order.transaction_ids.mapped("donation_amount"))
             order.donation_amount = tx_total + (order.ehsan_donation_amount or 0.0)
+
+    @api.depends(
+        "ehsan_donation_amount",
+        "ehsan_donation_move_id",
+        "ehsan_donation_invoice_id",
+        "split_amount_remaining",
+        "currency_id",
+    )
+    def _compute_ehsan_donation_cancel_allowed(self):
+        for order in self:
+            donation = order.ehsan_donation_amount or 0.0
+            has_donation = bool(
+                donation
+                or order.ehsan_donation_invoice_id
+            )
+            if (
+                order.order_type == "contract"
+                or not has_donation
+                or order.ehsan_donation_move_id
+            ):
+                order.ehsan_donation_cancel_allowed = False
+                continue
+            # Remaining must cover the donation (blocks full payment and
+            # cases where part of the donation was already collected).
+            order.ehsan_donation_cancel_allowed = (
+                float_compare(
+                    order.split_amount_remaining,
+                    donation,
+                    precision_rounding=order.currency_id.rounding or 0.01,
+                )
+                >= 0
+            )
 
     @api.depends(
         "ehsan_donation_amount",
@@ -233,6 +270,30 @@ class SaleOrder(models.Model):
                     "(%s). Reverse it from Accounting first."
                 )
                 % self.ehsan_donation_move_id.display_name
+            )
+
+        donation = self.ehsan_donation_amount or 0.0
+        remaining = self.split_amount_remaining
+        if float_compare(
+            remaining,
+            donation,
+            precision_rounding=self.currency_id.rounding or 0.01,
+        ) < 0:
+            raise UserError(
+                _(
+                    "Cannot cancel the Ehsan donation.\n"
+                    "Donation amount: %(donation)s\n"
+                    "Remaining to collect: %(remaining)s\n\n"
+                    "Cancel is only allowed when the remaining amount is greater "
+                    "than or equal to the donation (the donation must not have "
+                    "been collected yet). If the order is fully paid or only a "
+                    "part of the donation remains unpaid, handle a refund from "
+                    "Accounting."
+                )
+                % {
+                    "donation": self.currency_id.format(donation),
+                    "remaining": self.currency_id.format(remaining),
+                }
             )
 
         donation_lines = self.invoice_ids.invoice_line_ids.filtered(
