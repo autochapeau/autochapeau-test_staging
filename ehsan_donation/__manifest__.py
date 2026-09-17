@@ -1,7 +1,7 @@
 {
     "name": "Ehsan Donation",
     "summary": "Customer and company Ehsan donations with reports and paid-invoice journal entries",
-    "version": "17.0.1.5.2",
+    "version": "17.0.1.5.3",
     "author": "Wellknot",
     "category": "Sales",
     "depends": [
@@ -11,6 +11,7 @@
         "sale_split_payment",
     ],
     "data": [
+        "security/ehsan_donation_security.xml",
         "security/ir.model.access.csv",
         "wizard/ehsan_donation_wizard_views.xml",
         "views/sale_split_payment_wizard_views.xml",

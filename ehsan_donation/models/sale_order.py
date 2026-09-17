@@ -13,20 +13,20 @@ class SaleOrder(models.Model):
     ehsan_donation_amount = fields.Monetary(
         string="Ehsan Donation Amount",
         currency_field="currency_id",
-        copy=False,
+        copy=False, tracking=1,
         help="Donation amount set from the ERP Ehsan donation wizard.",
     )
     ehsan_donation_move_id = fields.Many2one(
         "account.move",
         string="Ehsan Donation Journal Entry",
-        copy=False,
+        copy=False, tracking=1,
         readonly=True,
         check_company=True,
     )
     ehsan_donation_invoice_id = fields.Many2one(
         "account.move",
         string="Ehsan Donation Invoice",
-        copy=False,
+        copy=False, tracking=1,
         readonly=True,
         check_company=True,
         help="Customer invoice containing the Ehsan donation line.",
@@ -38,26 +38,26 @@ class SaleOrder(models.Model):
         ],
         string="Ehsan Donation Status",
         compute="_compute_ehsan_donation_state",
-        store=True,
+        store=True, tracking=1,
         copy=False,
     )
     company_ehsan_donation_amount = fields.Monetary(
         string="Company Ehsan Donation",
         currency_field="currency_id",
-        copy=False,
+        copy=False, tracking=1,
         readonly=True,
         help="Company donation generated once when paid invoices of this order reach the threshold.",
     )
     company_ehsan_donation_move_id = fields.Many2one(
         "account.move",
         string="Company Ehsan Donation Journal Entry",
-        copy=False,
+        copy=False, tracking=1,
         readonly=True,
         check_company=True,
     )
     ehsan_donation_declined = fields.Boolean(
         string="Customer Declined Ehsan Donation",
-        copy=False,
+        copy=False, tracking=1,
         help="Customer does not want to donate. Hides the Ehsan Donation button.",
     )
 
@@ -210,6 +210,69 @@ class SaleOrder(models.Model):
                 "default_donation_amount": self.ehsan_donation_amount or 10.0,
             },
         }
+
+    def action_cancel_ehsan_donation(self):
+        """Clear a mistaken customer donation before it is posted/paid."""
+        self.ensure_one()
+        if not self.env.user.has_group(
+            "ehsan_donation.group_cancel_ehsan_donation"
+        ):
+            raise UserError(_(
+                "You are not allowed to cancel an Ehsan donation."
+            ))
+        if self.order_type == "contract":
+            raise UserError(_(
+                "Ehsan donations are not available on Contract sale orders."
+            ))
+        if not self.ehsan_donation_amount and not self.ehsan_donation_invoice_id:
+            raise UserError(_("There is no Ehsan donation to cancel on this order."))
+        if self.ehsan_donation_move_id:
+            raise UserError(
+                _(
+                    "Cannot cancel: an Ehsan donation journal entry already exists "
+                    "(%s). Reverse it from Accounting first."
+                )
+                % self.ehsan_donation_move_id.display_name
+            )
+
+        donation_lines = self.invoice_ids.invoice_line_ids.filtered(
+            lambda line: line.ehsan_donation_sale_order_id == self
+        )
+        posted_moves = donation_lines.move_id.filtered(
+            lambda move: move.state == "posted"
+        )
+        if posted_moves:
+            raise UserError(
+                _(
+                    "Cannot cancel: the donation is already on posted invoice(s) "
+                    "%(invoices)s. Reset or credit the invoice in Accounting first."
+                )
+                % {"invoices": ", ".join(posted_moves.mapped("name"))}
+            )
+        paid_moves = donation_lines.move_id.filtered(
+            lambda move: move.payment_state in ("paid", "in_payment", "partial")
+        )
+        if paid_moves:
+            raise UserError(
+                _(
+                    "Cannot cancel: the donation invoice is already paid "
+                    "(%(invoices)s)."
+                )
+                % {"invoices": ", ".join(paid_moves.mapped("name"))}
+            )
+
+        draft_lines = donation_lines.filtered(lambda line: line.move_id.state == "draft")
+        if draft_lines:
+            draft_lines.unlink()
+
+        self.write(
+            {
+                "ehsan_donation_amount": 0.0,
+                "ehsan_donation_declined": False,
+                "ehsan_donation_invoice_id": False,
+            }
+        )
+        return True
 
     def _create_ehsan_donation_move(self):
         """Create and post donation journal entry using company donation accounts."""

@@ -9,7 +9,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="before">
-                <field name="discount_type"
+                <field name="discount_type" readonly="state != 'draft'"
                        string="Disc. Type"
                        groups="product.group_discount_per_so_line"
                        optional="show"/>
@@ -19,7 +19,7 @@
                        string="Disc. Amount"
                        groups="product.group_discount_per_so_line"
                        optional="show"
-                       readonly="discount_type != 'amount'"/>
+                       readonly="discount_type != 'amount' and state != 'draft'"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="attributes">
                 <attribute name="readonly">discount_type == 'amount'</attribute>
