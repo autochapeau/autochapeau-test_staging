@@ -15,6 +15,7 @@ class SaleOrder(models.Model):
         ),
     )
 
+    mobile = fields.Char(related='partner_id.mobile')
     subordinate_id = fields.Many2one(
         "res.partner",
         string="Car Owner",
@@ -61,6 +62,9 @@ class SaleOrder(models.Model):
         readonly=True,
     )
 
+    plate_numbers = fields.Char(related="vehicle_id.plate_numbers")
+    plate_letters = fields.Char(related="vehicle_id.plate_letters")
+
     related_sale_id = fields.Many2one(
         "sale.order",
         string="Related Sale Order",
@@ -101,6 +105,12 @@ class SaleOrder(models.Model):
         string="Has Service Lines",
         compute="_compute_product_line_type_flags",
     )
+
+    def _prepare_invoice(self):
+        invoice_vals = super(SaleOrder, self)._prepare_invoice()
+        # نقل قيمة الحقل من أمر البيع إلى الفاتورة
+        invoice_vals['vehicle_id'] = self.vehicle_id.id
+        return invoice_vals
 
     def _get_vehicle_size_product_domain(self):
         """Show products without Size, or products matching the car size."""
@@ -195,7 +205,7 @@ class SaleOrder(models.Model):
     def _check_order_lines_require_vehicle_and_type(self):
         for order in self:
             if order.order_line.filtered(lambda line: not line.display_type) and (
-                not order.vehicle_id or not order.order_type
+                    not order.vehicle_id or not order.order_type
             ):
                 raise ValidationError(_(
                     "Select the order type and car before adding order lines."
@@ -229,8 +239,8 @@ class SaleOrder(models.Model):
     def _unverified_intern_extern_orders(self):
         return self.filtered(
             lambda order: order.order_type in ("intern", "extern")
-            and order.partner_id
-            and not order.partner_id.mobile_verified
+                          and order.partner_id
+                          and not order.partner_id.mobile_verified
         )
 
     def _action_open_confirm_otp_wizard(self):
@@ -332,7 +342,7 @@ class SaleOrder(models.Model):
         )
         product_lines = self.order_line.filtered(
             lambda line: line.product_id
-            and line.product_id.detailed_type != "service"
+                         and line.product_id.detailed_type != "service"
         )
         return {
             "type": "ir.actions.act_window",
@@ -488,8 +498,8 @@ class SaleOrder(models.Model):
                 "default_partner_id": self.subordinate_id.id,
                 "default_mobile": self.subordinate_id.mobile,
                 "default_country_id": (
-                    self.subordinate_id.country_id.id
-                    or self.partner_id.country_id.id
+                        self.subordinate_id.country_id.id
+                        or self.partner_id.country_id.id
                 ),
                 "default_extra_order_type": extra_order_type or "intern",
             },
@@ -551,8 +561,8 @@ class SaleOrderLine(models.Model):
         if not size_attributes:
             return self.env["product.template.attribute.value"]
         ptavs = (
-            self.product_id.product_template_attribute_value_ids
-            | self.product_no_variant_attribute_value_ids
+                self.product_id.product_template_attribute_value_ids
+                | self.product_no_variant_attribute_value_ids
         )
         return ptavs.filtered(lambda ptav: ptav.attribute_id in size_attributes)
 
@@ -582,8 +592,8 @@ class SaleOrderLine(models.Model):
             if line.display_type or not line.product_id:
                 continue
             if (
-                line.product_id.detailed_type == "service"
-                and line.product_uom_qty > 1
+                    line.product_id.detailed_type == "service"
+                    and line.product_uom_qty > 1
             ):
                 raise ValidationError(_(
                     "Service products cannot have a quantity greater than 1."

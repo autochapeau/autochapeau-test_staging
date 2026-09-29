@@ -5,18 +5,9 @@
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
-        "base",
-        "contacts",
-        "mail",
-        "sale",
-        "sale_product_configurator",
-        "account",
-        "infinito_sms",
-        "cars_management",
-        "appointment_management",
-        "work_orders",
-        "commission",
-        "sale_split_payment",
+        "base", "contacts",  "mail", "sale", "sale_product_configurator",
+        "account", "infinito_sms", "cars_management", "appointment_management", "work_orders",
+        "commission", "sale_split_payment",
     ],
     "data": [
         "security/groups.xml",
@@ -26,6 +17,7 @@
         "wizard/sale_extra_order_otp_wizard_views.xml",
         "wizard/sale_extra_order_type_wizard_views.xml",
         "wizard/sale_order_confirm_otp_wizard_views.xml",
+        "reports/invoice_report.xml",
         "views/res_city_views.xml",
         "views/res_partner_views.xml",
         "views/sale_order_views.xml",
@@ -35,6 +27,7 @@
         "views/car_work_order_views.xml",
         "views/car_workorder_service_views.xml",
         "views/product_product_views.xml",
+        "views/account_move.xml",
     ],
     "assets": {
         "web.assets_backend": [

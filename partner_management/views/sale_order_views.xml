@@ -129,8 +129,9 @@
         <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="related_sale_id" optional="hide"/>
+<!--                <field name="related_sale_id" optional="hide"/>-->
                 <field name="subordinate_id" optional="hide" string="Car Owner"/>
+                <field name="mobile" string="Customer Mobile" optional="show"/>
                 <field name="vehicle_id" optional="hide" string="Vehicle"/>
                 <field name="vehicle_vin_sn" optional="hide"/>
             </xpath>
@@ -154,10 +155,12 @@
         <field name="inherit_id" ref="sale.view_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="subordinate_id" optional="hide" string="Car Owner"/>
+<!--                <field name="subordinate_id" optional="hide" string="Car Owner"/>-->
+                <field name="mobile" string="Customer Mobile" optional="show"/>
                 <field name="vehicle_id" optional="hide" string="Vehicle"/>
                 <field name="vehicle_vin_sn" optional="hide"/>
             </xpath>
+
         </field>
     </record>
 

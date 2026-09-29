@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_invoice_vehicle_custom" inherit_id="l10n_gcc_invoice.arabic_english_invoice">
+
+        <xpath expr="//div[@id='informations']" position="inside">
+
+            <div class="col-6" name="vehicle_block_info" style="margin-top:-120px; padding:10px;">
+                <div class="row" t-if="o.vehicle_id" style="line-height: 1.2; margin-bottom: 3px;">
+                    <div class="col-3 text-start">
+                        <span style="font-size: 0.85rem; color: #A29393;"><b>Vehicle</b></span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span t-field="o.vehicle_id" style="font-size: 0.85rem;"/>
+                    </div>
+                    <div class="col-3 text-end">
+                        <span style="font-size: 0.85rem; color: #A29393;"><b>:المركبة</b></span>
+                    </div>
+                </div>
+
+                <div class="row" t-if="o.plate_numbers or o.plate_letters" style="line-height: 1.2; margin-bottom: 3px;">
+                    <div class="col-3 text-start">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Reg NB</b></span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span style="font-size: 0.85rem;">
+                            <span t-field="o.plate_letters"/>&#160;<span t-field="o.plate_numbers"/>
+                        </span>
+                    </div>
+                    <div class="col-3 text-end">
+                        <b><span style=" font-size: 0.85rem; color: #A29393;"><b>:رقم المركبة</b></span></b>
+                    </div>
+                </div>
+
+                <div class="row" t-if="o.vehicle_vin_sn" style="line-height: 1.2; margin-bottom: 3px;">
+                    <div class="col-3 text-start">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Chassis NB</b></span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span t-field="o.vehicle_vin_sn" style="font-size: 0.85rem; "/>
+                    </div>
+                    <div class="col-3 text-end">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:رقم الهيكل</b></span>
+                    </div>
+                </div>
+
+                <div class="row" t-if="o.vehicle_color_id" style="line-height: 1.2; margin-bottom: 3px;">
+                    <div class="col-3 text-start">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Car Color</b></span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span t-field="o.vehicle_color_id" style="font-size: 0.85rem; "/>
+                    </div>
+                    <div class="col-3 text-end">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:لون السيارة</b></span>
+                    </div>
+                </div>
+
+                <div class="row" t-if="o.vehicle_model_year" style="line-height: 1.2; margin-bottom: 3px;">
+                    <div class="col-3 text-start">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Model Year</b></span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <span t-field="o.vehicle_model_year" style="font-size: 0.85rem; "/>
+                    </div>
+                    <div class="col-3 text-end">
+                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:سنة الصنع</b></span>
+                    </div>
+                </div>
+            </div>
+
+        </xpath>
+
+    </template>
+</odoo>
