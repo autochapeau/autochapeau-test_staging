@@ -60,7 +60,7 @@ class ResPartner(models.Model):
         string="Sales Orders",
     )
 
-    # ── Mobile OTP ────────────────────────────────────────────────────
+    # ── Mobile OTP ────────────────────────────────────────────────────-
     mobile_otp_input = fields.Char(
         string="OTP Code",
         copy=False,
