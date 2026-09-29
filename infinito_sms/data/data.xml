@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<odoo noupdate="1">
+<odoo noupdate="0">
 
 <!--    <record id="infinito_client_id" model="ir.config_parameter">-->
 <!--        <field name="key">infinito_client_id</field>-->
