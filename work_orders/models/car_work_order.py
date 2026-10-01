@@ -419,7 +419,7 @@ class CarWorkOrder(models.Model):
     product_ids = fields.One2many(
         "car.workorder.product", "workorder_id", "Products")
     picking_id = fields.Many2one(
-        "stock.picking", "Stock Transfert", readonly=True)
+        "stock.picking", "Delivery", readonly=True)
 
     @api.onchange('appointment_id')
     def _onchange_appointment_set_sale_order(self):
@@ -552,34 +552,104 @@ class CarWorkOrder(models.Model):
         if not has_staff:
             raise UserError(
                 _("You must select at least one staff on a service before confirming the work order."))
-        picking_type_internal = self.env.ref("stock.picking_type_internal").sudo()
-        location_id = picking_type_internal.default_location_src_id.id
-        location_dest_id = picking_type_internal.default_location_dest_id.id
-        picking_vals = {
-            "picking_type_id": picking_type_internal.id,
-            "location_id": location_id,
-            "location_dest_id": location_dest_id,
-            "origin": self._get_linked_sale_order().name or self.name or "",
-            "move_ids": [
-                Command.create(
-                    {
-                        "product_id": line.product_id.id,
-                        "product_uom_qty": line.quantity,
-                        "location_id": location_id,
-                        "location_dest_id": location_dest_id,
-                        "name": line.product_id.name,
-                    }
-                )
-                for line in self.product_ids
-            ],
-        }
-        Picking = self.env["stock.picking"].sudo()
-        if "branch_id" in Picking._fields:
-            picking_vals["branch_id"] = self.branch_id.id if self.branch_id else False
-
-        picking = Picking.create(picking_vals)
+        picking = self._create_delivery_picking()
         self.picking_id = picking.id
         self.state = "confirmed"
+
+    def _get_branch_warehouse(self):
+        """Warehouse linked to this work order's branch."""
+        self.ensure_one()
+        branch = self.branch_id
+        if not branch:
+            raise UserError(
+                _("Work order %s has no branch. Set the branch before confirming.")
+                % self.display_name
+            )
+        company = self.company_id or self.env.company
+        warehouse = self.env["stock.warehouse"].sudo().search(
+            [
+                ("branch_id", "=", branch.id),
+                ("company_id", "=", company.id),
+            ],
+            limit=1,
+        )
+        if not warehouse:
+            raise UserError(
+                _("No warehouse is linked to branch '%s'. "
+                  "Open Inventory → Configuration → Warehouses and set the Branch "
+                  "on the correct warehouse.")
+                % branch.display_name
+            )
+        return warehouse
+
+    def _get_customer_location(self, company):
+        location = self.env.ref("stock.stock_location_customers", raise_if_not_found=False)
+        if location and (not location.company_id or location.company_id == company):
+            return location
+        location = self.env["stock.location"].search(
+            [
+                ("usage", "=", "customer"),
+                "|",
+                ("company_id", "=", False),
+                ("company_id", "=", company.id),
+            ],
+            limit=1,
+        )
+        if not location:
+            raise UserError(
+                _("No customer location found. Check Inventory → Configuration → Locations.")
+            )
+        return location
+
+    def _create_delivery_picking(self):
+        """Draft outgoing delivery: branch warehouse stock → Customers."""
+        self.ensure_one()
+        company = self.company_id or self.env.company
+        warehouse = self._get_branch_warehouse()
+        picking_type = warehouse.out_type_id
+        if not picking_type:
+            raise UserError(
+                _("Warehouse '%s' has no Delivery Orders operation type.")
+                % warehouse.display_name
+            )
+
+        location_src = warehouse.lot_stock_id or picking_type.default_location_src_id
+        if not location_src:
+            raise UserError(
+                _("Warehouse '%s' has no stock location to take products from.")
+                % warehouse.display_name
+            )
+
+        location_dest = picking_type.default_location_dest_id
+        if not location_dest or location_dest.usage != "customer":
+            location_dest = self._get_customer_location(company)
+
+        move_commands = [
+            Command.create(
+                {
+                    "name": line.product_id.display_name,
+                    "product_id": line.product_id.id,
+                    "product_uom_qty": line.quantity,
+                    "product_uom": line.product_id.uom_id.id,
+                    "location_id": location_src.id,
+                    "location_dest_id": location_dest.id,
+                }
+            )
+            for line in self.product_ids if line.product_id
+        ]
+        picking_vals = {
+            "picking_type_id": picking_type.id,
+            "location_id": location_src.id,
+            "location_dest_id": location_dest.id,
+            "origin": self._get_linked_sale_order().name or self.name or "",
+            "partner_id": self.partner_id.id if self.partner_id else False,
+            "company_id": company.id,
+            "move_ids": move_commands,
+        }
+        Picking = self.env["stock.picking"].sudo()
+        if "branch_id" in Picking._fields and self.branch_id:
+            picking_vals["branch_id"] = self.branch_id.id
+        return Picking.create(picking_vals)
 
     def action_progress(self):
         self.ensure_one()
@@ -745,7 +815,7 @@ class CarWorkOrder(models.Model):
     def action_view_picking(self):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id(
-            "stock.action_picking_tree_internal")
+            "stock.action_picking_tree_outgoing")
         action["views"] = [(False, "form")]
         action["res_id"] = self.picking_id.id
         return action

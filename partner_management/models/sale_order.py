@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.osv import expression
 
 
+
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
@@ -15,7 +16,6 @@ class SaleOrder(models.Model):
         ),
     )
 
-    mobile = fields.Char(related='partner_id.mobile')
     subordinate_id = fields.Many2one(
         "res.partner",
         string="Car Owner",

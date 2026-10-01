@@ -26,6 +26,7 @@ class SaleOrder(models.Model):
         ('extern', 'Extern'),
         ('contract', 'Contract'),
     ], string="Order Type", required=True)
+    mobile = fields.Char(related="partner_id.mobile", string="Mobile")
 
     donation_amount = fields.Float(compute="_compute_donation_amount")
     access_token = fields.Char(default=lambda self: str(uuid4()), copy=False)
