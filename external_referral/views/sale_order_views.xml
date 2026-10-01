@@ -67,4 +67,20 @@
             </xpath>
         </field>
     </record>
+    
+    <record id="view_order_tree_inherit_extern_info" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherit.extern.info</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_total']" position="after">
+                <field name="commission_autochapeau_amount" sum="Total" widget="monetary" optional="show"/>
+                <field name="commission_autochapeau_percent" optional="show"/>
+                <field name="commission_autoflex_amount" sum="Total" widget="monetary" optional="show"/>
+                <field name="commission_autoflex_percent" optional="show"/>
+                <field name="commission_agency_total" sum="Total" widget="monetary" optional="show"/>
+                <field name="amount_net_of_commission" sum="Total" widget="monetary" optional="show"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

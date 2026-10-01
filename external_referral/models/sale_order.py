@@ -46,6 +46,13 @@ class SaleOrder(models.Model):
         store=True,
         help="Sum of Autochapeau and Autoflex commission amounts.",
     )
+    amount_net_of_commission = fields.Monetary(
+        string="Net After Discount & Commission",
+        currency_field="currency_id",
+        compute="_compute_amount_net_of_commission",
+        store=True,
+        help="Untaxed amount after discount minus the agency commission.",
+    )
     external_referral_ids = fields.One2many(
         "external.referral",
         "sale_order_id",
@@ -67,6 +74,13 @@ class SaleOrder(models.Model):
         for order in self:
             order.commission_agency_total = (
                 order.commission_autochapeau_amount + order.commission_autoflex_amount
+            )
+
+    @api.depends("amount_untaxed", "commission_agency_total")
+    def _compute_amount_net_of_commission(self):
+        for order in self:
+            order.amount_net_of_commission = (
+                order.amount_untaxed - order.commission_agency_total
             )
 
     def _get_workshop_untaxed_bases(self):
