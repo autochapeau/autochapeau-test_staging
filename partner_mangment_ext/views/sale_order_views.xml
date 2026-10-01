@@ -9,32 +9,54 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="before">
-                <field name="discount_type" readonly="state != 'draft'"
+                <field name="discount_type"
                        string="Disc. Type"
                        groups="product.group_discount_per_so_line"
-                       optional="show"/>
+                       optional="show"
+                       readonly="state != 'draft'"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="after">
                 <field name="discount_amount"
                        string="Disc. Amount"
                        groups="product.group_discount_per_so_line"
                        optional="show"
-                       readonly="discount_type != 'amount' and state != 'draft'"/>
+                       readonly="discount_type != 'amount' or state != 'draft'"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="attributes">
-                <attribute name="readonly">discount_type == 'amount'</attribute>
+                <attribute name="readonly">discount_type == 'amount' or state != 'draft'</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']//form//div[@name='discount']" position="replace">
                 <div name="discount">
-                    <field name="discount_type" class="oe_inline"/>
+                    <field name="discount_type"
+                           class="oe_inline"
+                           readonly="state != 'draft'"/>
                     <field name="discount"
                            class="oe_inline"
-                           invisible="discount_type == 'amount'"/>
-                    <span invisible="discount_type == 'amount'"> %</span>
+                           invisible="discount_type == 'amount'"
+                           readonly="discount_type == 'amount' or state != 'draft'"/>
+                    <span invisible="discount_type == 'amount'">%</span>
                     <field name="discount_amount"
                            class="oe_inline"
-                           invisible="discount_type != 'amount'"/>
+                           invisible="discount_type != 'amount'"
+                           readonly="discount_type != 'amount' or state != 'draft'"/>
                 </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="order_tree_total_discount" model="ir.ui.view">
+        <field name="name">order_tree_total_discount</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_untaxed']" position="before">
+                <field name="amount_before_discount" sum="Total" widget="monetary" optional="show"/>
+                <field name="total_discount_amount" sum="Total" widget="monetary" optional="show"/>
+                <field name="total_discount_percent" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='amount_untaxed']" position="attributes">
+                <attribute name="string">Amount After Discount</attribute>
+                <attribute name="optional">show</attribute>
             </xpath>
         </field>
     </record>

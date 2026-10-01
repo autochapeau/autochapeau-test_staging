@@ -62,6 +62,21 @@ class SaleOrderLine(models.Model):
             super()._convert_to_tax_base_line_dict(**kwargs)
         )
 
+    def _prepare_invoice_line(self, **optional_values):
+        """Keep SO price + Disc.% on invoice; amount discount is applied in tax compute."""
+        res = super()._prepare_invoice_line(**optional_values)
+        if self.discount_type == "amount" and not self.display_type:
+            qty = res.get("quantity")
+            if qty is None:
+                qty = optional_values.get("quantity", self.qty_to_invoice or 0.0)
+            so_qty = self.product_uom_qty or 1.0
+            ratio = (qty / so_qty) if so_qty else 1.0
+            res["price_unit"] = self.price_unit
+            res["discount"] = self.discount
+            res["discount_type"] = "amount"
+            res["discount_amount"] = (self.discount_amount or 0.0) * ratio
+        return res
+
     @api.model
     def _percent_from_amount(self, amount, price_unit, qty):
         base = (price_unit or 0.0) * (qty or 0.0)
@@ -166,3 +181,4 @@ class SaleOrderLine(models.Model):
                 line._prepare_discount_vals(vals, line=line)
             ) and result
         return result
+
