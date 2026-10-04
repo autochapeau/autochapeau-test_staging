@@ -142,8 +142,8 @@ class PortalPayment(http.Controller):
             # Create customer payment and validated it
             payment_values = {
                 "payment_type": "inbound",
-                # "contact_type": "customer",
-                "contact_partner_type": "customer",
+                "contact_type": "customer",
+                # "contact_partner_type": "customer",
                 "amount": amount,
                 "date": fields.Datetime.now(),
                 # todo: check journal_id without a company_id
