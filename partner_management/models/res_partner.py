@@ -254,6 +254,7 @@ class ResPartner(models.Model):
                 "default_payment_type": "inbound",
                 "default_partner_type": "customer",
                 "default_move_journal_types": ("bank", "cash"),
+                "create": False,
             },
         )
 
@@ -277,6 +278,7 @@ class ResPartner(models.Model):
             context={
                 "default_partner_id": self.id,
                 "default_move_type": "out_invoice",
+                "create": False,
             },
         )
 
