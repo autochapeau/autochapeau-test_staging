@@ -10,6 +10,7 @@
         "crm",
         "autochapeau_loyalty",
         "gb_window_tinting",
+        "sale_split_payment",
     ],
     "data": [
         "data/portal_api_data.xml",

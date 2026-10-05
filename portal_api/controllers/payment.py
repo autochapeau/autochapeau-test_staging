@@ -53,6 +53,19 @@ class PortalPayment(http.Controller):
             if not payment_methods:
                 return make_json_response(400, "Please Check Payment Type field")
             payment_method_id = payment_methods[0]
+            collection_method = request.env["sale.collection.method"].sudo().search(
+                [
+                    ("company_id", "=", sale_company.id),
+                    ("code", "=", data.get("payment_type")),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+            if not collection_method:
+                return make_json_response(
+                    400,
+                    {"message": "Collection method is not configured for this payment type."},
+                )
             # Consume the wallet points if customer pay order using wallet card
             if data.get("payment_type") == "wallet":
                 wallet_card = sale_order.partner_id.wallet_card_id
@@ -157,6 +170,18 @@ class PortalPayment(http.Controller):
                 SUPERUSER_ID).create(payment_values)
             payment.with_user(SUPERUSER_ID).action_post()
             transaction.payment_id = payment.id
+            if sale_order.currency_id.compare_amounts(amount, 0) > 0:
+                request.env["sale.order.payment"].sudo().create({
+                    "sale_order_id": sale_order.id,
+                    "collection_method_id": collection_method.id,
+                    "journal_id": payment_journal.id,
+                    "amount": amount,
+                    "provider_reference": data.get("transaction_id") or transaction.reference,
+                    "external_reference": transaction.reference,
+                    "provider_status": "paid_online",
+                    "state": "paid",
+                    "account_payment_id": payment.id,
+                })
             if wallet_amount:
                 wallet_card = sale_order.partner_id.wallet_card_id
                 wallet_card.points -= wallet_amount
