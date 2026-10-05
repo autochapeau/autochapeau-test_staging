@@ -36,6 +36,26 @@ class SaleOrder(models.Model):
         string="Can Approve Discount",
         compute="_compute_can_approve_discount",
     )
+    discount_approval_state = fields.Selection(
+        [
+            ("not_required", "Not Required"),
+            ("to_approve", "Waiting Approval"),
+            ("approved", "Approved"),
+        ],
+        string="Approval Status",
+        compute="_compute_discount_approval_state",
+        store=True,
+    )
+
+    @api.depends("discount_approval_required", "discount_approved")
+    def _compute_discount_approval_state(self):
+        for order in self:
+            if order.discount_approved:
+                order.discount_approval_state = "approved"
+            elif order.discount_approval_required:
+                order.discount_approval_state = "to_approve"
+            else:
+                order.discount_approval_state = "not_required"
 
     @api.depends(
         "order_line.discount",
