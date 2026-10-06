@@ -456,7 +456,7 @@ class ProfileAPI(http.Controller):
             if log.type == "payment_by_wallet":
                 history.append(
                     {
-                        "date": log.create_date.strftime(DEFAULT_DATETIME_FORMAT),
+                        "date": convert_utc_to_timezone(log.create_date),
                         "origin": log.order_id.name if log.order_id else False,
                         "type": "loss",
                         "points": -log.points,
@@ -466,7 +466,7 @@ class ProfileAPI(http.Controller):
             else:
                 history.append(
                     {
-                        "date": log.create_date.strftime(DEFAULT_DATETIME_FORMAT),
+                        "date": convert_utc_to_timezone(log.create_date),
                         "origin": log_types.get(log.type),
                         "type": "gain",
                         "points": log.points,
