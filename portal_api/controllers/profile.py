@@ -419,7 +419,8 @@ class ProfileAPI(http.Controller):
             if order.coupon_point_ids:
                 gain_list = [
                     {
-                        "date": order.date_order.strftime(DEFAULT_DATETIME_FORMAT),
+                        # "date": order.date_order.strftime(DEFAULT_DATETIME_FORMAT),
+                        "date": convert_utc_to_timezone(order.date_order),
                         "origin": order.name,
                         "type": "gain",
                         "points": line.points,
@@ -434,7 +435,8 @@ class ProfileAPI(http.Controller):
             if log.type == "loyalty_exchange":
                 history.append(
                     {
-                        "date": log.create_date.strftime(DEFAULT_DATETIME_FORMAT),
+                        # "date": log.create_date.strftime(DEFAULT_DATETIME_FORMAT),
+                        "date": convert_utc_to_timezone(log.create_date),
                         "origin": log_types.get(log.type),
                         "type": "loss",
                         "points": -log.points,
