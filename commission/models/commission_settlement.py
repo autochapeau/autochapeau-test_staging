@@ -63,6 +63,13 @@ class CommissionSettlement(models.Model):
         self.generate_commission_lines()
         self.write({"state": "settled"})
 
+    def _commission_signed_subtotal(self, move_line):
+        """Customer invoices add to sales. Credit notes subtract."""
+        subtotal = move_line.price_subtotal
+        if move_line.move_id.move_type == "out_refund":
+            return -subtotal
+        return subtotal
+
     def generate_commission_lines(self):
         commissions = self.commission_ids
         commission_targets = {commission.id: {} for commission in commissions}
@@ -82,13 +89,14 @@ class CommissionSettlement(models.Model):
                 move_lines = self.env["account.move.line"].search(
                     [
                         ("move_id.invoice_user_id", "=", employee.user_id.id),
+                        ("move_id.move_type", "in", ("out_invoice", "out_refund")),
                         ("product_id.commission_category_id", "!=", False),
                         ("move_id.state", "=", "posted"),
                         ("invoice_date", ">=", self.date_from),
                         ("invoice_date", "<=", self.date_to),
                     ]
                 )
-                invoiced_amount = sum(line.price_subtotal for line in move_lines)
+                invoiced_amount = sum(self._commission_signed_subtotal(line) for line in move_lines)
                 current_target = commission_targets[commission_id][employee_id]
                 percent = (invoiced_amount / current_target) * 100 if current_target else 0.0
 
@@ -104,7 +112,8 @@ class CommissionSettlement(models.Model):
                                     section.commission_category_id.id == categ.id
                                     and section.amount_from <= percent <= section.amount_to
                                 ):
-                                    curr_amount = line.price_subtotal * (section.percent / 100)
+                                    signed_subtotal = self._commission_signed_subtotal(line)
+                                    curr_amount = signed_subtotal * (section.percent / 100)
                                     amount_to_settle += curr_amount
                                     move_line_ids.append(line.id)
                                     for discount_section in commission.discount_section_ids:

@@ -123,6 +123,19 @@
         </field>
     </record>
 
+    <!-- Base quotation tree: Sales quotations, sales orders, and CRM quotations. -->
+    <record id="view_quotation_tree_inherit_owner_agency" model="ir.ui.view">
+        <field name="name">sale.order.tree.owner.mobile.agency.salesperson</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="subordinate_mobile" string="Car Owner Mobile No." optional="show"/>
+                <field name="agency_salesperson_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_quotation_tree_inherit_related_sale" model="ir.ui.view">
         <field name="name">sale.order.tree.inherit.related.sale</field>
         <field name="model">sale.order</field>
@@ -135,6 +148,12 @@
                 <field name="vehicle_id" optional="hide" string="Vehicle"/>
                 <field name="vehicle_vin_sn" optional="hide"/>
             </xpath>
+            <xpath expr="//field[@name='subordinate_id']" position="after">
+                <field name="subordinate_mobile" position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="agency_salesperson_id" position="move"/>
+            </xpath>
         </field>
     </record>
 
@@ -145,6 +164,11 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vehicle_vin_sn" string="Chassis Number"/>
+                <field name="agency_salesperson_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='salesperson']" position="after">
+                <filter string="Agency Salesperson" name="agency_salesperson"
+                        context="{'group_by': 'agency_salesperson_id'}"/>
             </xpath>
         </field>
     </record>
@@ -159,6 +183,10 @@
                 <field name="mobile" string="Customer Mobile" optional="show"/>
                 <field name="vehicle_id" optional="hide" string="Vehicle"/>
                 <field name="vehicle_vin_sn" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="after">
+                <field name="subordinate_mobile" position="move"/>
+                <field name="agency_salesperson_id" position="move"/>
             </xpath>
 
         </field>

@@ -161,4 +161,11 @@
         <field name="search_view_id" ref="view_sale_order_payment_search"/>
         <field name="context">{'search_default_not_cancelled': 1}</field>
     </record>
+
+    <menuitem id="menu_sale_order_payment"
+              name="Sale Order Payments"
+              parent="sale.sale_order_menu"
+              action="action_sale_order_payment"
+              sequence="30"
+              groups="sale_split_payment.group_split_payment_cashier,sales_team.group_sale_manager"/>
 </odoo>
