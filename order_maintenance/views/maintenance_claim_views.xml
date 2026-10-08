@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="maintenance_claim_view_search" model="ir.ui.view">
+        <field name="name">maintenance.claim.search</field>
+        <field name="model">maintenance.claim</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="origin_sale_id"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <field name="service_product_id"/>
+                <filter name="waiting_quality" string="Waiting for Quality" domain="[('state', '=', 'quality')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="customer_fault" string="Customer Fault" domain="[('fault_type', '=', 'customer')]"/>
+                <filter name="technician_fault" string="Technician Fault" domain="[('fault_type', '=', 'technician')]"/>
+                <filter name="supplier_fault" string="Supplier Fault" domain="[('fault_type', '=', 'supplier')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_fault" string="Cause" context="{'group_by': 'fault_type'}"/>
+                    <filter name="group_branch" string="Branch" context="{'group_by': 'branch_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="maintenance_claim_view_tree" model="ir.ui.view">
+        <field name="name">maintenance.claim.tree</field>
+        <field name="model">maintenance.claim</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="origin_sale_id"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <field name="service_product_id"/>
+                <field name="fault_type"/>
+                <field name="state"/>
+                <field name="sale_order_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="maintenance_claim_view_form" model="ir.ui.view">
+        <field name="name">maintenance.claim.form</field>
+        <field name="model">maintenance.claim</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_confirm_cause"
+                        type="object"
+                        string="Confirm Cause"
+                        class="btn-primary"
+                        groups="work_orders.group_quality_officer"
+                        invisible="state != 'quality'"
+                    />
+                    <button
+                        name="action_cancel"
+                        type="object"
+                        string="Cancel"
+                        groups="work_orders.group_quality_officer"
+                        invisible="state != 'quality'"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="quality,confirmed"/>
+                </header>
+                <sheet>
+                    <field name="sale_order_id" invisible="1"/>
+                    <field name="move_id" invisible="1"/>
+                    <field name="is_window_tinting" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_sale_order"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-shopping-cart"
+                            invisible="not sale_order_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Maintenance Order</span>
+                            </div>
+                        </button>
+                        <button
+                            name="action_open_appointment"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-calendar"
+                            invisible="state != 'confirmed'"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Appointment</span>
+                            </div>
+                        </button>
+                        <button
+                            name="action_view_move"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                            invisible="not move_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="origin_sale_id"/>
+                            <field name="service_product_id"/>
+                            <field name="partner_id"/>
+                            <field name="vehicle_id"/>
+                            <field name="branch_id"/>
+                        </group>
+                        <group>
+                            <field name="problem_location" readonly="1"/>
+                            <field name="fault_type" readonly="state != 'quality'" widget="radio"/>
+                            <field name="quality_reason" readonly="state != 'quality'"/>
+                            <field
+                                name="employee_id"
+                                readonly="state != 'quality'"
+                                invisible="fault_type != 'technician'"
+                                required="fault_type == 'technician'"
+                            />
+                            <field
+                                name="supplier_id"
+                                readonly="state != 'quality'"
+                                invisible="fault_type != 'supplier'"
+                                required="fault_type == 'supplier'"
+                                context="{'res_partner_search_mode': 'supplier', 'default_supplier_rank': 1}"
+                            />
+                        </group>
+                    </group>
+                    <group invisible="fault_type in (False, 'customer')" string="Cost split">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="charge_cost"/>
+                        <field name="technician_cost" readonly="state != 'quality'"/>
+                        <field name="company_cost" readonly="state != 'quality'"/>
+                    </group>
+                    <notebook>
+                        <page string="Parts" name="parts">
+                            <field name="part_ids" readonly="state != 'quality'">
+                                <tree editable="bottom">
+                                    <field name="include" string="Maintenance"/>
+                                    <field name="glass_type_id" column_invisible="not parent.is_window_tinting"/>
+                                    <field name="tint_percentage_id" column_invisible="not parent.is_window_tinting"/>
+                                    <field name="product_id" column_invisible="parent.is_window_tinting"/>
+                                    <field name="quantity" column_invisible="parent.is_window_tinting"/>
+                                    <field name="unit_cost"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="maintenance_claim_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Requests</field>
+        <field name="res_model">maintenance.claim</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_waiting_quality': 1}</field>
+    </record>
+
+    <menuitem
+        id="maintenance_claim_menu"
+        name="Maintenance Requests"
+        parent="work_orders.car_work_order_menu_root"
+        action="maintenance_claim_action"
+        sequence="25"
+        groups="work_orders.group_quality_officer,work_orders.group_workshop_manager,sales_team.group_sale_salesman"
+    />
+</odoo>

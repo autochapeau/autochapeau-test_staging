@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_maintenance_claim" model="ir.ui.view">
+        <field name="name">sale.order.form.maintenance.claim</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="partner_management.view_order_form_inherit_subordinate"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_create_appointment']" position="after">
+                <button
+                    name="action_open_maintenance_wizard"
+                    type="object"
+                    string="Maintenance Request"
+                    class="btn-secondary"
+                    invisible="state not in ('sale', 'done') or not has_service_product_lines"
+                />
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_maintenance_claims"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-wrench"
+                    invisible="maintenance_claim_count == 0"
+                >
+                    <field name="maintenance_claim_count" widget="statinfo" string="Maintenance"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='related_sale_id']" position="after">
+                <field name="maintenance_claim_id" readonly="1" invisible="not maintenance_claim_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
