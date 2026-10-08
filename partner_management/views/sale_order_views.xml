@@ -173,24 +173,24 @@
         </field>
     </record>
 
-    <record id="view_order_tree_inherit_vehicle_info" model="ir.ui.view">
-        <field name="name">sale.order.tree.inherit.vehicle.info</field>
-        <field name="model">sale.order</field>
-        <field name="inherit_id" ref="sale.view_order_tree"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='partner_id']" position="after">
-<!--                <field name="subordinate_id" optional="hide" string="Car Owner"/>-->
-                <field name="mobile" string="Customer Mobile" optional="show"/>
-                <field name="vehicle_id" optional="hide" string="Vehicle"/>
-                <field name="vehicle_vin_sn" optional="hide"/>
-            </xpath>
-            <xpath expr="//field[@name='mobile']" position="after">
-                <field name="subordinate_mobile" position="move"/>
-                <field name="agency_salesperson_id" position="move"/>
-            </xpath>
+<!--    <record id="view_order_tree_inherit_vehicle_info" model="ir.ui.view">-->
+<!--        <field name="name">sale.order.tree.inherit.vehicle.info</field>-->
+<!--        <field name="model">sale.order</field>-->
+<!--        <field name="inherit_id" ref="sale.view_order_tree"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='partner_id']" position="after">-->
+<!--&lt;!&ndash;                <field name="subordinate_id" optional="hide" string="Car Owner"/>&ndash;&gt;-->
+<!--                <field name="mobile" string="Customer Mobile" optional="show"/>-->
+<!--                <field name="vehicle_id" optional="hide" string="Vehicle"/>-->
+<!--                <field name="vehicle_vin_sn" optional="hide"/>-->
+<!--            </xpath>-->
+<!--            <xpath expr="//field[@name='mobile']" position="after">-->
+<!--                <field name="subordinate_mobile" position="move"/>-->
+<!--                <field name="agency_salesperson_id" position="move"/>-->
+<!--            </xpath>-->
 
-        </field>
-    </record>
+<!--        </field>-->
+<!--    </record>-->
 
     <record id="view_order_form_sale_buttons_rules" model="ir.ui.view">
         <field name="name">sale.order.form.sale.buttons.rules</field>
