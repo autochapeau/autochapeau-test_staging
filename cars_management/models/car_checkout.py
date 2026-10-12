@@ -251,6 +251,11 @@ class CarCheckout(models.Model):
             "url": self.get_portal_url(),
         }
 
+    def _is_contract_sale_order(self):
+        """Contract orders do not use customer OTP."""
+        self.ensure_one()
+        return self.sale_order_id.order_type == "contract"
+
     def send_sms_message(self, phone_number, message_text):
         """Send SMS using the SMS wizard."""
         wizard = (
@@ -272,6 +277,8 @@ class CarCheckout(models.Model):
     def _send_otp_sms(self):
         """Send the OTP SMS to the customer."""
         self.ensure_one()
+        if self._is_contract_sale_order():
+            return
         phone = self.partner_id.mobile or self.partner_id.phone
         country_code = self.partner_id.country_id.phone_code if self.partner_id.country_id else ""
         if phone and not phone.startswith("+") and country_code:
@@ -305,11 +312,12 @@ class CarCheckout(models.Model):
         After confirmation, automatically create an invoice from the linked sale order.
         """
         self.ensure_one()
-        if not self.otp_code_input:
-            raise ValidationError(_("Please enter the OTP."))
+        if not self._is_contract_sale_order():
+            if not self.otp_code_input:
+                raise ValidationError(_("Please enter the OTP."))
 
-        if self.otp_code_input.strip() != self.otp_code:
-            raise ValidationError(_("Incorrect OTP code."))
+            if self.otp_code_input.strip() != self.otp_code:
+                raise ValidationError(_("Incorrect OTP code."))
         self.state = "done"
         self.otp_code_input = False
 
