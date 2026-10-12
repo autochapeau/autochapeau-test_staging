@@ -122,6 +122,9 @@ class CarCheckout(models.Model):
         string="Sale Order",
         readonly=False,
     )
+    is_contract_order = fields.Boolean(
+        compute="_compute_is_contract_order",
+    )
 
     photo_attachment_ids = fields.Many2many("ir.attachment", string="Photos")
     notes = fields.Text()
@@ -250,6 +253,11 @@ class CarCheckout(models.Model):
             "target": "self",
             "url": self.get_portal_url(),
         }
+
+    @api.depends("sale_order_id", "sale_order_id.order_type")
+    def _compute_is_contract_order(self):
+        for checkout in self:
+            checkout.is_contract_order = checkout._is_contract_sale_order()
 
     def _is_contract_sale_order(self):
         """Contract orders do not use customer OTP."""
