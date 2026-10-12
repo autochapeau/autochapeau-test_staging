@@ -42,9 +42,6 @@
             <xpath expr="//field[@name='sale_order_id']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
-            <xpath expr="//group[@string='OTP Verification']" position="attributes">
-                <attribute name="invisible">state != 'progress' or sale_order_type == 'contract'</attribute>
-            </xpath>
         </field>
     </record>
 </odoo>
