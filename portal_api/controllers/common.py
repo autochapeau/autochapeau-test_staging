@@ -144,6 +144,16 @@ def get_binary_url(model_name, record_id, field_name):
     return url
 
 
+def get_attachment_url(attachment_id):
+    """Public URL for any attachment (images, videos, files)."""
+    base_url = request.env["ir.config_parameter"].sudo().get_param("web.base.url")
+    url = f"{base_url}/portal/attachment/{int(attachment_id)}"
+    db_name = getattr(request, "db", None) or request.env.cr.dbname
+    if db_name:
+        url = f"{url}?db={db_name}"
+    return url
+
+
 def format_search_read_result(search_result, fields, duration_fields, model_name=None):
     """Format the result for search_read odoo orm method:
         - For m2o field : display only the name of record without id

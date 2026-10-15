@@ -8,6 +8,7 @@ from .common import (
     authorization_required,
     check_params,
     format_search_read_result,
+    get_attachment_url,
     get_binary_url,
     make_json_response,
     make_response,
@@ -484,9 +485,14 @@ class ProductAPI(http.Controller):
     )
     @with_lang
     def v1_product_details(self, service_id):
-        fields = FIELDS_READ + \
-            ["reviews_count", "reviews_rate",
-                "review_ids", "question_ids", "image_ids"]
+        fields = FIELDS_READ + [
+            "reviews_count",
+            "reviews_rate",
+            "review_ids",
+            "question_ids",
+            "image_ids",
+            "video_ids",
+        ]
         product = request.env["product.product"].sudo(
         ).search_read([("id", "=", service_id)], fields)
         if not product:
@@ -517,6 +523,25 @@ class ProductAPI(http.Controller):
             ]
         else:
             result["image_ids"] = []
+        # format video_ids (product gallery videos for website <video>)
+        video_ids = result.pop("video_ids", False) or []
+        if video_ids:
+            videos = request.env["ir.attachment"].sudo().browse(video_ids).exists()
+            private_videos = videos.filtered(lambda a: not a.public)
+            if private_videos:
+                private_videos.write({"public": True})
+            result["video_ids"] = [
+                {
+                    "id": attachment.id,
+                    "name": attachment.name or False,
+                    "mimetype": attachment.mimetype or False,
+                    "url": get_attachment_url(attachment.id),
+                }
+                for attachment in videos
+                if attachment.raw or attachment.datas
+            ]
+        else:
+            result["video_ids"] = []
         # format review_ids
         review_ids = result.get("review_ids", False)
         if review_ids:

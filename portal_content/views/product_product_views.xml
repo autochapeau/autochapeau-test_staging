@@ -11,6 +11,11 @@
                         <field colspan="2" name="image_ids" widget="many2many_binary" nolabel="1" />
                     </group>
                 </page>
+                <page string="Videos">
+                    <group>
+                        <field colspan="2" name="video_ids" widget="many2many_binary" nolabel="1" />
+                    </group>
+                </page>
                 <page string="Rate and Reviews">
                     <field name="review_ids">
                         <tree editable="top">

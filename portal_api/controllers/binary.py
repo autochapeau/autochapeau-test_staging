@@ -94,6 +94,56 @@ class Binary(http.Controller):
         res.headers["Content-Security-Policy"] = "default-src 'none'"
         return res
 
+    @http.route(
+        ["/portal/attachment/<int:attachment_id>"],
+        type="http",
+        auth="public",
+        csrf=False,
+        methods=["GET", "HEAD", "OPTIONS"],
+        cors="*",
+    )
+    def content_attachment(self, attachment_id, download=False, **kwargs):
+        """Stream any public attachment (used for product videos/files).
+
+        Unlike ``/portal/image``, this does not run image processing so mp4
+        and other binaries work for website ``<video>`` / download tags.
+        """
+        attachment = (
+            request.env["ir.attachment"]
+            .sudo()
+            .browse(int(attachment_id))
+            .exists()
+        )
+        if not attachment or not (attachment.raw or attachment.datas):
+            raise request.not_found()
+
+        if not attachment.public:
+            attachment.write({"public": True})
+
+        try:
+            stream = request.env["ir.binary"].sudo()._get_stream_from(
+                attachment,
+                "raw",
+                filename=attachment.name or None,
+                filename_field="name",
+                mimetype=attachment.mimetype or None,
+            )
+            stream.public = True
+        except Exception as exc:
+            _logger.warning(
+                "portal attachment failed id=%s: %s", attachment_id, exc
+            )
+            raise request.not_found() from exc
+
+        as_attachment = str(download).lower() in ("1", "true", "yes")
+        res = stream.get_response(as_attachment=as_attachment)
+        # Allow website <video> / cross-origin media embedding
+        res.headers["Content-Security-Policy"] = "default-src 'none'"
+        res.headers["Accept-Ranges"] = "bytes"
+        if attachment.mimetype:
+            res.headers["Content-Type"] = attachment.mimetype
+        return res
+
     def _get_portal_image_stream(
         self,
         xmlid=None,

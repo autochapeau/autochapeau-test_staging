@@ -5,6 +5,14 @@ class ProductProduct(models.Model):
     _inherit = "product.product"
 
     image_ids = fields.Many2many("ir.attachment", string="Images", copy=False)
+    video_ids = fields.Many2many(
+        comodel_name="ir.attachment",
+        relation="product_product_portal_video_rel",
+        column1="product_id",
+        column2="attachment_id",
+        string="Videos",
+        copy=False,
+    )
     review_ids = fields.One2many("product.product.review", "product_id")
     question_ids = fields.One2many("product.product.question", "product_id")
     reviews_count = fields.Integer(

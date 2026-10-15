@@ -1,9 +1,10 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.27",
+    "version": "17.0.1.0.28",
     "author": "Wellknot",
     "depends": [
         "cars_management",
+        "hr_branch_department",
         "appointment_management",
         "hr_recruitment",
         "account",
@@ -11,6 +12,7 @@
         "autochapeau_loyalty",
         "gb_window_tinting",
         "sale_split_payment",
+        "portal_content",
     ],
     "data": [
         "data/portal_api_data.xml",
@@ -20,6 +22,7 @@
         "data/otp_mail_template.xml",
         "views/security_update_templates.xml",
         "views/crm_lead_views.xml",
+        "views/hr_department_views.xml",
     ],
     "license": "LGPL-3",
 }

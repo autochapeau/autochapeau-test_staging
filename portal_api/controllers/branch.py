@@ -12,7 +12,11 @@ class BranchAPI(http.Controller):
         try:
             fields_name = ["id", "name", "code", "company_id"]
             branches = request.env["hr.department"].sudo().search_read(
-                [("department_type", "=", "branche"), ("company_id", "!=", False)],
+                [
+                    ("department_type", "=", "branche"),
+                    ("company_id", "!=", False),
+                    ("show_on_website", "=", True),
+                ],
                 fields_name
             )
             result = [
