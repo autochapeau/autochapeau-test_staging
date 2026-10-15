@@ -1,7 +1,7 @@
 {
     "name": "AutoChapeau Loyalty",
-    "version": "17.0.1.4.8",
-    "summary": "Loyalty points on paid invoices and redeem on sale orders",
+    "version": "17.0.1.4.9",
+    "summary": "Loyalty points 7 days after invoice confirm; redeem on sale orders",
     "author": "Wellknot",
     "depends": [
         "sale_loyalty",
@@ -13,6 +13,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/product_data.xml",
+        "data/ir_cron_data.xml",
         "views/loyalty_rule_views.xml",
         "views/loyalty_card_views.xml",
         "views/account_move_views.xml",

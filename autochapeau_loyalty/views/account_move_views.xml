@@ -10,11 +10,14 @@
                         type="object"
                         string="Grant Loyalty Points"
                         class="btn-secondary"
-                        invisible="move_type != 'out_invoice' or state != 'posted' or payment_state not in ('paid', 'in_payment') or loyalty_points_granted"/>
+                        invisible="move_type != 'out_invoice' or state != 'posted' or loyalty_points_granted or loyalty_earn_done"/>
             </xpath>
             <xpath expr="//field[@name='payment_reference']" position="after">
+                <field name="loyalty_confirm_date"
+                       invisible="move_type != 'out_invoice'"/>
                 <field name="loyalty_points_granted"
                        invisible="move_type != 'out_invoice'"/>
+                <field name="loyalty_earn_done" invisible="1"/>
             </xpath>
         </field>
     </record>

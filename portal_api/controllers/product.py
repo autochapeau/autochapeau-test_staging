@@ -35,6 +35,33 @@ FIELDS_READ = [
 MAX_LIMIT = 100
 
 
+def _serialize_video_attachments(attachments):
+    """Build public video payloads for website <video> tags."""
+    attachments = attachments.exists() if attachments else attachments
+    if not attachments:
+        return []
+    private = attachments.filtered(lambda a: not a.public)
+    if private:
+        private.write({"public": True})
+    return [
+        {
+            "id": attachment.id,
+            "name": attachment.name or False,
+            "mimetype": attachment.mimetype or False,
+            "url": get_attachment_url(attachment.id),
+        }
+        for attachment in attachments
+        if attachment.raw or attachment.datas
+    ]
+
+
+def _videos_from_products(products):
+    """Unique video_ids linked on product.product records."""
+    if not products:
+        return []
+    return _serialize_video_attachments(products.mapped("video_ids"))
+
+
 def _parse_pagination(params, default_limit=20):
     """Return (page, limit, offset) from request params/body."""
     try:
@@ -525,23 +552,9 @@ class ProductAPI(http.Controller):
             result["image_ids"] = []
         # format video_ids (product gallery videos for website <video>)
         video_ids = result.pop("video_ids", False) or []
-        if video_ids:
-            videos = request.env["ir.attachment"].sudo().browse(video_ids).exists()
-            private_videos = videos.filtered(lambda a: not a.public)
-            if private_videos:
-                private_videos.write({"public": True})
-            result["video_ids"] = [
-                {
-                    "id": attachment.id,
-                    "name": attachment.name or False,
-                    "mimetype": attachment.mimetype or False,
-                    "url": get_attachment_url(attachment.id),
-                }
-                for attachment in videos
-                if attachment.raw or attachment.datas
-            ]
-        else:
-            result["video_ids"] = []
+        result["video_ids"] = _serialize_video_attachments(
+            request.env["ir.attachment"].sudo().browse(video_ids)
+        )
         # format review_ids
         review_ids = result.get("review_ids", False)
         if review_ids:
@@ -699,6 +712,8 @@ class ProductAPI(http.Controller):
             "feature_ids": [{"id": f.id, "name": f.name} for f in template.feature_ids],
             "image_1920": get_binary_url(
                 "product.template", template.id, "image_1920") if template.image_1920 else False,
+            # Videos are stored on product.product; expose union + per-variant
+            "video_ids": _videos_from_products(variants),
             "variant_attributes": variant_attributes,
             "variants": [{
                 "id": v.id,
@@ -713,6 +728,7 @@ class ProductAPI(http.Controller):
                 "warranty": v.warranty,
                 "total_sales_count": v.total_sales_count,
                 "is_published": v.is_published,
+                "video_ids": _videos_from_products(v),
             } for v in variants],
         }
         data.update(_window_tinting_payload_from_template(template))
