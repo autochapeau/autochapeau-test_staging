@@ -48,7 +48,7 @@
                         <field name="branch_id" column_invisible="1"/>
                         <field name="staff_ids" widget="many2many_tags"
                                   readonly="parent.state != 'new'"
-                                  domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id), ('is_technician', '=', True)]"/>
+                                  domain="[('branch_id', 'child_of', branch_id), ('is_technician', '=', True)]"/>
                         <field name="expected_duration" readonly="1"/>
                         <field name="expected_finish_date" readonly="1"/>
                     </tree>
@@ -64,7 +64,7 @@
                                  options='{"no_open": True, "no_create": True}'/>
                         <field name="branch_id" column_invisible="1"/>
                         <field name="staff_ids" widget="many2many_tags"
-                                  domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id), ('is_technician', '=', True)]"/>
+                                  domain="[('branch_id', 'child_of', branch_id), ('is_technician', '=', True)]"/>
                         <field name="expected_duration"/>
                         <field name="expected_finish_date"/>
                     </tree>

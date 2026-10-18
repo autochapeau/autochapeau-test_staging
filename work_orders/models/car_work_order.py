@@ -541,11 +541,9 @@ class CarWorkOrder(models.Model):
                 _("You must add at least one service before confirming the work order."))
         # Prefill empty staff from workcenter employees before validating.
         for service in self.service_ids.filtered(lambda s: not s.staff_ids and s.workcenter_id):
-            employees = service.workcenter_id.employee_ids
-            branch = self.branch_id
-            if branch:
-                employees = employees.filtered(lambda emp: emp.branch_id == branch)
-            employees = employees.filtered(lambda emp: emp.is_technician)
+            employees = service._filter_technicians_for_branch(
+                service.workcenter_id.employee_ids, self.branch_id
+            )
             if employees:
                 service.staff_ids = employees
         has_staff = any(service.staff_ids for service in self.service_ids)
@@ -895,18 +893,27 @@ class CarWorkOrderService(models.Model):
     staff_ids = fields.Many2many(
         'hr.employee', 'car_workorder_service_staff_rel', 'service_id', 'employee_id', string='Staff', required=True)
 
+    def _technician_branches(self, branch):
+        """Branch plus child branches, so a main branch also covers sub-branches."""
+        if not branch:
+            return self.env["hr.department"]
+        return self.env["hr.department"].search([
+            ("id", "child_of", branch.id),
+            ("department_type", "=", "branche"),
+        ])
+
     def _filter_technicians_for_branch(self, employees, branch):
         employees = employees.filtered(lambda emp: emp.is_technician)
         if branch:
-            employees = employees.filtered(lambda emp: emp.branch_id == branch)
+            allowed = self._technician_branches(branch)
+            employees = employees.filtered(lambda emp: emp.branch_id in allowed)
         return employees
 
     def _staff_ids_domain(self, branch):
         if not branch:
             return [("id", "=", False)]
         return [
-            ("branch_id", "!=", False),
-            ("branch_id", "=", branch.id),
+            ("branch_id", "child_of", branch.id),
             ("is_technician", "=", True),
         ]
 

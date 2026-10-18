@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_saleorder_vehicle" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//div[hasclass('page')]" position="before">
+            <t t-set="information_block">
+                <div t-if="information_block" t-out="information_block"/>
+                <div t-if="doc.vehicle_id" name="vehicle_block">
+                    <div>
+                        <strong>Car:</strong>
+                        <span t-field="doc.vehicle_id"/>
+                    </div>
+                    <div t-if="doc.plate_numbers or doc.plate_letters">
+                        <strong>Plate:</strong>
+                        <span t-field="doc.plate_letters"/>&#160;<span t-field="doc.plate_numbers"/>
+                    </div>
+                    <div t-if="doc.vehicle_vin_sn">
+                        <strong>Chassis Number:</strong>
+                        <span t-field="doc.vehicle_vin_sn"/>
+                    </div>
+                    <div t-if="doc.vehicle_color_id">
+                        <strong>Car Color:</strong>
+                        <span t-field="doc.vehicle_color_id"/>
+                    </div>
+                    <div t-if="doc.vehicle_model_year">
+                        <strong>Model Year:</strong>
+                        <span t-field="doc.vehicle_model_year"/>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

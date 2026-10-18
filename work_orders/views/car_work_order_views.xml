@@ -14,10 +14,11 @@
             <search>
                 <field
                     name="name"
-                    filter_domain="['|', ('name', 'ilike', self), ('partner_phone_search', 'ilike', self)]"
+                    filter_domain="['|', '|', ('name', 'ilike', self), ('partner_phone_search', 'ilike', self), ('sale_order_id.name', 'ilike', self)]"
                 />
                 <field name="partner_id" />
                 <field name="vehicle_id" />
+                <field name="sale_order_id" string="Sale Order"/>
                 <field name="vehicle_vin_sn" string="Chassis Number"/>
                 <field
                     name="partner_phone_search"
@@ -217,7 +218,7 @@
                             invisible="not picking_id"
                         >
                             <div class="o_stat_info">
-                                <span class="o_stat_text">Stock Transfert</span>
+                                <span class="o_stat_text">Delivery</span>
                             </div>
                         </button>
                         <field name="picking_id" invisible="1" />
@@ -265,7 +266,7 @@
                                         <field name="workcenter_id" options='{"no_open": True, "no_create": True}' />
                                         <field name="branch_id" column_invisible="1"/>
                                         <field name="staff_ids" widget="many2many_tags"
-                                            domain="[('branch_id', '!=', False), ('branch_id', '=', branch_id), ('is_technician', '=', True)]"/>
+                                            domain="[('branch_id', 'child_of', branch_id), ('is_technician', '=', True)]"/>
                                         <field name="expected_duration" />
                                         <field name="expected_finish_date" />
                                     </tree>
