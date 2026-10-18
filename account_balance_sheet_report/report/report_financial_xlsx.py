@@ -148,45 +148,89 @@ class ReportFinancialXslx(models.AbstractModel):
         # Set header.
         prod_row += 1
         # set lines
-        lines = res_data.get("get_account_lines")
-        for line in lines:
-            if int(line["level"]) == 0:
-                sheet.merge_range(prod_row, 0, prod_row, 5,
-                                  line["name"], font_size_12)
-                if debit_credit:
-                    sheet.merge_range(prod_row, 6, prod_row,
-                                      9, "%.2f" % line["credit"], font_size_12)
-                    sheet.merge_range(prod_row, 10, prod_row,
-                                      13, "%.2f" % line["debit"], font_size_12)
-                    sheet.merge_range(
-                        prod_row,
-                        14,
-                        prod_row,
-                        17,
-                        "%.2f" % line["balance"],
-                        font_size_12,
-                    )
-                else:
-                    sheet.merge_range(prod_row, 6, prod_row, 9,
-                                      "%.2f" % line["balance"], font_size_12)
-            else:
-                sheet.merge_range(prod_row, 0, prod_row, 5,
-                                  line["name"], font_size_center_8)
-                if debit_credit:
-                    sheet.merge_range(prod_row, 6, prod_row,
-                                      9, "%.2f" % line["credit"], font_size_8)
-                    sheet.merge_range(prod_row, 10, prod_row,
-                                      13, "%.2f" % line["debit"], font_size_8)
-                    sheet.merge_range(
-                        prod_row,
-                        14,
-                        prod_row,
-                        17,
-                        "%.2f" % line["balance"],
-                        font_size_8,
-                    )
-                else:
-                    sheet.merge_range(prod_row, 6, prod_row,
-                                      9, "%.2f" % line["balance"], font_size_8)
+        lines = res_data.get("get_account_lines") or []
+        formats = {
+            "header_name": font_size_12,
+            "header_amount": font_size_12,
+            "line_name": font_size_center_8,
+            "line_amount": font_size_8,
+        }
+        # Analytic filter returns blocks ({analytic, lines, totals}), not flat rows.
+        if lines and isinstance(lines[0], dict) and lines[0].get("analytic"):
+            for block in lines:
+                prod_row = self._write_analytic_block(
+                    sheet, prod_row, block, debit_credit, formats
+                )
+        else:
+            for line in lines:
+                prod_row = self._write_financial_line(
+                    sheet, prod_row, line, debit_credit, formats
+                )
 
-            prod_row = prod_row + 1
+    def _line_level(self, line):
+        level = line.get("level") or 0
+        try:
+            return int(level)
+        except (TypeError, ValueError):
+            return 0
+
+    def _write_amount_cells(self, sheet, row, line, debit_credit, amount_fmt):
+        balance = line.get("balance") or 0.0
+        if debit_credit:
+            sheet.merge_range(
+                row, 6, row, 9, "%.2f" % (line.get("credit") or 0.0), amount_fmt
+            )
+            sheet.merge_range(
+                row, 10, row, 13, "%.2f" % (line.get("debit") or 0.0), amount_fmt
+            )
+            sheet.merge_range(row, 14, row, 17, "%.2f" % balance, amount_fmt)
+        else:
+            sheet.merge_range(row, 6, row, 9, "%.2f" % balance, amount_fmt)
+
+    def _write_financial_line(self, sheet, row, line, debit_credit, formats):
+        """Write one report row. Level 0 uses the header style."""
+        is_header = self._line_level(line) == 0
+        name_fmt = formats["header_name"] if is_header else formats["line_name"]
+        amount_fmt = formats["header_amount"] if is_header else formats["line_amount"]
+        sheet.merge_range(row, 0, row, 5, line.get("name") or "", name_fmt)
+        self._write_amount_cells(sheet, row, line, debit_credit, amount_fmt)
+        return row + 1
+
+    def _write_labeled_total(self, sheet, row, label, amount, formats):
+        sheet.merge_range(row, 0, row, 5, label, formats["header_name"])
+        sheet.merge_range(
+            row, 6, row, 9, "%.2f" % (amount or 0.0), formats["header_amount"]
+        )
+        return row + 1
+
+    def _write_analytic_block(self, sheet, row, block, debit_credit, formats):
+        """Write one analytic section, or the closing TOTAL block."""
+        if block.get("is_total"):
+            sheet.merge_range(
+                row, 0, row, 5, _("TOTAL"), formats["header_name"]
+            )
+            row += 1
+            row = self._write_labeled_total(
+                sheet, row, _("Income"), block.get("income_total"), formats
+            )
+            row = self._write_labeled_total(
+                sheet, row, _("Expenses"), block.get("expense_total"), formats
+            )
+            return self._write_labeled_total(
+                sheet, row, _("Balance"), block.get("balance_total"), formats
+            )
+
+        sheet.merge_range(
+            row,
+            0,
+            row,
+            5,
+            _("Analytic Account: %s") % (block.get("analytic") or ""),
+            formats["header_name"],
+        )
+        row += 1
+        for line in block.get("lines") or []:
+            row = self._write_financial_line(
+                sheet, row, line, debit_credit, formats
+            )
+        return row + 1

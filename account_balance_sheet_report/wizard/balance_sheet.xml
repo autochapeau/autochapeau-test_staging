@@ -3,13 +3,13 @@
 
     <record id="account_financial_report_profitandloss0" model="account.financial.report">
         <field name="name">Profit and Loss</field>
-        <field name="sign">-1</field>
+        <field name="sign">1</field>
         <field name="type">sum</field>
     </record>
 
     <record id="account_financial_report_income0" model="account.financial.report">
         <field name="name">Income</field>
-        <field name="sign">-1</field>
+        <field name="sign">1</field>
         <field name="parent_id" ref="account_financial_report_profitandloss0" />
         <field name="display_detail">detail_with_hierarchy</field>
         <field name="type">account_type</field>
@@ -21,7 +21,7 @@
 
     <record id="account_financial_report_expense0" model="account.financial.report">
         <field name="name">Expense</field>
-        <field name="sign">-1</field>
+        <field name="sign">1</field>
         <field name="parent_id" ref="account_financial_report_profitandloss0" />
         <field name="display_detail">detail_with_hierarchy</field>
         <field name="type">account_type</field>
