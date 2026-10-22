@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ziwo_active_form_res_partner" model="ziwo.active.form">
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="action">existing</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="ziwo_active_form_crm_lead" model="ziwo.active.form">
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="action">new</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="ziwo_active_form_sale_order" model="ziwo.active.form">
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="action">new</field>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="ziwo_active_form_project_task" model="ziwo.active.form">
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="action">new</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

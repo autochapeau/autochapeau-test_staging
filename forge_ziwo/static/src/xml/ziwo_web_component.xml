@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="ziwo_web_component" name="Ziwo Component">
+        <html>
+            <head>
+                <!--                    <link rel="stylesheet" href="https://plugin.ziwo.io/ziwo.styles.css" media="print"-->
+                <!--                          onload="this.media='all'"/>-->
+            </head>
+            <body>
+                <!--                    <ziwo-root style="height: 640px; width: 360px; display: block;"></ziwo-root>-->
+                <ziwo-root automation="odoo" style="height: 640px; width: 360px; display: block;"></ziwo-root>
+                <!--                    <script src="https://plugin.ziwo.io/ziwo.polyfills.js" type="module"></script>-->
+                <!--                    <script src="https://plugin.ziwo.io/ziwo.plugin.js" type="module"></script>-->
+                <script src="https://static.ziwo.io/ziwo-bridge.js"></script>
+            </body>
+        </html>
+    </template>
+</odoo>

@@ -1,0 +1,46 @@
+.ziwo_dial {
+    $o-dial-panel-width: 360px;
+    $o-dial-panel-max-height-desktop: 640px;
+
+    // z-index: $zindex-modal -1;
+    z-index: 999;
+
+    width: $o-dial-panel-width !important;
+    height: auto !important;
+
+    :focus {
+        outline: none;
+    }
+
+    .ziwo_dial_window_title {
+        height: 36px;
+        background-color: #ac3378;
+        color: #FFFFFF;
+    }
+
+    .ziwo_dial_window_close:hover {
+        background-color: rgba($black, 0.1);
+    }
+
+    &,
+    .ziwo_dial_fold,
+    .ziwo_dial_window_title {
+        border-top-left-radius: $border-radius-lg;
+        border-top-right-radius: $border-radius-lg;
+        background-color: #ac3378;
+    }
+
+    .ziwo_dial_window_title {
+        height: 36px;
+    }
+
+    &.folded{
+        .ziwo_dial_fold ~ * {
+            display: none !important;
+        }
+    }
+}
+
+.hidden {
+    display: none;
+}

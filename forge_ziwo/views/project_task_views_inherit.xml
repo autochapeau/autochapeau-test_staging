@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="project_task_form_view_inherited">
+            <field name="name">project.task.form.view.inherited</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <header>
+                    <button
+                        name="open_create_call_wizard"
+                        id="open_create_call_wizard"
+                        type="object"
+                        string="Call"
+                        icon="fa-phone"
+                        class="text-start text-nowrap text-capitalize"
+                        invisible="ziwo_show_c2c_d2c != True"
+                    />
+                </header>
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="ziwo_show_c2c_d2c" invisible="1"/>
+                    <label for="partner_phone"/>
+                    <div class="o_row">
+                        <field name="partner_phone" readonly="1"/>
+                        <button
+                            name="create_new_call_phone"
+                            id="create_new_call_phone"
+                            type="object"
+                            string="Call"
+                            icon="fa-phone"
+                            class="pull_right inline"
+                            invisible="partner_phone == False or ziwo_show_c2c_d2c != True"
+                        />
+                    </div>
+                    <label for="partner_mobile"/>
+                    <div class="o_row">
+                        <field name="partner_mobile" readonly="1"/>
+                        <button
+                            name="create_new_call"
+                            id="create_new_call"
+                            type="object"
+                            string="Call"
+                            icon="fa-phone"
+                            class="pull_right inline"
+                            invisible="partner_mobile == False or ziwo_show_c2c_d2c != True"
+                        />
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

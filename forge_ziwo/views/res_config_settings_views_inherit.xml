@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.forge.ziwo</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="100"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app string="Ziwo" data-string="Ziwo" name="forge_ziwo">
+                        <block title="Call History">
+                            <setting string="Active Forms" help="Default system behavior during a call if History on Active Form is unchecked or if Agent is not on an applicable active form.">
+                                <label for="forge_ziwo_active_form_id" class="col-lg-4"/>
+                                <field name="forge_ziwo_active_form_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                                <button type="action" name="%(forge_ziwo_active_form_action)d" string="Applicable Forms" icon="fa-arrow-right" class="oe_link"/>
+                            </setting>
+                            <setting string="History on Active Form" help="Add the model to the call history if you are on an applicable active form by the end of the call.">
+                                <field name="forge_ziwo_active_form_history"/>
+                            </setting>
+                        </block>
+                        <block title="Contact Creation">
+                            <setting string="Contact Creation Mode" help="Automatic creates a new contact from the caller's number when no match is found. Manual leaves the call unlinked until a contact is created or linked through your own process.">
+                                <field name="forge_ziwo_contact_creation_mode" widget="radio"/>
+                            </setting>
+                        </block>
+                        <block title="Call Navigation">
+                            <setting string="Navigate on Outbound Calls" help="Navigate to Agent Screen when an outbound call is made.">
+                                <field name="forge_ziwo_navigate_outbound_calls"/>
+                            </setting>
+                            <setting string="Navigate on Inbound Calls" help="Navigate to Agent Screen when an inbound call is received.">
+                                <field name="forge_ziwo_navigate_inbound_calls"/>
+                            </setting>
+                            <setting string="Override Navigate on Click to Call" help="Override navigate to Agent Screen when an outbound call is made through click to call.">
+                                <field name="forge_ziwo_navigate_outbound_calls_c2c"/>
+                            </setting>
+                        </block>
+                        <block title="Ziwo Authentication">
+                            <setting string="Account Name" help="Account Name used to access the Ziwo API.">
+                                <field name="forge_ziwo_account_name_auth_token"/>
+                            </setting>
+                            <setting string="User Name" help="User Name used to access the Ziwo API.">
+                                <field name="forge_ziwo_user_name_auth_token"/>
+                            </setting>
+                            <setting string="Password" help="Password used to access the Ziwo API.">
+                                <field name="forge_ziwo_password_auth_token" password="True"/>
+                            </setting>
+                        </block>
+                        <block title="Call Recording">
+                            <setting string="Admin Auth Token for Recordings" help="Update any missing recordings not belonging to the current user by using the admin auth token.">
+                                <field name="forge_ziwo_admin_auth_token" password="True"/>
+                                <button string="Generate Token" type="object" name="action_update_ziwo_admin_auth_token" icon="fa-refresh" class="oe_link"/>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+        <record id="res_config_settings_menu_action" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_id" ref="res_config_settings_view_form"/>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module':'forge_ziwo'}</field>
+        </record>
+    </data>
+</odoo>

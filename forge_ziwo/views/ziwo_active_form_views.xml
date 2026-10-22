@@ -1,0 +1,26 @@
+<odoo>
+    <data>
+        <!--? Tree view -->
+        <record model="ir.ui.view" id="forge_ziwo_active_form_tree_view">
+            <field name="name">Ziwo Active Form</field>
+            <field name="model">ziwo.active.form</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" create="false" delete="false">
+                    <field name="model_id" readonly="1"/>
+                    <field name="active" widget="boolean_toggle"/>
+                    <field name="action" invisible="not active"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--? Window Action -->
+        <record id="forge_ziwo_active_form_action" model="ir.actions.act_window">
+            <field name="name">Active Forms</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ziwo.active.form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="forge_ziwo_active_form_tree_view"/>
+            <field name="context">{'active_test': False}</field>
+        </record>
+    </data>
+</odoo>

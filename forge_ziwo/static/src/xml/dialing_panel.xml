@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="forge_ziwo.ZiwoSystrayItem" owl="1">
+        <div class="o-dropdown dropdown o-mail-DiscussSystray-class o-dropdown--no-caret">
+            <button type="button" class="dropdown-toggle" tabindex="0" aria-expanded="false">
+                <a href="#" title="Display Dialing Panel" t-on-click.prevent="onClick">
+                    <t t-if="isDarkMode">
+                        <img src="/forge_ziwo/static/description/tray_icon_dark.png" width="20" height="20"/>
+                    </t>
+                    <t t-else="">
+                        <img src="/forge_ziwo/static/description/tray_icon_light.png" width="20" height="20"/>
+                    </t>
+                    <!-- <img src="/forge_ziwo/static/description/tray_icon_light.png" width="20" height="20"/> -->
+                </a>
+            </button>
+        </div>
+    </t>
+
+    <!-- <div style="height: 640px; width: 360px !important; position: fixed; right: 0;" class="ziwo_dial o_in_home_menu position-absolute w-100 h-100 flex-column ms-md-2 bottom-0 bg-white shadow d-print-none" t-name="forge_ziwo.ZiwoDialingPanel"> -->
+    <div t-name="forge_ziwo.ZiwoDialingPanel" t-att-class="{ 'hidden': !state.isVisible }" owl="1" style="height: 640px; width: 360px !important; position: fixed; right: 0; bottom: 0;" class="ziwo_dial o_in_home_menu position-absolute flex-column bg-white shadow">
+        <div class="ziwo_dial_fold position-relative bottom-0">
+            <div class="ziwo_dial_window_title d-flex align-items-center cursor-pointer overflow-auto">
+                <t t-call="forge_ziwo.ZiwoDialingPanel.HeaderContent">
+                    <t t-let="title" t-value="&quot;Ziwo&quot;"/>
+                </t>
+            </div>
+        </div>
+        <div t-att-class="{ 'hidden': state.isFolded }" class="ziwo_dial_panel o_form_view flex-column border-start border-end overflow-hidden flex-grow-1">
+            <iframe id="ziwoFrame" src="/forge_ziwo/ziwo_component/" allow="camera *;microphone *" allowFullscreen="true" height="640" width="360" style="border: none"/>
+        </div>
+    </div>
+
+    <t t-name="forge_ziwo.ZiwoDialingPanel.HeaderContent">
+        <img src="/forge_ziwo/static/description/tray_icon_dark.png" class="ms-3 me-1 my-0" width="20" height="20" t-on-click="_toggleFold"/>
+        <div class="ziwo_dial_text flex-grow-1 mx-1 my-0" t-out="title" t-on-click="_toggleFold"/>
+        <a t-on-click="_hidePanel" aria-label="Close" class="ziwo_dial_window_close d-flex align-items-center h-100 m-0 px-3 py-0 border-0 opacity-50 opacity-100-hover text-reset" href="#" title="Close">
+            <i class="fa fa-close"/>
+        </a>
+    </t>
+
+</templates>

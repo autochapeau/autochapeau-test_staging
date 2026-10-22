@@ -1,0 +1,24 @@
+<odoo>
+    <data>
+        <record id="view_create_call_wizard" model="ir.ui.view">
+            <field name="name">create.call.wizard.form</field>
+            <field name="model">create.call.wizard</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="mobile"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="create_call" string="Call" type="object" class="btn-primary" icon="fa-phone" />
+                        <button name="cancel" string="Cancel" type="object" class="btn-secondary" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

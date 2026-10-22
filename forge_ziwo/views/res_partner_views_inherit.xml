@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_partner_form_inherit">
+            <field name="name">res.partner.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/div[@class='oe_button_box']" position="inside">
+                    <button
+                        name="open_create_call_wizard"
+                        id="open_create_call_wizard"
+                        type="object"
+                        string="Call"
+                        icon="fa-phone"
+                        class="text-start text-nowrap text-capitalize"
+                    />
+                </xpath>
+                <xpath expr="//label[@for='phone']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//div[field/@name='phone']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//label[@for='mobile']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//div[field/@name='mobile']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='title']" position="before">
+                    <label for="phone"/>
+                    <div class="o_row">
+                        <field name="phone"/>
+                        <button
+                            name="create_new_call_phone"
+                            id="create_new_call_phone"
+                            type="object"
+                            string="Call"
+                            icon="fa-phone"
+                            class="pull_right inline"
+                            invisible="phone == False"
+                        />
+                    </div>
+                    <label for="mobile"/>
+                    <div class="o_row">
+                        <field name="mobile"/>
+                        <button
+                            name="create_new_call"
+                            id="create_new_call"
+                            type="object"
+                            string="Call"
+                            icon="fa-phone"
+                            class="pull_right inline"
+                            invisible="mobile == False"
+                        />
+                    </div>
+                </xpath>
+                <xpath expr="//field[@name='vat']" position="after">
+                    <field name='tz'/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_agent_screen,forge_ziwo.agent_screen,model_agent_screen,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_add_note_wizard,forge_ziwo.add_note_wizard,model_add_note_wizard,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_edit_contact_wizard,forge_ziwo.edit_contact_wizard,model_edit_contact_wizard,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_create_call_wizard,forge_ziwo.create_call_wizard,model_create_call_wizard,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_ziwo_active_form,forge_ziwo.ziwo_active_form,model_ziwo_active_form,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_ziwo_history,forge_ziwo.ziwo_history,model_ziwo_history,forge_ziwo.group_ziwo_agent,1,1,1,1
+access_forge_sudo_override,forge_ziwo.forge_sudo_override,model_forge_sudo_override,forge_ziwo.group_ziwo_agent,1,1,1,1

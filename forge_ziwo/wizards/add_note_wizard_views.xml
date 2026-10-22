@@ -1,0 +1,22 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_add_note_wizard_form">
+            <field name="name">add.note.wizard.form</field>
+            <field name="model">add.note.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="note"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="add_note" type="object" string="Add Note" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

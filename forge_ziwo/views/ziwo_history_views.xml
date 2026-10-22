@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--? Form View -->
+        <record model="ir.ui.view" id="forge_ziwo_history_form_view">
+            <field name="name">Call History</field>
+            <field name="model">ziwo.history</field>
+            <field name="arch" type="xml">
+                <form create="false"> <!--js_class="form_without_control_panel">-->
+                    <header>
+                        <button
+                            name="action_update_call_recording"
+                            id="action_update_call_recording"
+                            type="object"
+                            string="Update Recording"
+                            icon="fa-cloud-download"
+                            class="pull_right oe_right inline"
+                            invisible="call_status != 'answered' or call_recording_html != False"
+                        />
+                    </header>
+                    <sheet>
+                        <group col="3">
+                            <group string="Contact">
+                                <field name="partner_id"/>
+                                <field name="mobile"/>
+                                <field name="agent_id"/>
+                                <field name="call_transfer"/>
+                                <field name="call_transfer_type" invisible="call_transfer == False"/>
+                                <field name="agent_ids" widget="many2many_tags" invisible="call_transfer == False"/>
+                            </group>
+                            <group string="Call">
+                                <field name="call_type"/>
+                                <field name="call_status"/>
+                                <field name="call_id"/>
+                                <field name="call_time"/>
+                                <field name="call_recording_html" colspan="3"/>
+                            </group>
+                            <group string="Model">
+                                <field name="model_reference"/>
+                                <button
+                                    name="action_apply_model"
+                                    string="Apply"
+                                    type="object"
+                                    class="btn-primary"
+                                />
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!--? Tree View -->
+        <record model="ir.ui.view" id="forge_ziwo_history_tree_view">
+            <field name="name">Call History</field>
+            <field name="model">ziwo.history</field>
+            <field name="arch" type="xml">
+                <tree create="false" edit='false' default_order="call_time desc">
+                    <field name="agent_id"/>
+                    <field name="partner_id"/>
+                    <field name="mobile"/>
+                    <field name="call_type"/>
+                    <field name="call_status"/>
+                    <field name="call_time"/>
+                    <field name="model_reference_model" string="Model"/>
+                    <field name="model_reference" string="Record"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--? Window Action -->
+        <record id="forge_ziwo_history_action" model="ir.actions.act_window">
+            <field name="name">Call History</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ziwo.history</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="forge_ziwo_history_tree_view"/>
+        </record>
+        <!--? Menu Items -->
+        <record id="forge_ziwo_history_menu" model="ir.ui.menu">
+            <field name="name">Call History</field>
+            <field name="sequence">20</field>
+            <field name="parent_id" ref="parent_menu_agent_screen"/>
+            <field name="action" ref="forge_ziwo_history_action"/>
+        </record>
+
+    </data>
+</odoo>
