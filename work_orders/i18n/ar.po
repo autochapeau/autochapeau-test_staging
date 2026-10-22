@@ -767,6 +767,22 @@ msgid "Quantity"
 msgstr "الكمية"
 
 #. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__tag_id
+msgid "Tag"
+msgstr "التاج"
+
+#. module: work_orders
+#: model:ir.model.fields,field_description:work_orders.field_car_workorder_product__product_uom_id
+msgid "UoM"
+msgstr "وحدة القياس"
+
+#. module: work_orders
+#: code:addons/work_orders/models/car_work_order.py:0
+#, python-format
+msgid "Product \"%(product)s\" is not linked to the tag \"%(tag)s\"."
+msgstr "الصنف \"%(product)s\" غير مرتبط بالتاج \"%(tag)s\"."
+
+#. module: work_orders
 #: model:ir.model.fields,field_description:work_orders.field_car_work_order__rating_ids
 msgid "Ratings"
 msgstr "التقييمات"

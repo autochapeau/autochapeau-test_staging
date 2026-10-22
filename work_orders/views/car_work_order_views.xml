@@ -277,8 +277,10 @@
                             <group>
                                 <field colspan="2" nolabel="1" name="product_ids" readonly="state != 'new'">
                                     <tree editable="top">
+                                        <field name="tag_id" options='{"no_open": True, "no_create": True}' />
                                         <field name="product_id" options='{"no_open": True, "no_create": True}' />
                                         <field name="quantity" />
+                                        <field name="product_uom_id" />
                                     </tree>
                                 </field>
                             </group>

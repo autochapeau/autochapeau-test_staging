@@ -1090,11 +1090,36 @@ class CarWorkOrderProduct(models.Model):
     _description = "Workorder product"
     _rec_name = "product_id"
 
+    tag_id = fields.Many2one("product.tag", string="Tag")
     product_id = fields.Many2one(
-        "product.product", string="Product", domain="[('detailed_type', '!=', 'service')]")
+        "product.product",
+        string="Product",
+        domain="[('detailed_type', '!=', 'service'), ('product_tag_ids', 'in', tag_id and [tag_id] or [])]",
+    )
+    product_uom_id = fields.Many2one(
+        "uom.uom", string="UoM", related="product_id.uom_id")
     service_id = fields.Many2one("product.product", string="Service")
     quantity = fields.Float()
     workorder_id = fields.Many2one("car.work.order", string="Workorder")
+
+    @api.onchange("tag_id")
+    def _onchange_tag_id(self):
+        if self.product_id and self.tag_id not in self.product_id.product_tag_ids:
+            self.product_id = False
+
+    @api.constrains("tag_id", "product_id")
+    def _check_product_matches_tag(self):
+        for line in self:
+            if (
+                line.tag_id
+                and line.product_id
+                and line.tag_id not in line.product_id.product_tag_ids
+            ):
+                raise ValidationError(_(
+                    "Product \"%(product)s\" is not linked to the tag \"%(tag)s\".",
+                    product=line.product_id.display_name,
+                    tag=line.tag_id.display_name,
+                ))
 
     @api.model_create_multi
     def create(self, vals_list):
