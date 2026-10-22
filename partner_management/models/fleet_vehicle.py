@@ -1,5 +1,5 @@
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import _, fields, models, api
+from odoo.exceptions import UserError, ValidationError
 
 
 class FleetVehicle(models.Model):
@@ -23,6 +23,21 @@ class FleetVehicle(models.Model):
         # ),
     ]
 
+    @api.constrains("chassis_number")
+    def _check_unique_chassis_number(self):
+        Vehicle = self.sudo()
+        for car in self:
+            if not car.chassis_number:
+                continue
+            duplicate = Vehicle.search([
+                ("id", "!=", car.id),
+                ("chassis_number", "=", car.chassis_number),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(_(
+                    "This chassis number is already used by %s."
+                ) % duplicate.display_name)
+                
     sale_order_ids = fields.One2many(
         "sale.order",
         "vehicle_id",
