@@ -5,6 +5,24 @@ from odoo.exceptions import UserError
 class FleetVehicle(models.Model):
     _inherit = "fleet.vehicle"
 
+    _sql_constraints = [
+        (
+            "car_chassis_number_uniq",
+            "unique(chassis_number)",
+            "This chassis number is already used by another contact.",
+        ),
+        # (
+        #     "partner_email_normalized_uniq",
+        #     "unique(email)",
+        #     "This email is already used by another contact.",
+        # ),
+        # (
+        #     "partner_phone_uniq",
+        #     "unique(phone)",
+        #     "This phone is already used by another contact.",
+        # ),
+    ]
+
     sale_order_ids = fields.One2many(
         "sale.order",
         "vehicle_id",

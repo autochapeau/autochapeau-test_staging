@@ -214,6 +214,7 @@ class SaleOrder(models.Model):
     @api.onchange("partner_id")
     def _onchange_partner_id_reset_vehicle(self):
         self._reset_vehicle_if_invalid()
+        self._reset_contract_agency_salesperson()
 
     @api.onchange("vehicle_id")
     def _onchange_vehicle_id_clear_lines(self):
@@ -223,8 +224,28 @@ class SaleOrder(models.Model):
     def _onchange_order_type_reset_vehicle(self):
         if self.order_type != "contract":
             self.subordinate_id = False
+            if (
+                self.agency_salesperson_id
+                and self.partner_id
+                and self.agency_salesperson_id.parent_id == self.partner_id
+            ):
+                self.agency_salesperson_id = False
+        else:
+            self._reset_contract_agency_salesperson()
         self._clear_order_lines()
         self._reset_vehicle_if_invalid()
+
+    def _reset_contract_agency_salesperson(self):
+        """Contract salesperson must be a contact of the selected company."""
+        if self.order_type != "contract":
+            return
+        salesperson = self.agency_salesperson_id
+        if (
+            not self.partner_id
+            or not salesperson
+            or salesperson.parent_id != self.partner_id
+        ):
+            self.agency_salesperson_id = False
 
     @api.onchange("subordinate_id")
     def _onchange_subordinate_id_reset_vehicle(self):

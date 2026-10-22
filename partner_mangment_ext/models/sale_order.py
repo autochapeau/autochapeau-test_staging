@@ -29,6 +29,25 @@ class SaleOrder(models.Model):
         store=True,
     )
 
+    last_invoice_date = fields.Date(
+        string="Invoice Date",
+        compute="_compute_last_invoice_date",
+        store=True,
+        help="Date of the latest posted customer invoice of this order.",
+    )
+
+    @api.depends("invoice_ids.state", "invoice_ids.invoice_date")
+    def _compute_last_invoice_date(self):
+        for order in self:
+            invoices = order.invoice_ids.filtered(
+                lambda move: move.state == "posted"
+                             and move.move_type == "out_invoice"
+                             and move.invoice_date
+            )
+            order.last_invoice_date = max(
+                invoices.mapped("invoice_date"), default=False
+            )
+
     @api.depends(
         "order_line.price_unit",
         "order_line.product_uom_qty",

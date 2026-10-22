@@ -15,6 +15,9 @@
                        optional="show"
                        readonly="state != 'draft'"/>
             </xpath>
+             <xpath expr="//group[@name='order_details']" position="inside">
+                <field name="last_invoice_date" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="after">
                 <field name="discount_amount"
                        string="Disc. Amount"
