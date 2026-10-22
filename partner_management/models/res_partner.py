@@ -304,10 +304,14 @@ class ResPartner(models.Model):
     def _normalize_mobile(self, mobile):
         if not mobile:
             return ""
-        value = re.sub(r"[\s\-()]", "", str(mobile).strip())
+        value = re.sub(r"\D", "", str(mobile))
         if value.startswith("00"):
-            value = "+" + value[2:]
-        return value
+            value = value[2:]
+        elif value.startswith("05"):
+            value = "966" + value[1:]
+        elif value.startswith("5"):
+            value = "966" + value
+        return "+" + value
 
     @api.model
     def _otp_storage_key(self, mobile):
