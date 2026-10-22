@@ -23,21 +23,21 @@ class FleetVehicle(models.Model):
         # ),
     ]
 
-    @api.constrains("chassis_number")
-    def _check_unique_chassis_number(self):
+    @api.constrains("vin_sn")
+    def _check_unique_vin_sn(self):
         Vehicle = self.sudo()
         for car in self:
-            if not car.chassis_number:
+            if not car.vin_sn:
                 continue
             duplicate = Vehicle.search([
                 ("id", "!=", car.id),
-                ("chassis_number", "=", car.chassis_number),
+                ("vin_sn", "=", car.vin_sn),
             ], limit=1)
             if duplicate:
                 raise ValidationError(_(
                     "This chassis number is already used by %s."
                 ) % duplicate.display_name)
-                
+
     sale_order_ids = fields.One2many(
         "sale.order",
         "vehicle_id",
