@@ -14,23 +14,47 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    _sql_constraints = [
-        (
-            "partner_mobile_normalized_uniq",
-            "unique(mobile_normalized)",
-            "This mobile number is already used by another contact.",
-        ),
-        (
-            "partner_email_normalized_uniq",
-            "unique(email)",
-            "This email is already used by another contact.",
-        ),
-        (
-            "partner_phone_uniq",
-            "unique(phone)",
-            "This phone is already used by another contact.",
-        ),
-    ]
+    # _sql_constraints = [
+    #     (
+    #         "partner_mobile_normalized_uniq",
+    #         "unique(mobile_normalized)",
+    #         "This mobile number is already used by another contact.",
+    #     ),
+    #     (
+    #         "partner_email_normalized_uniq",
+    #         "unique(email)",
+    #         "This email is already used by another contact.",
+    #     ),
+    #     (
+    #         "partner_phone_uniq",
+    #         "unique(phone)",
+    #         "This phone is already used by another contact.",
+    #     ),
+    # ]
+
+
+    @api.constrains("mobile", "phone")
+    def _check_unique_mobile_phone(self):
+        Partner = self.sudo()
+        for partner in self:
+            if partner.mobile_normalized:
+                duplicate = Partner.search([
+                    ("id", "!=", partner.id),
+                    ("mobile_normalized", "=", partner.mobile_normalized),
+                ], limit=1)
+                if duplicate:
+                    raise ValidationError(_(
+                        "This mobile number is already used by %s."
+                    ) % duplicate.display_name)
+            if partner.phone:
+                duplicate = Partner.search([
+                    ("id", "!=", partner.id),
+                    ("phone", "=", partner.phone),
+                ], limit=1)
+                if duplicate:
+                    raise ValidationError(_(
+                        "This phone is already used by %s."
+                    ) % duplicate.display_name)
 
     # ── Contact type ──────────────────────────────────────────────────
     contact_partner_type = fields.Selection(
