@@ -17,7 +17,7 @@ class ResPartner(models.Model):
     _sql_constraints = [
         (
             "partner_mobile_normalized_uniq",
-            "unique(mobile)",
+            "unique(mobile_normalized)",
             "This mobile number is already used by another contact.",
         ),
         (
