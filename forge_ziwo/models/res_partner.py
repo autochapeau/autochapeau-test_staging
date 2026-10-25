@@ -15,19 +15,19 @@ class ResPartner(models.Model):
     mobile_trim = fields.Char(compute="_trim_number", store=True)
 
     #add constrains to make number unique
-    @api.constrains('phone_trim', 'mobile_trim')
-    def _check_unique_number(self):
-        for record in self:
-            if record.phone_trim:
-                if self.env['res.partner'].sudo().search_count(['|',('mobile_trim', '=', record.phone_trim), ('phone_trim', '=', record.phone_trim), ('active', '=', True)]) > 1:
-                    # raise UserError(_("Phone number " + record.phone_trim + " must be unique"))
-                    existing_partner = self.env['res.partner'].sudo().search(['|',('mobile_trim', '=', record.phone_trim), ('phone_trim', '=', record.phone_trim), ('active', '=', True), ('id', '!=', record.id)], limit=1)
-                    raise UserError(_('Phone number must be unique: already used by "' + existing_partner.name + '" [' + str(existing_partner.id) + ']'))
-            if record.mobile_trim:
-                if self.env['res.partner'].sudo().search_count(['|',('mobile_trim', '=', record.mobile_trim), ('phone_trim', '=', record.mobile_trim), ('active', '=', True)]) > 1:
-                    # raise UserError(_("Mobile number " + record.mobile_trim + " must be unique"))
-                    existing_partner = self.env['res.partner'].sudo().search(['|',('mobile_trim', '=', record.mobile_trim), ('phone_trim', '=', record.mobile_trim), ('active', '=', True), ('id', '!=', record.id)], limit=1)
-                    raise UserError(_('Mobile number must be unique: already used by "' + existing_partner.name + '" [' + str(existing_partner.id) + ']'))
+    # @api.constrains('phone_trim', 'mobile_trim')
+    # def _check_unique_number(self):
+    #     for record in self:
+    #         if record.phone_trim:
+    #             if self.env['res.partner'].sudo().search_count(['|',('mobile_trim', '=', record.phone_trim), ('phone_trim', '=', record.phone_trim), ('active', '=', True)]) > 1:
+    #                 # raise UserError(_("Phone number " + record.phone_trim + " must be unique"))
+    #                 existing_partner = self.env['res.partner'].sudo().search(['|',('mobile_trim', '=', record.phone_trim), ('phone_trim', '=', record.phone_trim), ('active', '=', True), ('id', '!=', record.id)], limit=1)
+    #                 raise UserError(_('Phone number must be unique: already used by "' + existing_partner.name + '" [' + str(existing_partner.id) + ']'))
+    #         if record.mobile_trim:
+    #             if self.env['res.partner'].sudo().search_count(['|',('mobile_trim', '=', record.mobile_trim), ('phone_trim', '=', record.mobile_trim), ('active', '=', True)]) > 1:
+    #                 # raise UserError(_("Mobile number " + record.mobile_trim + " must be unique"))
+    #                 existing_partner = self.env['res.partner'].sudo().search(['|',('mobile_trim', '=', record.mobile_trim), ('phone_trim', '=', record.mobile_trim), ('active', '=', True), ('id', '!=', record.id)], limit=1)
+    #                 raise UserError(_('Mobile number must be unique: already used by "' + existing_partner.name + '" [' + str(existing_partner.id) + ']'))
 
 
     @api.depends('phone', 'mobile')
