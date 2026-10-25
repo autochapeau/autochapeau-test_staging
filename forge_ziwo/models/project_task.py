@@ -7,6 +7,7 @@ class ProjectTask(models.Model):
 
     partner_parent = fields.Many2one(related="partner_id.parent_id", string="Company")
     partner_phone = fields.Char(related="partner_id.phone", string="Phone")
+    partner_mobile = fields.Char(related="partner_id.mobile", string="Mobile")
 
     ziwo_show_c2c_d2c = fields.Boolean(compute='_compute_ziwo_show_c2c_d2c')
     def _compute_ziwo_show_c2c_d2c(self):
