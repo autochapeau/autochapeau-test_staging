@@ -33,28 +33,28 @@ class ResPartner(models.Model):
     # ]
 
 
-    @api.constrains("mobile", "phone")
-    def _check_unique_mobile_phone(self):
-        Partner = self.sudo()
-        for partner in self:
-            if partner.mobile_normalized:
-                duplicate = Partner.search([
-                    ("id", "!=", partner.id),
-                    ("mobile_normalized", "=", partner.mobile_normalized),
-                ], limit=1)
-                if duplicate:
-                    raise ValidationError(_(
-                        "This mobile number is already used by %s."
-                    ) % duplicate.display_name)
-            if partner.phone:
-                duplicate = Partner.search([
-                    ("id", "!=", partner.id),
-                    ("phone", "=", partner.phone),
-                ], limit=1)
-                if duplicate:
-                    raise ValidationError(_(
-                        "This phone is already used by %s."
-                    ) % duplicate.display_name)
+    # @api.constrains("mobile", "phone")
+    # def _check_unique_mobile_phone(self):
+    #     Partner = self.sudo()
+    #     for partner in self:
+    #         if partner.mobile_normalized:
+    #             duplicate = Partner.search([
+    #                 ("id", "!=", partner.id),
+    #                 ("mobile_normalized", "=", partner.mobile_normalized),
+    #             ], limit=1)
+    #             if duplicate:
+    #                 raise ValidationError(_(
+    #                     "This mobile number is already used by %s."
+    #                 ) % duplicate.display_name)
+    #         if partner.phone:
+    #             duplicate = Partner.search([
+    #                 ("id", "!=", partner.id),
+    #                 ("phone", "=", partner.phone),
+    #             ], limit=1)
+    #             if duplicate:
+    #                 raise ValidationError(_(
+    #                     "This phone is already used by %s."
+    #                 ) % duplicate.display_name)
 
     # ── Contact type ──────────────────────────────────────────────────
     contact_partner_type = fields.Selection(
