@@ -9,14 +9,7 @@ class PortalBanner(models.Model):
 
     active = fields.Boolean(default=True)
 
-    page = fields.Selection(
-        selection=[
-            ("offers", "Offers"),
-            ("aboutus", "About Us"),
-            ("jobs", "Jobs"),
-        ],
-        required=True,
-    )
+    page = fields.Char(required=True)
     first_title = fields.Char(required=True, translate=True)
     second_title = fields.Char(translate=True)
     url = fields.Char()

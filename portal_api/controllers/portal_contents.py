@@ -161,17 +161,9 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_banners(self):
         try:
-            page = request.httprequest.args.get("page")
+            page = (request.httprequest.args.get("page") or "").strip()
             banner_model = request.env["portal.banner"].sudo()
-            allowed_pages = dict(banner_model._fields["page"].selection)
-            domain = []
-            if page:
-                if page not in allowed_pages:
-                    return make_response(
-                        422,
-                        {"message": "page must be one of: %s" % ", ".join(allowed_pages)},
-                    )
-                domain = [("page", "=", page)]
+            domain = [("page", "=", page)] if page else []
             fields_name = ["id", "page", "first_title", "second_title", "url", "image_1920"]
             records = banner_model.search_read(domain, fields_name)
             result = format_search_read_result(
