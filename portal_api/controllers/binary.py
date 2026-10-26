@@ -19,6 +19,7 @@ api_public_fields = {
     "portal.testimony": ["image_1920"],
     "portal.loyalty.program": ["image_1920"],
     "portal.partner": ["image_1920"],
+    "portal.banner": ["image_1920"],
 }
 
 
