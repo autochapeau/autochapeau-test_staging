@@ -6,7 +6,7 @@
         <field name="model">portal.banner</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="page" />
+                <field name="page_name" />
                 <field name="first_title" />
                 <field name="second_title" />
                 <field name="url" />
@@ -22,7 +22,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="page" />
+                            <field name="page_name" />
                             <field name="first_title" />
                             <field name="second_title" />
                             <field name="url" widget="CopyClipboardChar" />

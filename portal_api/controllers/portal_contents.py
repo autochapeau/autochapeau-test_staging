@@ -163,8 +163,8 @@ class PortalContentsAPI(http.Controller):
         try:
             page = (request.httprequest.args.get("page") or "").strip()
             banner_model = request.env["portal.banner"].sudo()
-            domain = [("page", "=", page)] if page else []
-            fields_name = ["id", "page", "first_title", "second_title", "url", "image_1920"]
+            domain = [("page_name", "=", page)] if page else []
+            fields_name = ["id", "page_name", "first_title", "second_title", "url", "image_1920"]
             records = banner_model.search_read(domain, fields_name)
             result = format_search_read_result(
                 records, fields_name, [], model_name="portal.banner"
