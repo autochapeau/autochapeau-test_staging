@@ -161,9 +161,11 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_banners(self):
         try:
-            fields_name = ["id", "first_title", "second_title", "url"]
+            fields_name = ["id", "first_title", "second_title", "url", "image_1920"]
             records = request.env["portal.banner"].sudo().search_read([], fields_name)
-            result = format_search_read_result(records, fields_name, [])
+            result = format_search_read_result(
+                records, fields_name, [], model_name="portal.banner"
+            )
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})

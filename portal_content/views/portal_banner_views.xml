@@ -25,6 +25,13 @@
                             <field name="second_title" />
                             <field name="url" widget="CopyClipboardChar" />
                         </group>
+                        <group>
+                            <field
+                                name="image_1920"
+                                widget="image"
+                                options='{"zoom": true, "preview_image": "image_128"}'
+                            />
+                        </group>
                     </group>
                 </sheet>
             </form>

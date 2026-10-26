@@ -3,6 +3,7 @@ from odoo import fields, models
 
 class PortalBanner(models.Model):
     _name = "portal.banner"
+    _inherit = "image.mixin"
     _description = "Portal Banner"
     _rec_name = "first_title"
 
