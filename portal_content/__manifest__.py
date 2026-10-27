@@ -1,6 +1,6 @@
 {
     "name": "Portal Content",
-    "version": "17.0.1.0.10",
+    "version": "17.0.1.0.11",
     "author": "Wellknot",
     "depends": ["product"],
     "data": [
@@ -23,6 +23,7 @@
         "views/portal_banner_views.xml",
         "views/portal_home_section_views.xml",
         "views/portal_home_care_views.xml",
+        "views/portal_home_loyalty_views.xml",
         "views/portal_return_change_policy_views.xml",
         "views/portal_theme_views.xml",
     ],

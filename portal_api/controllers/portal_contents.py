@@ -241,3 +241,32 @@ class PortalContentsAPI(http.Controller):
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
+
+    @http.route(
+        "/v1/portal/loyalty-section", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*"
+    )
+    @with_lang
+    def v1_get_loyalty_section(self):
+        try:
+            section = request.env["portal.home.loyalty"].sudo().search([], limit=1)
+            if not section:
+                return make_response(200, {})
+            images = []
+            for image in section.image_ids:
+                image_url = False
+                if image.image_1920:
+                    image_url = get_binary_url("portal.home.loyalty.image", image.id, "image_1920")
+                images.append(image_url)
+            result = {
+                "small_title": section.small_title or False,
+                "title": section.title or False,
+                "description": section.description or False,
+                "subtitle": section.subtitle or False,
+                "button_label": section.button_label or False,
+                "button_url": section.button_url or False,
+                "items": [item.name for item in section.item_ids if item.name],
+                "images": images,
+            }
+            return make_response(200, result)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
