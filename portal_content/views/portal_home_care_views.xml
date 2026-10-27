@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="portal_home_care_view_tree" model="ir.ui.view">
+        <field name="name">portal.home.care.tree</field>
+        <field name="model">portal.home.care</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="title" />
+                <field name="description" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="portal_home_care_view_form" model="ir.ui.view">
+        <field name="name">portal.home.care.form</field>
+        <field name="model">portal.home.care</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="title" />
+                        <field name="description" />
+                    </group>
+                    <notebook>
+                        <page string="Items">
+                            <field name="item_ids">
+                                <tree>
+                                    <field name="sequence" widget="handle" />
+                                    <field name="title" />
+                                    <field name="description" />
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="title" />
+                                            <field name="description" />
+                                        </group>
+                                        <group>
+                                            <field
+                                                name="image_1920"
+                                                string="Icon"
+                                                widget="image"
+                                                options='{"zoom": true, "preview_image": "image_128"}'
+                                            />
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="portal_home_care_action" model="ir.actions.act_window">
+        <field name="name">Care Section</field>
+        <field name="res_model">portal.home.care</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="portal_home_care_menu"
+        name="Care Section"
+        parent="portal_home_menu_root"
+        action="portal_home_care_action"
+        sequence="2"
+    />
+
+</odoo>

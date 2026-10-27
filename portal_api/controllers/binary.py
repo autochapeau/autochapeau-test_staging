@@ -21,6 +21,7 @@ api_public_fields = {
     "portal.partner": ["image_1920"],
     "portal.banner": ["image_1920"],
     "portal.home.section": ["image_1920"],
+    "portal.home.care.item": ["image_1920"],
 }
 
 

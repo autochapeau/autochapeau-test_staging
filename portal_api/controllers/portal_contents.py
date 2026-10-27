@@ -213,3 +213,31 @@ class PortalContentsAPI(http.Controller):
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
+
+    @http.route("/v1/portal/care-section", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
+    def v1_get_care_section(self):
+        try:
+            section = request.env["portal.home.care"].sudo().search([], limit=1)
+            if not section:
+                return make_response(200, {})
+            items = []
+            for item in section.item_ids:
+                icon_url = False
+                if item.image_1920:
+                    icon_url = get_binary_url("portal.home.care.item", item.id, "image_1920")
+                items.append(
+                    {
+                        "title": item.title or False,
+                        "description": item.description or False,
+                        "icon_url": icon_url,
+                    }
+                )
+            result = {
+                "title": section.title or False,
+                "description": section.description or False,
+                "items": items,
+            }
+            return make_response(200, result)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
