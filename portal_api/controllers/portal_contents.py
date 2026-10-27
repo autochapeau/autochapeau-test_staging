@@ -1,7 +1,7 @@
 from odoo import http
 from odoo.http import request
 
-from .common import format_search_read_result, make_response, with_lang
+from .common import format_search_read_result, get_binary_url, make_response, with_lang
 
 
 class PortalContentsAPI(http.Controller):
@@ -189,5 +189,27 @@ class PortalContentsAPI(http.Controller):
             )
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result[0] if result else {})
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
+
+    @http.route("/v1/portal/home-section", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
+    def v1_get_home_section(self):
+        try:
+            section = request.env["portal.home.section"].sudo().search([], limit=1)
+            if not section:
+                return make_response(200, {})
+            thumbnail_url = False
+            if section.image_1920:
+                thumbnail_url = get_binary_url("portal.home.section", section.id, "image_1920")
+            result = {
+                "video_url": section.video_url or False,
+                "video_thumbnail_url": thumbnail_url,
+                "small_title": section.small_title or False,
+                "title": section.title or False,
+                "description": section.description or False,
+                "items": [item.name for item in section.item_ids if item.name],
+            }
+            return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
