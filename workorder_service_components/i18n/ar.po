@@ -1,0 +1,82 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* workorder_service_components
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 09:00+0000\n"
+"PO-Revision-Date: 2026-10-27 09:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+
+#. module: workorder_service_components
+#: model:ir.module.module,summary:base.module_workorder_service_components
+msgid "Service tags, default components, and suggested versus used quantities on work orders"
+msgstr "تاج الخدمة، المكونات الافتراضية، والكمية المقترحة مقابل المستخدمة في أمر العمل"
+
+#. module: workorder_service_components
+#: model:ir.module.module,shortdesc:base.module_workorder_service_components
+msgid "Work Order Service Components"
+msgstr "مكونات خدمة أمر العمل"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_product_template__service_component_ids
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_form_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_template_form_service_components
+msgid "Service Components"
+msgstr "مكونات الخدمة"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_product_product__service_tag_id
+#: model:ir.model.fields,field_description:workorder_service_components.field_product_template__service_tag_id
+msgid "Service Tag"
+msgstr "تاج الخدمة"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,help:workorder_service_components.field_product_product__service_tag_id
+msgid ""
+"A tag with the same name is created automatically. It only filters products "
+"on the work order; products are not assigned to it automatically."
+msgstr ""
+"ينشأ تلقائياً تاج بنفس اسم الخدمة. التاج يفلتر الأصناف في أمر العمل فقط، "
+"ولا تُسنَد الأصناف إليه تلقائياً."
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_bom__product_tmpl_id
+msgid "Service Template"
+msgstr "قالب الخدمة"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_bom__product_uom_id
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__used_uom_id
+msgid "UoM"
+msgstr "وحدة القياس"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_form_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_template_form_service_components
+msgid "Default Quantity"
+msgstr "الكمية الافتراضية"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__suggested_qty
+msgid "Suggested Quantity"
+msgstr "الكمية المقترحة"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.car_work_order_form_service_components
+msgid "Used Quantity"
+msgstr "الكمية المستخدمة"
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/car_workorder_product.py:0
+#, python-format
+msgid "You cannot modify products after the work order has been confirmed."
+msgstr "لا يمكنك تعديل الأصناف بعد تأكيد أمر العمل."

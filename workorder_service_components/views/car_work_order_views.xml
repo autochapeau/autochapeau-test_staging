@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="car_work_order_form_service_components" model="ir.ui.view">
+        <field name="name">car.work.order.form.service.components</field>
+        <field name="model">car.work.order</field>
+        <field name="inherit_id" ref="work_orders.car_work_order_view_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='products']//field[@name='product_ids']" position="attributes">
+                <attribute name="readonly">state != 'new'</attribute>
+            </xpath>
+            <xpath expr="//page[@name='products']//field[@name='product_ids']/tree" position="replace">
+                <tree editable="top">
+                    <field name="service_id" options='{"no_open": True, "no_create": True}'/>
+                    <field name="tag_id" options='{"no_open": True, "no_create": True}'/>
+                    <field name="product_id" options='{"no_open": True, "no_create": True}'/>
+                    <field name="suggested_qty" readonly="1" force_save="1"/>
+                    <field name="quantity" string="Used Quantity"/>
+                    <field name="product_uom_id" column_invisible="1"/>
+                    <field name="product_uom_category_id" column_invisible="1"/>
+                    <field name="used_uom_id" options='{"no_open": True, "no_create": True}'/>
+                </tree>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

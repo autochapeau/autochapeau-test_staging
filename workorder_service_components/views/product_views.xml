@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="product_form_service_tag" model="ir.ui.view">
+        <field name="name">product.product.form.service.tag</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <field name="detailed_type" position="after">
+                <field name="service_tag_id" readonly="1" invisible="detailed_type != 'service'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_form_service_components" model="ir.ui.view">
+        <field name="name">product.product.form.service.components</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="work_orders.product_normal_form_view_inherit_car"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[field[@name='bom_ids']]" position="attributes">
+                <attribute name="name">service_components</attribute>
+                <attribute name="string">Service Components</attribute>
+                <attribute name="invisible">detailed_type != 'service'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='bom_ids']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="domain">[('detailed_type', '!=', 'service')]</attribute>
+                <attribute name="options">{"no_open": True, "no_create": True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='bom_ids']/tree/field[@name='quantity']" position="attributes">
+                <attribute name="string">Default Quantity</attribute>
+            </xpath>
+            <xpath expr="//field[@name='bom_ids']/tree/field[@name='quantity']" position="after">
+                <field name="product_uom_category_id" column_invisible="1"/>
+                <field name="product_uom_id" required="1" options='{"no_open": True, "no_create": True}'/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_form_service_components" model="ir.ui.view">
+        <field name="name">product.template.form.service.components</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <page name="general_information" position="after">
+                <page string="Service Components" name="service_components" invisible="detailed_type != 'service'">
+                    <group>
+                        <field name="service_tag_id" readonly="1" invisible="product_variant_count != 1"/>
+                        <field name="product_variant_count" invisible="1"/>
+                    </group>
+                    <field name="service_component_ids">
+                        <tree editable="bottom">
+                            <field name="service_id"
+                                   required="parent.product_variant_count &gt; 1"
+                                   column_invisible="parent.product_variant_count &lt;= 1"
+                                   domain="[('product_tmpl_id', '=', parent.id), ('detailed_type', '=', 'service')]"
+                                   options='{"no_open": True, "no_create": True}'/>
+                            <field name="product_id"
+                                   domain="[('detailed_type', '!=', 'service')]"
+                                   options='{"no_open": True, "no_create": True}'/>
+                            <field name="quantity" string="Default Quantity"/>
+                            <field name="product_uom_category_id" column_invisible="1"/>
+                            <field name="product_uom_id" required="1" options='{"no_open": True, "no_create": True}'/>
+                        </tree>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+
+</odoo>
