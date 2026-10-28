@@ -1,0 +1,33 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* sale_salesperson_access
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-28 08:30+0000\n"
+"PO-Revision-Date: 2026-10-28 08:30+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+
+#. module: sale_salesperson_access
+#: model:res.groups,name:sale_salesperson_access.group_edit_salesperson
+msgid "Edit Salesperson on Sales Order"
+msgstr "تعديل البائع في أمر البيع"
+
+#. module: sale_salesperson_access
+#: model:res.groups,comment:sale_salesperson_access.group_edit_salesperson
+msgid "Can change the salesperson on a sales order. Other users see the field locked."
+msgstr "يقدر يغيّر البائع في أمر البيع. باقي المستخدمين يشوفون الحقل مقفلاً."
+
+#. module: sale_salesperson_access
+#: code:addons/sale_salesperson_access/models/sale_order.py:0
+#, python-format
+msgid "You are not allowed to change the salesperson on a sales order."
+msgstr "لا يمكنك تغيير البائع في أمر البيع."

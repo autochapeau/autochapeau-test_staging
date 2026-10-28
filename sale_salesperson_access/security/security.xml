@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="group_edit_salesperson" model="res.groups">
+        <field name="name">Edit Salesperson on Sales Order</field>
+        <field name="category_id" ref="base.module_category_sales_sales"/>
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+        <field name="users" eval="[(4, ref('base.user_admin')), (4, ref('base.user_root'))]"/>
+        <field name="comment">Can change the salesperson on a sales order. Other users see the field locked.</field>
+    </record>
+
+</odoo>
