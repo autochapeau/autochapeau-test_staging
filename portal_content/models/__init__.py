@@ -14,6 +14,7 @@ from . import portal_banner
 from . import portal_home_section
 from . import portal_home_care
 from . import portal_home_loyalty
+from . import portal_home_slider
 from . import portal_terms_conditions
 from . import portal_return_change_policy
 from . import portal_theme

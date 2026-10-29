@@ -270,3 +270,22 @@ class PortalContentsAPI(http.Controller):
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
+
+    @http.route("/v1/portal/home-slider", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    def v1_get_home_slider(self):
+        try:
+            slides = request.env["portal.home.slider"].sudo().search([])
+            result = []
+            for slide in slides:
+                if not slide.image_1920:
+                    continue
+                result.append(
+                    {
+                        "image_url": get_binary_url(
+                            "portal.home.slider", slide.id, "image_1920"
+                        ),
+                    }
+                )
+            return make_response(200, result)
+        except Exception as e:
+            return make_response(422, {"message": str(e)})
