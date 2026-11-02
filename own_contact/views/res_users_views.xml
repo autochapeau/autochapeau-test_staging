@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_own_contact" model="ir.ui.view">
+        <field name="name">res.users.form.own.contact</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="own_contact" string="Contacts" groups="base.group_system" invisible="share">
+                    <group string="Own Contact">
+                        <field name="own_contact_access"/>
+                        <field name="all_contacts_access"/>
+                    </group>
+                    <div class="text-muted">
+                        Own Contact limits access to contacts assigned to this user as Salesperson.
+                        New contacts are assigned automatically. Internal user and company records
+                        remain readable for Odoo operations. All Contacts (Manager) overrides this restriction.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
