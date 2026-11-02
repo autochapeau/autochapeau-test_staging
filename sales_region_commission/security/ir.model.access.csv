@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_entry_user,Commission ledger,model_sales_commission_entry,group_user,1,0,0,0
+access_rule_user,Own rates,model_sales_commission_rule,group_user,1,0,0,0
+access_rule_admin,Manage rates,model_sales_commission_rule,group_admin,1,1,1,1
+access_target_user,View targets,model_sales_commission_target,group_user,1,0,0,0
+access_target_admin,Manage targets,model_sales_commission_target,group_admin,1,1,1,1
+access_commission_team_admin,Manage commission teams,sales_team.model_crm_team,group_admin,1,1,1,0
+access_calculate_admin,Calculate posted commissions,model_sales_commission_calculate,group_admin,1,1,1,1
+access_service_category_admin,Manage service commission categories,commission.model_commission_category,group_admin,1,1,1,0
