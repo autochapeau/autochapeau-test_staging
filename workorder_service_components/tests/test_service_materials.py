@@ -1,0 +1,303 @@
+from odoo import Command
+from odoo.exceptions import UserError, ValidationError
+from odoo.tests import Form, TransactionCase, tagged
+from odoo.tests.common import new_test_user
+
+
+@tagged("post_install", "-at_install")
+class TestServiceMaterials(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True, mail_create_nosubscribe=True))
+        cls.unit = cls.env.ref("uom.product_uom_unit")
+        cls.dozens = cls.env.ref("uom.product_uom_dozen")
+        cls.branch = cls.env["hr.department"].create({"name": "Material test branch", "department_type": "branche"})
+        cls.warehouse = cls.env["stock.warehouse"].create({
+            "name": "Material test warehouse", "code": "MATT", "branch_id": cls.branch.id,
+            "company_id": cls.env.company.id,
+        })
+        cls.staff = cls.env["hr.employee"].create({"name": "Material technician", "is_technician": True, "branch_id": cls.branch.id})
+        cls.customer = cls.env["res.partner"].create({"name": "Material test customer"})
+        brand = cls.env["fleet.vehicle.model.brand"].create({"name": "Material test brand"})
+        model = cls.env["fleet.vehicle.model"].create({"name": "Material test car", "brand_id": brand.id})
+        cls.vehicle = cls.env["fleet.vehicle"].create({"model_id": model.id, "license_plate": "MAT-TEST"})
+        cls.service = cls.env["product.product"].create({"name": "Film installation test", "detailed_type": "service"})
+        cls.film = cls.env["product.product"].create({"name": "Film material test", "detailed_type": "product", "uom_id": cls.unit.id, "uom_po_id": cls.unit.id})
+        cls.liquid = cls.env["product.product"].create({"name": "Liquid material test", "detailed_type": "product", "uom_id": cls.unit.id, "uom_po_id": cls.unit.id})
+        cls.right = cls.env["car.part"].create({"name": "Right door test"})
+        cls.left = cls.env["car.part"].create({"name": "Left door test"})
+        cls.right_config = cls.env["car.service.part"].create({
+            "part_id": cls.right.id, "service_id": cls.service.id,
+            "component_ids": [Command.create({"product_id": cls.film.id, "quantity": 2}),
+                              Command.create({"product_id": cls.liquid.id, "quantity": 1})],
+        })
+        cls.left_config = cls.env["car.service.part"].create({
+            "part_id": cls.left.id, "service_id": cls.service.id,
+            "component_ids": [Command.create({"product_id": cls.film.id, "quantity": 3})],
+        })
+        cls.env["stock.quant"]._update_available_quantity(cls.film, cls.warehouse.lot_stock_id, 100)
+        cls.env["stock.quant"]._update_available_quantity(cls.liquid, cls.warehouse.lot_stock_id, 100)
+
+    def _order(self, services=None, products=None):
+        return self.env["car.work.order"].create({
+            "partner_id": self.customer.id, "vehicle_id": self.vehicle.id,
+            "branch_id": self.branch.id, "company_id": self.env.company.id,
+            "service_ids": [Command.create({"product_id": service.id, "staff_ids": [Command.set(self.staff.ids)]})
+                            for service in (services or self.service)],
+            "product_ids": products or [],
+        })
+
+    def _start(self, order):
+        # Exercise the actual delivery builder separately from the unrelated
+        # appointment/check-in validation in action_confirm.
+        order.picking_id = order._create_delivery_picking()
+        order.state = "confirmed"
+        order.action_start_materials()
+
+    def _available(self, product):
+        return self.env["stock.quant"]._get_available_quantity(product, self.warehouse.lot_stock_id)
+
+    def test_part_snapshots_and_actual_usage_consumed_once(self):
+        order = self._order()
+        self.assertEqual(len(order.product_ids), 3)
+        self.assertEqual(set(order.product_ids.part_id.ids), set((self.right | self.left).ids))
+        self._start(order)
+        self.assertFalse(order.picking_id.move_ids)
+        right_film = order.product_ids.filtered(lambda line: line.part_id == self.right and line.product_id == self.film)
+        right_film.quantity = 4
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.film), 93)
+        self.assertEqual(self._available(self.liquid), 99)
+        self.assertEqual(order.material_picking_ids.state, "done")
+        self.assertEqual(order.service_ids.state, "quality")
+        self.assertTrue(order.materials_finished)
+        order.service_ids.action_finish()
+        self.assertEqual(self._available(self.film), 93)
+        self.assertEqual(len(order.material_picking_ids), 1)
+        with self.assertRaises(UserError):
+            right_film.quantity = 5
+
+    def test_existing_bom_lines_are_adopted_without_duplicates(self):
+        products = [Command.create({"service_id": self.service.id, "product_id": bom.product_id.id,
+                                    "quantity": bom.quantity}) for bom in self.service.bom_ids]
+        order = self._order(products=products)
+        order._sync_part_materials()
+        self.assertEqual(len(order.product_ids), 3)
+        self.assertTrue(all(order.product_ids.mapped("source_task_id")))
+        self.assertEqual(len(order.product_ids.source_component_id), 3)
+
+    def test_same_service_twice_keeps_two_material_sets(self):
+        order = self._order(services=[self.service, self.service])
+        self.assertEqual(len(order.product_ids), 6)
+        self._start(order)
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.film), 90)
+        self.assertEqual(len(order.material_picking_ids), 2)
+
+    def test_insufficient_stock_rolls_back_finish(self):
+        order = self._order()
+        order.product_ids.filtered(lambda line: line.product_id == self.film)[:1].quantity = 200
+        self._start(order)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        self.assertEqual(order.service_ids.state, "progress")
+        self.assertFalse(order.material_picking_ids)
+        self.assertEqual(self._available(self.film), 100)
+
+    def test_units_are_converted_and_manual_products_stay_on_original_delivery(self):
+        order = self._order(products=[Command.create({"product_id": self.liquid.id, "quantity": 2})])
+        film_lines = order.product_ids.filtered(lambda line: line.product_id == self.film)
+        film_lines[:1].write({"quantity": 1, "used_uom_id": self.dozens.id})
+        self._start(order)
+        self.assertEqual(len(order.picking_id.move_ids), 1)
+        self.assertEqual(order.picking_id.move_ids.product_uom_qty, 2)
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.film), 85)
+        self.assertEqual(order.picking_id.state, "draft")
+
+    def test_zero_usage_does_not_issue_material(self):
+        order = self._order()
+        order.product_ids.quantity = 0
+        self._start(order)
+        order.action_finish_materials()
+        self.assertTrue(order.materials_finished)
+        self.assertFalse(order.material_picking_ids)
+        self.assertEqual(self._available(self.film), 100)
+
+    def test_lot_selection_and_consumption(self):
+        self.film.tracking = "lot"
+        lot = self.env["stock.lot"].create({"name": "MAT-LOT", "product_id": self.film.id, "company_id": self.env.company.id})
+        self.env["stock.quant"]._update_available_quantity(self.film, self.warehouse.lot_stock_id, 10, lot_id=lot)
+        order = self._order()
+        self._start(order)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        order.product_ids.filtered(lambda line: line.product_id == self.film).lot_id = lot
+        order.action_finish_materials()
+        move_lines = order.material_picking_ids.move_line_ids.filtered(lambda line: line.product_id == self.film)
+        self.assertEqual(move_lines.lot_id, lot)
+        self.assertEqual(sum(move_lines.mapped("quantity")), 5)
+
+    def test_rework_does_not_repeat_original_issue(self):
+        order = self._order()
+        self._start(order)
+        order.action_finish_materials()
+        task = order.service_ids
+        task.state = "waiting"
+        task.action_start()
+        task.action_finish()
+        self.assertEqual(self._available(self.film), 95)
+        self.assertEqual(len(order.material_picking_ids), 1)
+
+    def test_invalid_material_and_unit_are_rejected(self):
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.right_config.component_ids[:1].quantity = -1
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.right_config.component_ids[:1].product_id = self.service
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.right_config.component_ids[:1].product_uom_id = self.env.ref("uom.product_uom_meter")
+
+    def test_issue_flags_cannot_be_forged(self):
+        order = self._order()
+        with self.assertRaises(UserError):
+            order.service_ids.materials_issued = True
+
+    def test_template_part_form_defaults_single_variant(self):
+        template = self.service.product_tmpl_id
+        roof = self.env["car.part"].create({"name": "Roof test"})
+        with Form(self.env["car.service.part"].with_context(default_product_tmpl_id=template.id),
+                  view="workorder_service_components.service_part_form") as form:
+            form.part_id = roof
+            with form.component_ids.new() as material:
+                material.product_id = self.liquid
+                material.quantity = 2
+        part = form.record
+        self.assertEqual(part.service_id, self.service)
+        self.assertEqual(part.component_ids.service_id, self.service)
+        self.assertIn(part, template.service_part_ids)
+
+    def test_finish_requires_start_and_confirm(self):
+        order = self._order()
+        with self.assertRaises(UserError):
+            order.action_start_materials()
+        with self.assertRaises(UserError):
+            order.service_ids.action_finish()
+        self.assertEqual(self._available(self.film), 100)
+
+    def test_changing_draft_service_removes_obsolete_snapshot(self):
+        order = self._order()
+        other = self.env["product.product"].create({"name": "Another service", "detailed_type": "service"})
+        order.write({"service_ids": [Command.update(order.service_ids.id, {"product_id": other.id})]})
+        self.assertFalse(order.product_ids)
+
+    def test_draft_service_can_be_removed_with_its_snapshot(self):
+        order = self._order()
+        order.write({"service_ids": [Command.delete(order.service_ids.id)]})
+        self.assertFalse(order.product_ids)
+
+    def test_legacy_draft_delivery_is_rebuilt_before_consumption(self):
+        order = self._order()
+        order.product_ids.write({"source_task_id": False})
+        # Simulate the delivery created by the previous module version.
+        order.picking_id = order._create_delivery_picking()
+        self.assertEqual(len(order.picking_id.move_ids), 3)
+        order.state = "confirmed"
+        order.action_start_materials()
+        self.assertFalse(order.picking_id.move_ids)
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.film), 95)
+
+    def test_serial_consumption_uses_selected_serial(self):
+        serial_product = self.env["product.product"].create({
+            "name": "Serial test material", "detailed_type": "product", "tracking": "serial",
+        })
+        serial = self.env["stock.lot"].create({"name": "MAT-SERIAL", "product_id": serial_product.id, "company_id": self.env.company.id})
+        self.env["stock.quant"]._update_available_quantity(serial_product, self.warehouse.lot_stock_id, 1, lot_id=serial)
+        self.right_config.component_ids = [Command.create({"product_id": serial_product.id, "quantity": 1})]
+        order = self._order()
+        order.product_ids.filtered(lambda line: line.product_id == serial_product).lot_id = serial
+        self._start(order)
+        order.action_finish_materials()
+        self.assertEqual(order.material_picking_ids.move_line_ids.filtered(lambda line: line.product_id == serial_product).lot_id, serial)
+
+    def test_actual_confirmation_then_finish(self):
+        slot = self.env["car.appointment.slot"].create({
+            "date": "2099-01-15", "start_hour": 9, "duration": 1, "capacity": 5,
+        })
+        checkin = self.env["car.checkin"].create({
+            "partner_id": self.customer.id, "vehicle_id": self.vehicle.id,
+            "branch_id": self.branch.id, "state": "done",
+        })
+        appointment = self.env["car.appointment"].create({
+            "appointment_slot_id": slot.id, "partner_id": self.customer.id,
+            "vehicle_id": self.vehicle.id, "branch_id": self.branch.id, "car_checkin_id": checkin.id,
+        })
+        order = self._order()
+        order.appointment_id = appointment
+        order.action_confirm()
+        self.assertEqual(order.state, "confirmed")
+        self.assertFalse(order.picking_id.move_ids)
+        order.action_start_materials()
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.film), 95)
+
+    def test_manager_can_finish_without_stock_administrator_access(self):
+        user = new_test_user(self.env, login="material_test_manager", groups="work_orders.group_workshop_manager")
+        self.staff.user_id = user
+        order = self._order()
+        self._start(order)
+        self.assertFalse(user.has_group("stock.group_stock_user"))
+        order.with_user(user).action_finish_materials()
+        self.assertEqual(self._available(self.film), 95)
+
+    def test_selected_lot_shortage_does_not_use_untracked_stock(self):
+        self.film.tracking = "lot"
+        lot = self.env["stock.lot"].create({"name": "MAT-LOW-LOT", "product_id": self.film.id, "company_id": self.env.company.id})
+        self.env["stock.quant"]._update_available_quantity(self.film, self.warehouse.lot_stock_id, 1, lot_id=lot)
+        order = self._order()
+        order.product_ids.filtered(lambda line: line.product_id == self.film).lot_id = lot
+        self._start(order)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        self.assertFalse(order.material_picking_ids)
+        self.assertEqual(order.service_ids.state, "progress")
+
+    def test_legacy_completed_delivery_does_not_issue_again(self):
+        order = self._order()
+        order.product_ids.write({"source_task_id": False})
+        picking = order._create_delivery_picking()
+        order.picking_id = picking
+        picking.action_confirm()
+        picking.action_assign()
+        picking.move_ids.picked = True
+        picking._action_done()
+        self.assertEqual(self._available(self.film), 95)
+        order.state = "confirmed"
+        order.action_start_materials()
+        self.assertTrue(order.service_ids.materials_issued)
+        order.service_ids.action_finish()
+        self.assertEqual(self._available(self.film), 95)
+        self.assertFalse(order.material_picking_ids)
+
+    def test_existing_material_can_be_grouped_without_copying_it(self):
+        legacy = self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": self.liquid.id, "quantity": 2,
+        })
+        self.assertIn(legacy, self.service.ungrouped_component_ids)
+        self.assertNotIn(self.right_config.component_ids[:1], self.service.ungrouped_component_ids)
+        count = len(self.service.bom_ids)
+        legacy.service_part_id = self.right_config
+        self.service.invalidate_recordset(["ungrouped_component_ids"])
+        self.assertNotIn(legacy, self.service.ungrouped_component_ids)
+        self.assertIn(legacy, self.right_config.component_ids)
+        self.assertEqual(len(self.service.bom_ids), count)
+
+    def test_combined_views_compile(self):
+        for model, view in [
+            ("product.product", "product.product_normal_form_view"),
+            ("product.template", "product.product_template_only_form_view"),
+            ("car.work.order", "work_orders.car_work_order_view_form"),
+            ("car.service.part", "workorder_service_components.service_part_form"),
+        ]:
+            self.assertTrue(self.env[model].get_view(self.env.ref(view).id, "form")["arch"])

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+car_part_read,Vehicle parts read,model_car_part,base.group_user,1,0,0,0
+car_part_manager,Vehicle parts manager,model_car_part,work_orders.group_workshop_manager,1,1,1,0
+service_part_read,Service parts read,model_car_service_part,base.group_user,1,0,0,0
+service_part_manager,Service parts manager,model_car_service_part,work_orders.group_workshop_manager,1,1,1,1
+car_bom_material_manager,Service material configuration manager,work_orders.model_car_bom,work_orders.group_workshop_manager,1,1,1,1

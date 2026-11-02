@@ -54,14 +54,14 @@ class CarWorkOrderProduct(models.Model):
         already = set()
         if order:
             already = {
-                (line.service_id.id, line.product_id.id)
+                (line.service_id.id, line.product_id.id, line.part_id.id)
                 for line in order.product_ids
                 if line != self and line.service_id and line.product_id
             }
         pending = [
             component
             for component in components
-            if (service.id, component.product_id.id) not in already
+            if (service.id, component.product_id.id, component.part_id.id) not in already
         ]
         if not pending:
             self.tag_id = service.service_tag_id
@@ -88,7 +88,7 @@ class CarWorkOrderProduct(models.Model):
         component = self.env["car.bom"]
         if self.service_id:
             component = self.service_id.bom_ids.filtered(
-                lambda bom: bom.product_id == self.product_id
+                lambda bom: bom.product_id == self.product_id and (not self.part_id or bom.part_id == self.part_id)
             )[:1]
         if component:
             self.suggested_qty = component.quantity

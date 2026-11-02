@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="car_part_tree" model="ir.ui.view">
+        <field name="name">car.part.tree</field>
+        <field name="model">car.part</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="car_part_action" model="ir.actions.act_window">
+        <field name="name">Vehicle Parts</field>
+        <field name="res_model">car.part</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Define vehicle parts such as doors, roof and floor.</p></field>
+    </record>
+    <menuitem id="car_part_menu" name="Vehicle Parts"
+              parent="work_orders.car_work_order_menu_configuration"
+              action="car_part_action" sequence="15"
+              groups="work_orders.group_workshop_manager"/>
+    <record id="service_part_form" model="ir.ui.view">
+        <field name="name">car.service.part.form</field>
+        <field name="model">car.service.part</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Part Materials">
+                <sheet>
+                    <group>
+                        <field name="part_id" options="{'no_create': True}"/>
+                        <field name="product_tmpl_id" invisible="1"/>
+                        <field name="service_id" domain="[('product_tmpl_id', '=', product_tmpl_id), ('detailed_type', '=', 'service')]" options="{'no_create': True}"/>
+                    </group>
+                    <field name="component_ids">
+                        <tree editable="bottom">
+                            <field name="product_id" required="1" domain="[('detailed_type', '=', 'product')]" options="{'no_create': True}"/>
+                            <field name="quantity" string="Default Quantity"/>
+                            <field name="product_uom_category_id" column_invisible="1"/>
+                            <field name="product_uom_id" required="1" options="{'no_create': True}"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

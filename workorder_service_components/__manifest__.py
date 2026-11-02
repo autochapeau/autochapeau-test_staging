@@ -1,11 +1,13 @@
 {
     "name": "Work Order Service Components",
-    "summary": "Service tags, default components, and suggested versus used quantities on work orders",
-    "version": "17.0.1.0.0",
+    "summary": "Vehicle parts, service materials and stock consumption when work finishes",
+    "version": "17.0.2.0.0",
     "author": "Wellknot",
     "category": "Services",
-    "depends": ["work_orders"],
+    "depends": ["work_orders", "workorder_task_quality"],
     "data": [
+        "security/ir.model.access.csv",
+        "views/car_part_views.xml",
         "views/product_views.xml",
         "views/car_work_order_views.xml",
     ],
