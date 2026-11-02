@@ -1,7 +1,8 @@
 # Own Contact
 
 Odoo 17 module. Install **Own Contact**, then open Settings > Users & Companies >
-Users and use the **Contacts** tab (Settings administrators only).
+Users and use the **Contacts** tab (Settings administrators only). **Contact Access**
+is a radio selection; saving it assigns exactly one mode:
 
 - **Own Contact**: read/create/edit contacts assigned to the current user in
   Salesperson (`res.partner.user_id`). Unassigned contacts are hidden. Creation
@@ -10,7 +11,12 @@ Users and use the **Contacts** tab (Settings administrators only).
 - **All Contacts (Manager)**: all contacts within existing company/security rules,
   with create/edit/delete and salesperson reassignment. Overrides Own Contact if
   both are selected. New contacts default to the manager unless an owner is supplied.
-- Neither selected: existing contact behavior remains unchanged.
+- **Default Access**: existing contact behavior remains unchanged, with neither
+  contact access group assigned.
+
+Existing permissions determine the initial radio selection; manager access takes
+precedence if both old groups are present. Switching modes updates both groups in
+one write. The previous Boolean fields remain available for API compatibility.
 
 Ownership uses Salesperson, not Created By. Existing contacts are not reassigned.
 Assign their Salesperson as a manager before enabling restrictions for a user.

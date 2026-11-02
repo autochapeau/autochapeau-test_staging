@@ -8,8 +8,7 @@
             <xpath expr="//notebook" position="inside">
                 <page name="own_contact" string="Contacts" groups="base.group_system" invisible="share">
                     <group string="Own Contact">
-                        <field name="own_contact_access"/>
-                        <field name="all_contacts_access"/>
+                        <field name="contact_access_mode" widget="radio"/>
                     </group>
                     <div class="text-muted">
                         Own Contact limits access to contacts assigned to this user as Salesperson.
