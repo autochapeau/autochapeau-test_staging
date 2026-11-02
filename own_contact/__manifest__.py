@@ -1,7 +1,7 @@
 {
     "name": "Own Contact",
     "summary": "Own contacts access and automatic salesperson assignment",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.1.0",
     "category": "Contacts",
     "license": "LGPL-3",
     "depends": ["contacts"],

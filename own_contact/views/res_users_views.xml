@@ -13,8 +13,10 @@
                     </group>
                     <div class="text-muted">
                         Own Contact limits access to contacts assigned to this user as Salesperson.
-                        New contacts are assigned automatically. Internal user and company records
-                        remain readable for Odoo operations. All Contacts (Manager) overrides this restriction.
+                        New contacts are assigned automatically. Contact lists show only this user's
+                        assigned contacts. Internal user and company records remain readable for
+                        Odoo operations, but are hidden from these lists unless assigned to this user.
+                        All Contacts (Manager) overrides this restriction.
                     </div>
                 </page>
             </xpath>

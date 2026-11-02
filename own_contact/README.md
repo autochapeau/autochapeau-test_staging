@@ -15,9 +15,16 @@ Users and use the **Contacts** tab (Settings administrators only).
 Ownership uses Salesperson, not Created By. Existing contacts are not reassigned.
 Assign their Salesperson as a manager before enabling restrictions for a user.
 
+All contact window actions add a mandatory Salesperson domain for Own Contact
+users. This includes the Contacts app and custom Client/Supplier/Employee actions;
+it preserves their original domains and cannot be removed as a search favorite.
+Customer companies assigned to the current user are still listed.
+
 Internal user partners and the user's allowed company partners remain readable so
-Odoo can display user/company relations. These exceptions do not permit editing
-other users/company records. A user may still update their own profile partner.
+Odoo can display user/company relations, but they are excluded from contact lists
+unless assigned to the current user. This is a display restriction: system partners
+remain accessible by direct record reads/links. These exceptions do not permit
+editing other users/company records. A user may still update their own profile partner.
 Child contacts require their own salesperson assignment; the parent's ownership
 does not grant access. Superuser/sudo operations retain Odoo's standard bypass.
 Other installed global restrictions (including Access Roles) still apply.
@@ -29,12 +36,8 @@ does not revoke access supplied by other modules.
 
 ## Validation
 
-Run on a disposable Odoo test database with dependencies available:
-
-```powershell
-python odoo-bin -c odoo.conf -d own_contact_test -i own_contact --test-enable --test-tags /own_contact --stop-after-init --without-demo=all
-```
-
-Tests cover search/direct access, batch/default assignment, reassignment protection,
-manager precedence, system record exceptions, user-tab permissions and escalation,
-unconfigured users, permissive group rules, and multi-company boundaries.
+Use a disposable database to verify contact window action domains as an Own
+Contact user, both normally and through sudo action loading; manager/unconfigured
+users must keep the original domain. Also verify user/company partner reads and
+user/company relation widgets, as well as automatic assignment and reassignment
+protection. The module intentionally does not ship a tests folder.
