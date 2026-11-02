@@ -1,0 +1,61 @@
+.cs-guide {
+    height: 100%; overflow-y: auto; background: #f4f6f2; color: #1c3c43; padding: 28px 4vw 36px; font-family: inherit;
+    &[dir="rtl"] { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid #2f8b72; outline-offset: 3px; }
+    .cs-guide-masthead { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding-bottom: 25px; border-bottom: 1px solid #dce4dd; direction: ltr; }
+    .cs-guide-wordmark { display: flex; gap: 11px; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+    .cs-guide-wordmark b { color: #80968f; font-weight: 500; }
+    .cs-guide-wordmark img { width: 32px; height: 32px; border-radius: 9px; }
+    .cs-guide-languages { display: flex; padding: 3px; border: 1px solid #d5e0d7; border-radius: 8px; }
+    .cs-guide-languages button { background: transparent; border: 0; padding: 5px 11px; font-size: 11px; color: #6d827b; border-radius: 5px; }
+    .cs-guide-languages .is-active { background: #1c4146; color: #eff7f0; }
+    .cs-guide-hero { padding: 28px 0 24px; }
+    .cs-guide-eyebrow { display: block; color: #779184; font-size: 9px; letter-spacing: 2.1px; font-weight: 600; }
+    h1 { font-size: 30px; font-weight: 600; line-height: 1.55; margin: 8px 0; letter-spacing: -.6px; }
+    .cs-guide-hero > p { color: #61766c; font-size: 14px; line-height: 1.9; margin-bottom: 17px; }
+    .cs-guide-pills { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10px; color: #637d71; }
+    .cs-guide-pills span { border: 1px solid #dce6dc; border-radius: 20px; padding: 5px 11px; background: #fbfcf8; }
+    .cs-guide-pills .fa { margin-inline-end: 4px; }
+    .cs-guide-topics { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 21px; }
+    .cs-guide-topics button { background: #eaf0e8; border: 1px solid transparent; border-radius: 8px; padding: 9px 12px; color: #4e695d; font-size: 12px; display: flex; gap: 8px; align-items: center; }
+    .cs-guide-topics button:hover { border-color: #a8c7b4; }
+    .cs-guide-topics .is-active { background: #1c4146; color: #f4faf3; box-shadow: 0 3px 8px #173e3c12; }
+    .cs-guide-article { background: #fffefa; border: 1px solid #dfe6db; border-radius: 15px; box-shadow: 0 8px 24px #23463b05; overflow: hidden; }
+    .cs-guide-article-heading { display: flex; justify-content: space-between; align-items: center; gap: 22px; padding: 25px 28px 20px; border-bottom: 1px solid #e9ede3; }
+    .cs-guide-chapter { font-size: 10px; color: #80977e; letter-spacing: .4px; }
+    h2 { font-size: 22px; line-height: 1.6; margin: 8px 0 6px; font-weight: 600; }
+    .cs-guide-article-heading p { font-size: 14px; color: #61766b; line-height: 1.9; margin: 0; max-width: 700px; }
+    .cs-guide-open { display: flex; align-items: center; gap: 10px; flex-shrink: 0; border: 1px solid #b7d2bc; border-radius: 8px; background: #e2f0dd; padding: 10px 14px; font-size: 11px; color: #325740; }
+    .cs-guide-content { display: grid; grid-template-columns: .85fr 1.25fr; gap: 25px; padding: 26px 28px; }
+    ol { list-style: none; margin: 0; padding: 0; }
+    li { display: flex; gap: 12px; margin-bottom: 17px; }
+    li > span { flex: 0 0 25px; height: 25px; border-radius: 50%; background: #edf2e6; color: #72905e; text-align: center; line-height: 25px; font-size: 10px; font-weight: 600; }
+    li p { margin: 1px 0 0; font-size: 14px; line-height: 1.95; color: #496457; }
+    .cs-guide-tip { display: flex; gap: 11px; background: #f6f0df; color: #8b783e; border: 1px solid #eee3c3; border-radius: 9px; padding: 14px; }
+    .cs-guide-tip > .fa { font-size: 20px; margin-top: 2px; }
+    .cs-guide-tip strong { font-size: 12px; }
+    .cs-guide-tip p { font-size: 13px; line-height: 1.9; margin: 4px 0 0; }
+    figure { margin: 0; min-width: 0; }
+    .cs-guide-screen { position: relative; width: 100%; border-radius: 9px; border: 1px solid #dbe3db; padding: 5px; background: #e8eee7; box-shadow: 0 6px 20px #183c3c0a; overflow: hidden; }
+    .cs-guide-screen img { display: block; width: 100%; height: auto; border-radius: 5px; }
+    .cs-guide-screen > span { position: absolute; bottom: 13px; inset-inline-end: 13px; background: #183b43eb; color: #fff; font-size: 9px; padding: 6px 9px; border-radius: 5px; }
+    figcaption { margin-top: 11px; color: #8a978a; font-size: 10px; line-height: 1.8; }
+    .cs-guide-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; background: #f8faf3; padding: 14px 28px; border-top: 1px solid #e9ede3; }
+    .cs-guide-footer > span { color: #83917c; font-size: 10px; line-height: 1.8; }
+    .cs-guide-footer button { border: 0; background: transparent; color: #396955; font-size: 11px; display: flex; gap: 9px; align-items: center; flex-shrink: 0; }
+    @media (max-width: 1200px) { .cs-guide-content { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+        padding: 16px 14px 25px;
+        h1 { font-size: 23px; }
+        .cs-guide-wordmark { letter-spacing: .5px; font-size: 8px; gap: 7px; }
+        .cs-guide-wordmark b { display: none; }
+        .cs-guide-languages button { padding: 5px 7px; font-size: 10px; }
+        .cs-guide-article-heading { align-items: flex-start; flex-direction: column; padding: 20px; gap: 14px; }
+        .cs-guide-content { padding: 20px; }
+        .cs-guide-footer { padding: 14px 20px; }
+        .cs-guide-topics button { padding: 8px 10px; }
+    }
+}
+.cs-guide-image-dialog { background: #e9eee6; padding: 8px !important; }
+.cs-guide-image-dialog img { display: block; width: 100%; height: auto; border-radius: 5px; }

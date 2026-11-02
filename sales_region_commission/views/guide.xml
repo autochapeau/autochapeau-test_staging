@@ -1,0 +1,8 @@
+<odoo>
+ <record id="guide_action" model="ir.actions.client">
+  <field name="name">Commission Studio · Guide</field>
+  <field name="tag">sales_region_commission.guide</field>
+ </record>
+ <menuitem id="menu_user_access" name="User access" parent="menu_root" action="base.action_res_users" sequence="9" groups="base.group_system"/>
+ <menuitem id="menu_guide" name="Guide" parent="menu_root" action="guide_action" sequence="99" groups="group_user"/>
+</odoo>

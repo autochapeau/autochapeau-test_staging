@@ -1,0 +1,17 @@
+<templates xml:space="preserve">
+ <t t-name="sales_region_commission.Navigation">
+  <t t-if="active">
+   <button t-if="state.mobileOpen" class="cs-nav-backdrop" aria-label="Close navigation" t-on-click="() => this.state.mobileOpen = false"/>
+   <aside t-att-class="'cs-side-nav' + (state.collapsed ? ' is-collapsed' : '') + (state.mobileOpen ? ' is-open' : '')" aria-label="Commission Studio navigation">
+    <div class="cs-nav-brand"><img src="/sales_region_commission/static/description/icon.png" alt="Commission Studio"/><div class="cs-nav-label"><strong>Commission<br/>Studio</strong><small>PERFORMANCE WORKSPACE</small></div></div>
+    <button class="cs-nav-toggle" aria-label="Toggle navigation" t-att-aria-expanded="state.mobileOpen || !state.collapsed ? 'true' : 'false'" t-on-click="toggle"><i class="fa fa-bars"/><span class="cs-nav-label">Navigation</span><i class="fa fa-angle-right cs-nav-label"/></button>
+    <nav><span class="cs-nav-section cs-nav-label">WORKSPACE</span>
+     <t t-foreach="workItems" t-as="item" t-key="item.id"><t t-call="sales_region_commission.NavigationItem"/></t>
+     <t t-if="adminItems.length"><span class="cs-nav-section cs-nav-label">CONFIGURATION</span><t t-foreach="adminItems" t-as="item" t-key="item.id"><t t-call="sales_region_commission.NavigationItem"/></t></t>
+    </nav>
+    <div class="cs-nav-bottom"><button t-if="guide" t-on-click="() => this.navigate(this.guide)" t-att-class="selected(guide) ? 'cs-nav-guide is-active' : 'cs-nav-guide'" t-att-title="guide.name"><i class="fa fa-book"/><span class="cs-nav-label"><strong>Guide &amp; help</strong><small>Screens. Steps. Answers.</small></span><i class="fa fa-arrow-up cs-nav-label"/></button><span class="cs-nav-security cs-nav-label"><i class="fa fa-shield"/> Your role. Your scope.</span></div>
+   </aside>
+  </t>
+ </t>
+ <t t-name="sales_region_commission.NavigationItem"><button t-att-class="selected(item) ? 'cs-nav-item is-active' : 'cs-nav-item'" t-att-title="item.name" t-att-aria-current="selected(item) ? 'page' : undefined" t-att-disabled="state.busy" t-on-click="() => this.navigate(item)"><i t-att-class="icon(item)"/><span class="cs-nav-label" t-esc="item.name"/><i class="fa fa-angle-left cs-nav-label cs-nav-arrow"/></button></t>
+</templates>

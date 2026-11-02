@@ -2,6 +2,8 @@
 
 Independent sales commission ledger, monthly regional targets and an OWL dashboard. Existing technician/employee settlements in `commission` remain separate; this addon reuses its service categories. Version 17.0.2.0.0 adds configurable expense/payable accruals; it does not create payroll or payments.
 
+Version **17.0.3.0.0** adds an app icon, an illustrated Arabic/English Guide and app-scoped navigation on the right.
+
 ## Configuration
 
 1. Install `sales_region_commission` on the intended database in an offline maintenance window. Dependencies: `sale_management`, `account`, `commission` and their existing dependencies.
@@ -54,3 +56,13 @@ Historical calculation never posts accruals silently. Booking historical pending
 ## Dedicated user access tab (17.0.2.1.0)
 
 System administrators manage commission roles from res.users / Commission Access. Managed regions can be assigned directly in this tab with company validation; selecting a team already assigned to another manager transfers that management scope, including descendants. Removing a role preserves team assignments but revokes regional data access through the actual security groups. Other sales/accounting memberships remain separate. The read-only Historical accrual booking indicator requires both Commission Administrator and Accounting Administrator; no accounting rights are granted by this tab. The underlying groups and record rules remain authoritative, including changes made through the standard technical group management screens.
+
+## Guide and right-hand navigation (17.0.3.0.0)
+
+Open **Commission Studio / Guide & help**. The guide starts in Arabic and switches to English without leaving the page. Nine illustrated topics cover the overview, ledger, monthly targets, dated rules, region hierarchy, service categories, user access, accounting configuration and historical calculation. Each includes steps, a practical note, an expandable screenshot and an **Open screen** shortcut. The screenshot dialog uses Odoo's standard dialog and keyboard/focus behavior.
+
+The guide and sidebar are built from the current user's server-filtered menu tree. Salespeople and region managers see four workspace screens and Guide; commission administrators additionally see their permitted configuration screens. **User access** requires Settings administration; **Accounting configuration** continues to require the existing accounting/settings permissions. Links use the normal Odoo menu/action service and keep unsaved-form protection. Menus explicitly retain their security groups. This interface does not grant model or accounting access.
+
+The sidebar stays on the right across the app's native lists, forms, dashboard and guide, highlights the current screen, and can collapse to an icon rail. On small screens it uses a compact rail and an expandable panel. Other Odoo apps retain their standard navigation and layout. Regions and teams opens its list before the setup form.
+
+`static/description/icon.png` is an original generated app icon, also used on the dashboard, sidebar and guide. `static/src/guide/screens/` contains nine genuine screenshots from a local QA copy with fictional salespeople, products, rates and amounts. These static examples are bundled with the addon and may be publicly served as Odoo static assets; **never replace them with production records, employee commissions or credentials**. Screenshots do not populate or change business data. Install/update the addon and refresh the browser to load the new menu and asset bundle.

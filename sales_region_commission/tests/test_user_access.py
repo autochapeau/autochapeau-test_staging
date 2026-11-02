@@ -64,3 +64,25 @@ class TestCommissionUserTab(TransactionCase):
         with Form(user,view='base.view_users_form') as form:
             form.commission_access_role='none'
         self.assertFalse(user.has_group('sales_region_commission.group_user'))
+
+    def test_navigation_respects_roles_and_keeps_guide_available(self):
+        menus = self.env['ir.ui.menu']
+        ref = lambda name: self.env.ref('sales_region_commission.menu_' + name).id
+        workspace = {ref(name) for name in ('root','dashboard','ledger','targets','rules','guide')}
+        configuration = {ref(name) for name in ('teams','calculate','service_category')}
+        restricted = {ref('user_access'), ref('accounting_settings')}
+        for role in ('user','manager','admin','none'):
+            self.person.with_user(self.operator).commission_access_role = role
+            visible = menus.with_user(self.person)._visible_menu_ids()
+            if role == 'none':
+                self.assertFalse(workspace & visible)
+            else:
+                self.assertTrue(workspace <= visible)
+                self.assertFalse(restricted & visible)
+                if role == 'admin':
+                    self.assertTrue(configuration <= visible)
+                else:
+                    self.assertFalse(configuration & visible)
+        self.assertEqual(self.env.ref('sales_region_commission.guide_action').tag, 'sales_region_commission.guide')
+        self.assertEqual(self.env.ref('sales_region_commission.menu_root').web_icon, 'sales_region_commission,static/description/icon.png')
+        self.assertEqual([kind for view_id, kind in self.env.ref('sales_region_commission.team_action').views], ['tree','form'])

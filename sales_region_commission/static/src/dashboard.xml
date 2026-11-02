@@ -2,7 +2,7 @@
  <t t-name="sales_region_commission.Dashboard">
   <div class="cs-dashboard" t-att-aria-busy="state.loading ? 'true' : 'false'">
    <div class="cs-toolbar">
-    <div class="cs-brand"><span class="cs-brand-icon"><i class="fa fa-line-chart"/></span><div><strong>COMMISSION STUDIO</strong><small>Performance, with clarity.</small></div></div>
+    <div class="cs-brand"><img class="cs-brand-icon" src="/sales_region_commission/static/description/icon.png" alt="Commission Studio"/><div><strong>COMMISSION STUDIO</strong><small>Performance, with clarity.</small></div></div>
     <div class="cs-controls"><label>Period<input aria-label="Period" type="month" t-att-value="state.month" t-on-change="changeMonth"/></label><label>Region / team<select aria-label="Region or team" t-att-value="state.team" t-on-change="changeTeam"><option value="">All accessible teams</option><t t-foreach="state.data?.teams || []" t-as="team" t-key="team.id"><option t-att-value="team.id" t-esc="team.name"/></t></select></label><button class="cs-refresh" title="Refresh dashboard" aria-label="Refresh dashboard" t-on-click="load" t-att-disabled="state.loading"><i t-att-class="state.loading ? 'fa fa-refresh fa-spin' : 'fa fa-refresh'"/></button></div>
    </div>
    <div t-if="state.error" class="alert alert-danger" role="alert"><t t-esc="state.error"/><button class="btn btn-link" t-on-click="load">Try again</button></div>
