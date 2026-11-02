@@ -12,9 +12,12 @@ class Users(models.Model):
         ('admin', 'Commission administrator'),
     ], string='Commission role', compute='_compute_commission_access', inverse='_inverse_commission_access_role',
         groups='base.group_system', required=True)
-    commission_region_ids = fields.Many2many('crm.team', string='Managed regions / teams',
+    commission_region_ids = fields.Many2many('crm.team', string='Additional managed regions / teams',
         compute='_compute_commission_regions', inverse='_inverse_commission_regions', groups='base.group_system',
-        help='A team has one commission manager. Selecting a team assigned to someone else transfers its management scope to this user, including its descendants.')
+        help='Optional additional scope beyond Sales Team Leader. Selecting a team transfers its explicit commission-manager assignment, not its Sales Team Leader. Leadership-based access remains independent.')
+    commission_automatic_team_ids = fields.Many2many('crm.team', relation='sales_commission_automatic_team_rel', string='Automatic teams from Team Leader',
+        compute='_compute_commission_regions', groups='base.group_system', readonly=True,
+        help='Read-only teams where this user is the Sales Team Leader, within permitted companies. With the Region manager role, their descendant teams are included automatically. Change leadership on the Sales Team itself.')
     commission_can_book_accruals = fields.Boolean(string='Historical accrual booking', compute='_compute_commission_access', groups='base.group_system')
 
     @api.depends('groups_id')
@@ -39,10 +42,14 @@ class Users(models.Model):
             if user.commission_access_role != role:
                 raise ValidationError(_('Another assigned group grants a higher commission role. Review inherited group permissions first.'))
 
-    @api.depends('commission_managed_team_ids')
+    @api.depends('commission_managed_team_ids', 'commission_leader_team_ids', 'commission_leader_team_ids.company_id', 'company_ids')
+    @api.depends_context('allowed_company_ids')
     def _compute_commission_regions(self):
         for user in self:
             user.commission_region_ids = user.commission_managed_team_ids
+            companies = user.company_ids & self.env.companies
+            user.commission_automatic_team_ids = user.with_context(active_test=False).commission_leader_team_ids.filtered(
+                lambda t: not t.company_id or t.company_id in companies)
 
     def _inverse_commission_regions(self):
         if not self.env.su and not self.env.user.has_group('base.group_system'):

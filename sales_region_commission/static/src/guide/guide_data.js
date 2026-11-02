@@ -5,7 +5,7 @@ export const GUIDE_TOPICS = [
       title: ['نظرة على الأداء', 'Performance overview'], label: ['الـDashboard', 'Overview'],
       intro: ['تابع صافي المبيعات والعمولة والتارجت من مكان واحد. كل رقم بيتحسب في حدود صلاحيتك والشركة المختارة.', 'Track net sales, commission and targets in one workspace. Every metric respects your access scope and selected company.'],
       steps: [
-        ['اختار الشهر والفريق من الفلاتر فوق. المندوب بيشوف بياناته؛ مدير المنطقة بيشوف منطقته والفرق التابعة ليه.', 'Choose the month and team. Salespeople see their own contribution; region managers see their assigned region and descendants.'],
+        ['اختار الشهر والفريق من الفلاتر فوق. المندوب بيشوف بياناته؛ مدير المنطقة بيشوف الفرق اللي بيقودها والمناطق الإضافية والفروع التابعة ليه.', 'Choose the month and team. Salespeople see their own contribution; region managers see led and additionally assigned teams and their descendants.'],
         ['راجع Net invoiced بعد الخصم ومن غير ضريبة، وNet commission بعد خصم عمولات المرتجعات.', 'Read Net invoiced after discounts and excluding tax, and Net commission after credit-note commission reductions.'],
         ['اضغط على كروت الأرقام أو تفاصيل المندوب عشان تفتح السجل بنفس نطاق العرض. راجع Needs review قبل اعتماد الأرقام.', 'Use the metric cards or salesperson details to open the scoped ledger. Check Needs review before relying on totals.'],
       ], tip: ['التارجت للمتابعة، ومش شرط لاستحقاق العمولة. تارجت المنطقة والفروع تحتها مش بيتجمع مرتين.', 'Targets monitor performance; they do not gate commission. Parent and child targets are not counted twice.'] },
@@ -39,8 +39,8 @@ export const GUIDE_TOPICS = [
       steps: [
         ['حدد Commission level: Region ثم Subregion ثم Branch، مع اختيار الشركة.', 'Set Commission level to Region, Subregion or Branch, and choose the company.'],
         ['اربط كل مستوى بـParent المناسب من نفس الشركة، من غير حلقات أو مستويات غير متوافقة.', 'Link each level to a compatible parent in the same company. Cycles and invalid level relationships are rejected.'],
-        ['حدد Commission manager وأعضاء الفريق. المدير لازم يكون ليه دور Region manager عشان يشوف النطاق والفرق اللي تحته.', 'Assign the Commission manager and team members. The manager also needs the Region manager role to see the assigned scope and descendants.'],
-      ], tip: ['Team Leader لوحده مش بيمنح صلاحية العمولات. المسؤول عن النطاق هو Commission manager مع دور المستخدم الصحيح.', 'Team Leader alone does not grant commission access. Scope comes from Commission manager assignments plus the correct user role.'] },
+        ['حدد Team Leader وأعضاء الفريق. القائد اللي له دور Region manager بياخد النطاق وفروعه تلقائيًا؛ Commission manager اختياري لنطاق إضافي.', 'Set Team Leader and members. A leader with Region manager access automatically receives the team hierarchy; Commission manager is optional additional scope.'],
+      ], tip: ['Team Leader مصدر النطاق التلقائي، ودور Region manager شرط الاطلاع الإقليمي. العضوية العادية أو القيادة من غير الدور لا تكشف عمولات الزملاء.', 'Team Leader supplies automatic scope; Region manager grants regional commission access. Ordinary membership or leadership without the role exposes no colleagues’ commissions.'] },
     { id: 'categories', menu: 'menu_service_category', image: 'categories.jpg',
       title: ['تصنيف الخدمة مرة واحدة', 'Classify each service'], label: ['فئات الخدمات', 'Service categories'],
       intro: ['استخدم فئات الخدمات الموجودة في موديول commission، زي VIP والذهبية والبلاتينيوم، في قواعد عمولات المبيعات.', 'Use the existing commission module service categories, such as VIP, Gold and Platinum, in sales commission rules.'],
@@ -54,9 +54,9 @@ export const GUIDE_TOPICS = [
       intro: ['من تاب Commission Access داخل المستخدم، مسؤول النظام يختار الدور ويربط المناطق من مكان واحد.', 'A system administrator selects the role and managed regions in the user’s dedicated Commission Access tab.'],
       steps: [
         ['افتح المستخدم ثم Commission Access. اختار No access أو Salesperson أو Region manager أو Commission administrator.', 'Open a user and select Commission Access. Choose No access, Salesperson, Region manager or Commission administrator.'],
-        ['للمدير حدد Managed regions من الشركات المسموح بيها. المدير بيشوف نفسه والفرق التابعة للمناطق المسندة ليه.', 'For a manager, assign Managed regions from allowed companies. Managers see their own entries and the descendants of assigned teams.'],
+        ['للمدير راجع Automatic teams from Team Leader؛ الفرق وفروعها بتتجاب تلقائيًا. Additional managed regions اختيارية لنطاق زيادة، داخل الشركات المسموحة.', 'For a manager, review Automatic teams from Team Leader. Teams and descendants are automatic; Additional managed regions optionally extends scope within allowed companies.'],
         ['احفظ التعديل. صلاحيات المحاسبة منفصلة، ومؤشر Historical accrual booking بيوضح أهلية إثبات العمولات القديمة.', 'Save the change. Accounting permissions remain separate; Historical accrual booking indicates eligibility to book older commissions.'],
-      ], tip: ['نقل منطقة من مدير لمدير بيغير نطاق الوصول. المندوب مبيقدرش يغيّر دوره بنفسه، والـDashboard والتصدير خاضعين لنفس الصلاحيات.', 'Reassigning a region changes its access scope. Salespeople cannot elevate their own role. Dashboard and exports follow the same record rules.'] },
+      ], tip: ['نقل الإسناد الإضافي بيغير الجزء ده من النطاق؛ Team Leader يفضل له نطاقه المستقل. المندوب مبيقدرش يغيّر دوره بنفسه، والـDashboard والتصدير خاضعين لنفس الصلاحيات.', 'Transferring an additional assignment changes that scope; Team Leader retains independent automatic scope. Salespeople cannot elevate their own role. Dashboard and exports follow the same record rules.'] },
     { id: 'accounting', menu: 'menu_accounting_settings', image: 'accounting.jpg',
       title: ['إثبات الاستحقاق محاسبيًا', 'Recognize commission accruals'], label: ['إعدادات الحسابات', 'Accounting setup'],
       intro: ['من Accounting configuration افتح قسم Sales commission accruals لضبط إعدادات الشركة الحالية.', 'Open Accounting configuration and find Sales commission accruals for the current company.'],

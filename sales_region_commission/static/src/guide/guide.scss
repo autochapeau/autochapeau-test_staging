@@ -1,9 +1,9 @@
 .cs-guide {
-    height: 100%; overflow-y: auto; background: #f4f6f2; color: #1c3c43; padding: 28px 4vw 36px; font-family: inherit;
+    height: 100%; overflow-y: auto; background: #f4f6f2; color: #1c3c43; padding: 0 4vw 36px; font-family: inherit;
     &[dir="rtl"] { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
     button { font: inherit; cursor: pointer; }
     button:focus-visible { outline: 2px solid #2f8b72; outline-offset: 3px; }
-    .cs-guide-masthead { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding-bottom: 25px; border-bottom: 1px solid #dce4dd; direction: ltr; }
+    .cs-guide-masthead { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding-top: 28px; padding-bottom: 25px; border-bottom: 1px solid #dce4dd; direction: ltr; }
     .cs-guide-wordmark { display: flex; gap: 11px; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
     .cs-guide-wordmark b { color: #80968f; font-weight: 500; }
     .cs-guide-wordmark img { width: 32px; height: 32px; border-radius: 9px; }
@@ -17,7 +17,7 @@
     .cs-guide-pills { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10px; color: #637d71; }
     .cs-guide-pills span { border: 1px solid #dce6dc; border-radius: 20px; padding: 5px 11px; background: #fbfcf8; }
     .cs-guide-pills .fa { margin-inline-end: 4px; }
-    .cs-guide-topics { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 21px; }
+    .cs-guide-topics { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 21px; position: sticky; top: -1px; z-index: 2; background: #f4f6f2; padding: 12px 0; }
     .cs-guide-topics button { background: #eaf0e8; border: 1px solid transparent; border-radius: 8px; padding: 9px 12px; color: #4e695d; font-size: 12px; display: flex; gap: 8px; align-items: center; }
     .cs-guide-topics button:hover { border-color: #a8c7b4; }
     .cs-guide-topics .is-active { background: #1c4146; color: #f4faf3; box-shadow: 0 3px 8px #173e3c12; }
@@ -27,6 +27,8 @@
     h2 { font-size: 22px; line-height: 1.6; margin: 8px 0 6px; font-weight: 600; }
     .cs-guide-article-heading p { font-size: 14px; color: #61766b; line-height: 1.9; margin: 0; max-width: 700px; }
     .cs-guide-open { display: flex; align-items: center; gap: 10px; flex-shrink: 0; border: 1px solid #b7d2bc; border-radius: 8px; background: #e2f0dd; padding: 10px 14px; font-size: 11px; color: #325740; }
+    .cs-guide-access-label { display: flex; gap: 8px; align-items: center; color: #7c8a80; font-size: 11px; flex-shrink: 0; }
+    .cs-guide-access-note { margin: 0; padding: 13px 28px; color: #57776e; background: #edf4ef; font-size: 12px; line-height: 1.9; }
     .cs-guide-content { display: grid; grid-template-columns: .85fr 1.25fr; gap: 25px; padding: 26px 28px; }
     ol { list-style: none; margin: 0; padding: 0; }
     li { display: flex; gap: 12px; margin-bottom: 17px; }
@@ -41,18 +43,41 @@
     .cs-guide-screen img { display: block; width: 100%; height: auto; border-radius: 5px; }
     .cs-guide-screen > span { position: absolute; bottom: 13px; inset-inline-end: 13px; background: #183b43eb; color: #fff; font-size: 9px; padding: 6px 9px; border-radius: 5px; }
     figcaption { margin-top: 11px; color: #8a978a; font-size: 10px; line-height: 1.8; }
+    .cs-guide-reference { padding: 0 28px 10px; }
+    .cs-guide-reference > section { padding: 25px 0; border-top: 1px solid #e4e9df; }
+    .cs-guide-section-title { display: flex; align-items: center; gap: 11px; margin-bottom: 17px; }
+    .cs-guide-section-title > span { font-size: 11px; color: #829575; background: #edf2e5; padding: 6px 8px; border-radius: 6px; }
+    .cs-guide-reference h3 { font-size: 19px; line-height: 1.7; font-weight: 600; margin: 0; color: #284c43; }
+    .cs-guide-reference-table { width: 100%; overflow-x: auto; border: 1px solid #e1e7dc; border-radius: 10px; }
+    .cs-guide-reference table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.95; }
+    .cs-guide-reference th, .cs-guide-reference td { padding: 13px 16px; vertical-align: top; text-align: start; border-bottom: 1px solid #edf0e8; }
+    .cs-guide-reference thead th { background: #eef3e9; font-weight: 600; color: #536c57; font-size: 12px; }
+    .cs-guide-reference tbody th { width: 26%; min-width: 150px; color: #335b51; font-size: 12px; font-weight: 600; }
+    .cs-guide-reference td { color: #516b5d; }
+    .cs-guide-reference tr:last-child > * { border-bottom: 0; }
+    .cs-guide-worked-example table tbody tr:last-child { background: #f1f6eb; font-weight: 600; }
+    .cs-guide-example-note { background: #fbf5e7; padding: 15px 17px; border-radius: 8px; color: #89733c; font-size: 13px; line-height: 1.95; margin: 13px 0 0; }
+    .cs-guide-start { background: #f2f7ed; border: 1px solid #dfe9d7 !important; padding: 20px !important; border-radius: 10px; margin-bottom: 5px; }
+    .cs-guide-start p { font-size: 14px; line-height: 1.95; color: #526d56; margin: 12px 0 0; }
+    .cs-guide-faq { border: 1px solid #e4e9df; border-radius: 9px; margin-top: 9px; background: #fbfcf7; }
+    .cs-guide-faq summary { padding: 15px 17px; cursor: pointer; color: #395f50; font-size: 14px; font-weight: 600; line-height: 1.8; }
+    .cs-guide-faq p { border-top: 1px solid #e6ebdf; padding: 15px 17px; font-size: 14px; line-height: 2; color: #617768; margin: 0; }
     .cs-guide-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; background: #f8faf3; padding: 14px 28px; border-top: 1px solid #e9ede3; }
     .cs-guide-footer > span { color: #83917c; font-size: 10px; line-height: 1.8; }
     .cs-guide-footer button { border: 0; background: transparent; color: #396955; font-size: 11px; display: flex; gap: 9px; align-items: center; flex-shrink: 0; }
     @media (max-width: 1200px) { .cs-guide-content { grid-template-columns: 1fr; } }
     @media (max-width: 600px) {
-        padding: 16px 14px 25px;
+        padding: 0 14px 25px;
+        .cs-guide-masthead { padding-top: 16px; }
         h1 { font-size: 23px; }
         .cs-guide-wordmark { letter-spacing: .5px; font-size: 8px; gap: 7px; }
         .cs-guide-wordmark b { display: none; }
         .cs-guide-languages button { padding: 5px 7px; font-size: 10px; }
         .cs-guide-article-heading { align-items: flex-start; flex-direction: column; padding: 20px; gap: 14px; }
         .cs-guide-content { padding: 20px; }
+        .cs-guide-reference { padding-inline: 15px; }
+        .cs-guide-reference th, .cs-guide-reference td { padding: 10px; }
+        .cs-guide-reference tbody th { min-width: 105px; }
         .cs-guide-footer { padding: 14px 20px; }
         .cs-guide-topics button { padding: 8px 10px; }
     }

@@ -15,7 +15,7 @@ class Team(models.Model):
             if not self.env.su and not self.env.user.has_group('sales_region_commission.group_admin'):
                 raise AccessError(_('Only commission administrators can change region assignments.'))
         result = super().write(vals)
-        if {'commission_parent_id', 'commission_manager_id'} & vals.keys():
+        if {'commission_parent_id', 'commission_manager_id', 'user_id', 'company_id', 'active'} & vals.keys():
             self.env.registry.clear_cache()
         return result
 
@@ -59,10 +59,25 @@ class Users(models.Model):
     _inherit = 'res.users'
 
     commission_managed_team_ids = fields.One2many('crm.team', 'commission_manager_id')
+    commission_leader_team_ids = fields.One2many('crm.team', 'user_id', groups='base.group_system', readonly=True)
+
+    def _commission_scope_roots(self):
+        self.ensure_one()
+        companies = self.company_ids & self.env.companies
+        # Only team metadata is elevated. Ledger/target queries retain their
+        # normal ACLs and company record rules. No leadership is copied or changed.
+        return self.env['crm.team'].sudo().with_context(active_test=False).search([
+            ('company_id', 'in', [False] + companies.ids),
+            '|', ('user_id', '=', self.id), ('commission_manager_id', '=', self.id),
+        ])
 
     def commission_visible_team_ids(self):
         self.ensure_one()
-        return self.commission_managed_team_ids._commission_descendants().ids
+        if not self.has_group('sales_region_commission.group_manager'):
+            return []
+        companies = self.company_ids & self.env.companies
+        return self._commission_scope_roots()._commission_descendants().filtered(
+            lambda t: not t.company_id or t.company_id in companies).ids
 
 
 class Rule(models.Model):
@@ -173,7 +188,7 @@ class Entry(models.Model):
         groups = self.read_group(domain, ['team_id'], ['team_id'], lazy=False)
         teams = self.env['crm.team'].browse([g['team_id'][0] for g in groups if g['team_id']]) | targets.team_id
         if self.env.user.has_group('sales_region_commission.group_manager'):
-            teams |= self.env.user.commission_managed_team_ids.filtered(lambda t: t.company_id == self.env.company)
+            teams |= self.env.user._commission_scope_roots().filtered(lambda t: not t.company_id or t.company_id == self.env.company)
         if team_id:
             selected = self.env['crm.team'].browse(int(team_id)) & teams
             if not selected:

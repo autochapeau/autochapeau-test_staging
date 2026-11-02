@@ -16,16 +16,18 @@
       <div class="d-flex align-items-center gap-3"><span class="fa fa-shield fa-2x text-primary"/><div><h3 class="mb-1">Sales Commission Studio</h3><p class="text-muted mb-0">Choose a role, define the management scope, and review accounting eligibility.</p></div></div>
      </div>
      <group><group string="01 / Commission role"><field name="commission_access_role" widget="radio" nolabel="1" colspan="2"/></group>
-      <group string="02 / Management scope"><field name="commission_region_ids" widget="many2many_tags" domain="[('company_id','in',company_ids)]" options="{'no_create': True}" readonly="commission_access_role not in ('manager','admin')"/>
-       <div class="text-muted" colspan="2">Assigned regions include their subregions and branch teams. Each team has one commission manager; assigning an existing team transfers that scope to this user.</div>
+      <group string="02 / Management scope"><field name="commission_automatic_team_ids" widget="many2many_tags" readonly="1" options="{'no_create': True}"/>
+       <div class="text-muted" colspan="2">Automatic: teams where this user is Sales Team Leader, including their subregions and branches. No manual selection is needed. Region manager access is still required; ordinary team membership grants no regional access.</div>
+       <field name="commission_region_ids" widget="many2many_tags" domain="[('company_id','in',company_ids)]" options="{'no_create': True}" readonly="commission_access_role not in ('manager','admin')"/>
+       <div class="text-muted" colspan="2">Optional: add another region or team beyond leadership. A team has one explicit commission manager; reassignment transfers only that additional assignment. The Sales Team Leader keeps their automatic scope.</div>
       </group></group>
      <div role="status" class="alert alert-secondary" invisible="commission_access_role != 'none'">No access to Commission Studio. Existing sales and accounting permissions remain separate.</div>
      <div role="status" class="alert alert-info" invisible="commission_access_role != 'user'">This salesperson can view only their own commission entries, dashboard and contribution to their team target.</div>
-     <div role="status" class="alert alert-info" invisible="commission_access_role != 'manager'">This manager can view their own commissions and all commission entries of the assigned regions and descendant teams. Other regions remain inaccessible.</div>
-     <div role="status" class="alert alert-warning" invisible="commission_access_role != 'manager' or commission_region_ids">No managed regions are assigned. This manager currently sees only their own commissions.</div>
+     <div role="status" class="alert alert-info" invisible="commission_access_role != 'manager'">This manager can view their own commissions plus teams they lead, optional additional regions, and all descendant teams, within allowed companies. Leadership changes update the scope immediately.</div>
+     <div role="status" class="alert alert-warning" invisible="commission_access_role != 'manager' or commission_region_ids or commission_automatic_team_ids">No automatic leadership teams or additional regions are assigned. This manager currently sees only their own commissions.</div>
      <div role="status" class="alert alert-info" invisible="commission_access_role != 'admin'">This administrator can configure commission rules and targets and view commissions across their allowed companies. Region assignments do not limit this administrator role.</div>
      <group string="03 / Accounting eligibility"><field name="commission_can_book_accruals" readonly="1"/><div class="text-muted" colspan="2">Historical accrual booking requires both Commission Administrator and Accounting Administrator. Assign accounting access separately in Access Rights. This tab does not grant accounting permissions.</div></group>
-     <div class="border-top pt-3 mt-3 text-muted"><span class="fa fa-lock me-2"/>Scope applies to the dashboard, ledger, reports and exports. Allowed companies are still controlled in Access Rights. Management assignments are retained when a role is removed, but do not grant regional access without the Region manager role.</div>
+     <div class="border-top pt-3 mt-3 text-muted"><span class="fa fa-lock me-2"/>Scope applies to the dashboard, ledger, reports and exports. Allowed companies are controlled in Access Rights. Removing the commission role revokes regional access even if leadership or additional assignments remain.</div>
     </page>
    </xpath>
   </field>

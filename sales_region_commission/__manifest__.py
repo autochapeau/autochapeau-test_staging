@@ -1,6 +1,6 @@
 {
     'name': 'Sales Commission Studio',
-    'version': '17.0.3.0.0',
+    'version': '17.0.4.0.0',
     'license': 'LGPL-3',
     'depends': ['sale_management', 'account', 'commission'],
     'data': ['security/security.xml', 'security/ir.model.access.csv', 'views/views.xml', 'views/accounting.xml', 'views/res_users.xml', 'views/guide.xml'],
@@ -12,6 +12,7 @@
         'sales_region_commission/static/src/navigation.xml',
         'sales_region_commission/static/src/navigation.scss',
         'sales_region_commission/static/src/guide/guide_data.js',
+        'sales_region_commission/static/src/guide/guide_details.js',
         'sales_region_commission/static/src/guide/guide.js',
         'sales_region_commission/static/src/guide/guide.xml',
         'sales_region_commission/static/src/guide/guide.scss',

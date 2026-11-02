@@ -179,6 +179,67 @@ class TestCommissionStudio(TransactionCase):
         self.region.commission_manager_id=False
         self.assertEqual(Ledger.search_count([]),0)
 
+    def test_leader_scope_and_reassignment_update_ledger_and_dashboard(self):
+        self.region.write({'commission_manager_id':False,'user_id':self.manager.id})
+        a=self.invoice(price=1000);a.action_post()
+        b=self.invoice(user=self.bob,price=1000);b.action_post()
+        Ledger=self.env['sales.commission.entry'].with_user(self.manager)
+        self.assertEqual(Ledger.search([]),self.entries(a))
+        self.assertEqual(Ledger.dashboard('2026-11-01')['commission'],100)
+        self.assertIn(self.region.id,[t['id'] for t in Ledger.dashboard('2026-11-01')['teams']])
+        self.region.user_id=self.bob
+        self.assertFalse(Ledger.search([]))
+        self.assertEqual(Ledger.dashboard('2026-11-01')['commission'],0)
+        self.bob.groups_id |= self.env.ref('sales_region_commission.group_manager')
+        self.assertIn(self.entries(a),self.env['sales.commission.entry'].with_user(self.bob).search([]))
+
+    def test_leader_and_additional_manager_scopes_are_additive(self):
+        self.other.user_id=self.manager
+        a=self.invoice(price=1000);a.action_post()
+        b=self.invoice(user=self.bob,price=1000);b.action_post()
+        Ledger=self.env['sales.commission.entry'].with_user(self.manager)
+        self.assertEqual(set(Ledger.search([]).ids),set((self.entries(a)|self.entries(b)).ids))
+        self.region.commission_manager_id=False
+        self.assertEqual(Ledger.search([]),self.entries(b))
+        self.other.user_id=False
+        self.assertFalse(Ledger.search([]))
+
+    def test_leadership_never_grants_a_commission_role(self):
+        self.other.user_id=self.alice
+        self.branch.member_ids |= self.bob
+        a=self.invoice();a.action_post()
+        b=self.invoice(user=self.bob);b.action_post()
+        self.assertFalse(self.alice.commission_visible_team_ids())
+        self.assertEqual(self.env['sales.commission.entry'].with_user(self.alice).search([]),self.entries(a))
+        outsider=new_test_user(self.env,login='commission_leader_no_role',groups='base.group_user')
+        self.other.user_id=outsider
+        with self.assertRaises(AccessError):self.env['sales.commission.entry'].with_user(outsider).dashboard('2026-11-01')
+
+    def test_automatic_scope_obeys_selected_companies(self):
+        other_company=self.company_data_2['company']
+        self.manager.company_ids |= other_company
+        self.region.write({'commission_manager_id':False,'user_id':self.manager.id})
+        foreign=self.env['crm.team'].create({'name':'Foreign leadership scope','company_id':other_company.id,'user_id':self.manager.id})
+        current=self.manager.with_user(self.manager).with_context(allowed_company_ids=self.env.company.ids)
+        self.assertIn(self.branch.id,current.commission_visible_team_ids())
+        self.assertNotIn(foreign.id,current.commission_visible_team_ids())
+        switched=current.with_context(allowed_company_ids=other_company.ids)
+        self.assertIn(foreign.id,switched.commission_visible_team_ids())
+        self.assertNotIn(self.branch.id,switched.commission_visible_team_ids())
+
+    def test_manager_cannot_assign_themselves_as_team_leader(self):
+        with self.assertRaises(AccessError):self.other.with_user(self.manager).write({'user_id':self.manager.id})
+
+    def test_leader_of_empty_and_shared_teams_can_select_them(self):
+        self.region.write({'commission_manager_id':False,'user_id':self.manager.id})
+        shared=self.env['crm.team'].create({'name':'Shared leadership team','company_id':False,'user_id':self.manager.id})
+        Ledger=self.env['sales.commission.entry'].with_user(self.manager)
+        choices={t['id'] for t in Ledger.dashboard('2026-11-01')['teams']}
+        self.assertTrue({self.region.id,shared.id} <= choices)
+        self.assertEqual(Ledger.dashboard('2026-11-01',self.region.id)['count'],0)
+        self.region.active=False
+        self.assertIn(self.region.id,self.manager.commission_visible_team_ids())
+
     def test_historical_retry_preserves_calculated_snapshots(self):
         self.rule.active=False
         move=self.invoice();move.action_post()

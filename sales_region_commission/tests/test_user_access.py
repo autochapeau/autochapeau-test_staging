@@ -46,6 +46,23 @@ class TestCommissionUserTab(TransactionCase):
         self.person.groups_id |= self.env.ref('account.group_account_manager')
         self.assertTrue(self.person.commission_can_book_accruals)
 
+    def test_automatic_teams_are_read_only_and_do_not_copy_manager_assignments(self):
+        self.region.user_id=self.person
+        user=self.person.with_user(self.operator)
+        self.assertEqual(user.commission_automatic_team_ids,self.region)
+        self.assertFalse(user.commission_region_ids)
+        self.assertFalse(self.region.commission_manager_id)
+        user.commission_access_role='manager'
+        self.assertIn(self.region.id,self.person.commission_visible_team_ids())
+        user.commission_region_ids=[Command.clear()]
+        self.assertEqual(self.region.user_id,self.person)
+        self.assertIn(self.region.id,self.person.commission_visible_team_ids())
+        user.commission_access_role='user'
+        self.assertFalse(self.person.commission_visible_team_ids())
+        self.assertEqual(user.commission_automatic_team_ids,self.region)
+        self.region.user_id=False
+        self.assertFalse(user.commission_automatic_team_ids)
+
     def test_view_has_separate_tab_and_hides_duplicate_selector(self):
         view = self.env['res.users'].with_user(self.operator).get_view(view_id=self.env.ref('base.view_users_form').id,view_type='form')
         arch = etree.fromstring(view['arch'])
