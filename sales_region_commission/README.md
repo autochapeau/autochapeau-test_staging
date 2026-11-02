@@ -1,6 +1,6 @@
 # Sales Commission Studio — Odoo 17
 
-Independent sales commission ledger, monthly regional targets and an OWL dashboard. Existing technician/employee settlements in `commission` remain separate; this addon reuses its service categories and does not create payroll, payments or accounting liabilities.
+Independent sales commission ledger, monthly regional targets and an OWL dashboard. Existing technician/employee settlements in `commission` remain separate; this addon reuses its service categories. Version 17.0.2.0.0 adds configurable expense/payable accruals; it does not create payroll or payments.
 
 ## Configuration
 
@@ -36,3 +36,16 @@ python odoo-bin -c test.conf -d TEST_DATABASE -i sales_region_commission --test-
 The transaction suite covers posted net amounts, discounts/tax, service categories, effective dates, partial/full and repeated-product refunds, exchange-rate changes, reset/repost, idempotency, missing rules, ambiguous attribution, company isolation, role-based searches/dashboard aggregates, immediate manager revocation, write protection, targets, invalid hierarchy and historical retry. Test journals disable EDI only on their own fixtures; real fiscal settings are not modified.
 
 Runtime test configurations, restored databases, local QA accounts and preview invoices belong under `outputs/`, outside the addon. Never deploy those fixtures or use sample test rates as business commission policy.
+
+
+## Accounting accruals (17.0.2.0.0)
+
+Accounting / Configuration / Settings / Sales commission accruals contains per-company activation, a miscellaneous journal, a debit expense account and a credit liability/payable account. Activation defaults to off. The journal and both accounts must be valid, active, same-company and in company currency. Expense and liability accounts must differ. A shortcut is also available in Commission Studio for authorized finance/settings users.
+
+When enabled, posting a customer invoice snapshots its commission and posts a balanced miscellaneous entry: debit commission expense, credit commission payable. Lines retain the salesperson's partner. Review entries and zero commissions are never booked. Repeated booking does not create duplicates; invoice-row locks serialize booking.
+
+Credit notes debit the original payable and credit the original expense for the refunded commission. Original journal/account snapshots are used even if settings change or future accruals are disabled. An original commission that was never booked cannot create a negative liability on refund.
+
+The ledger shows Accounting status and its accrual entry. The invoice's Commission accounting tab preserves accruals and reversals. Resetting/cancelling the source posts a reversal dated today and keeps the original journal entry. Reposting creates a fresh accrual. Normal fiscal locks and accounting validation apply; failures roll back the operation. Generated entries and financial lines cannot be manually edited, reset, reversed or deleted. Standard payable reconciliation remains supported.
+
+Historical calculation never posts accruals silently. Booking historical pending entries requires both Commission Administrator and Accounting Administrator roles, with company configuration enabled. Book original commissions before old credit notes. Upgrading preserves v1 commission values and leaves accounting disabled until configured. Accruals recognize liabilities only; normal payment and reconciliation remain separate.

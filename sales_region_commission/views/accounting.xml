@@ -1,0 +1,22 @@
+<odoo>
+ <record id="settings_commission_accounting" model="ir.ui.view">
+  <field name="name">Commission accrual accounting settings</field><field name="model">res.config.settings</field><field name="inherit_id" ref="account.res_config_settings_view_form"/>
+  <field name="arch" type="xml"><xpath expr="//app[@name='account']" position="inside">
+   <block title="Sales commission accruals" name="commission_accrual_settings">
+    <setting string="Recognize commission liabilities" help="When a customer invoice is posted, debit commission expense and credit commission payable. Credit notes reverse the original accounts. This does not pay the salesperson." company_dependent="1">
+     <field name="commission_accrual_enabled"/>
+     <div class="content-group" invisible="not commission_accrual_enabled">
+      <div class="row mt16"><label for="commission_journal_id" class="col-lg-4 o_light_label"/><field name="commission_journal_id" domain="[('company_id','=',company_id),('type','=','general')]" required="commission_accrual_enabled"/></div>
+      <div class="row mt16"><label for="commission_debit_account_id" class="col-lg-4 o_light_label"/><field name="commission_debit_account_id" domain="[('company_id','=',company_id),('deprecated','=',False),('account_type','in',['expense','expense_direct_cost','expense_depreciation'])]" required="commission_accrual_enabled"/></div>
+      <div class="row mt16"><label for="commission_credit_account_id" class="col-lg-4 o_light_label"/><field name="commission_credit_account_id" domain="[('company_id','=',company_id),('deprecated','=',False),('account_type','in',['liability_current','liability_non_current','liability_payable'])]" required="commission_accrual_enabled"/></div>
+     </div>
+    </setting>
+   </block>
+  </xpath></field>
+ </record>
+ <record id="accounting_settings_action" model="ir.actions.act_window"><field name="name">Commission accounting settings</field><field name="res_model">res.config.settings</field><field name="view_mode">form</field><field name="target">inline</field><field name="context">{'module':'account'}</field></record>
+ <menuitem id="menu_accounting_settings" name="Accounting configuration" parent="menu_root" action="accounting_settings_action" sequence="8" groups="base.group_system,account.group_account_manager"/>
+ <record id="entry_accounting_tree" model="ir.ui.view"><field name="name">Commission ledger accounting links</field><field name="model">sales.commission.entry</field><field name="inherit_id" ref="entry_tree"/><field name="arch" type="xml"><field name="status" position="after"><field name="accounting_status" widget="badge"/><field name="accrual_move_id" optional="hide"/></field></field></record>
+ <record id="entry_accounting_form" model="ir.ui.view"><field name="name">Commission audit accounting</field><field name="model">sales.commission.entry</field><field name="inherit_id" ref="entry_form"/><field name="arch" type="xml"><sheet position="before"><header><button name="action_accrue" type="object" string="Book commission accrual" class="btn-primary" groups="account.group_account_manager" invisible="accounting_status != 'pending'" confirm="Post the commission expense and payable in the configured journal?"/></header></sheet><field name="status" position="after"><field name="accounting_status"/><field name="accrual_move_id"/></field></field></record>
+ <record id="invoice_commission_accounting" model="ir.ui.view"><field name="name">Invoice commission audit trail</field><field name="model">account.move</field><field name="inherit_id" ref="account.view_move_form"/><field name="arch" type="xml"><xpath expr="//notebook" position="inside"><page string="Commission accounting" name="commission_accounting" groups="account.group_account_manager"><field name="commission_account_move_ids" readonly="1"><tree create="0" edit="0" delete="0"><field name="name"/><field name="date"/><field name="ref"/><field name="journal_id"/><field name="state"/><field name="commission_is_reversal"/><field name="commission_reversed_by_id"/></tree></field></page></xpath></field></record>
+</odoo>
