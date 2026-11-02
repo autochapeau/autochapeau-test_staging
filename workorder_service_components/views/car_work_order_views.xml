@@ -7,7 +7,7 @@
     <field name="priority">99</field>
     <field name="arch" type="xml">
       <xpath expr="//page[@name='products']//field[@name='product_ids']" position="replace">
-        <field name="product_ids" nolabel="1" invisible="state != 'new'">
+        <field name="product_ids" colspan="2" nolabel="1" invisible="state != 'new'">
           <tree editable="bottom">
             <field name="source_task_id" column_invisible="1"/>
             <field name="materials_issued" column_invisible="1"/>
@@ -23,7 +23,7 @@
             <field name="used_uom_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
           </tree>
         </field>
-        <field name="product_ids" nolabel="1" invisible="state == 'new'" readonly="state not in ('confirmed', 'progress')">
+        <field name="product_ids" colspan="2" nolabel="1" invisible="state == 'new'" readonly="state not in ('confirmed', 'progress')">
           <tree editable="bottom" create="0" delete="0">
             <field name="source_task_id" column_invisible="1"/>
             <field name="materials_issued" column_invisible="1"/>

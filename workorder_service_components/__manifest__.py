@@ -1,7 +1,7 @@
 {
     "name": "Work Order Service Components",
     "summary": "Vehicle parts, service materials and stock consumption when work finishes",
-    "version": "17.0.2.0.0",
+    "version": "17.0.2.0.1",
     "author": "Wellknot",
     "category": "Services",
     "depends": ["work_orders", "workorder_task_quality"],
