@@ -27,13 +27,31 @@
         <field name="perm_unlink" eval="False"/>
     </record>
     <record id="rule_own_contact_modify" model="ir.rule">
-        <field name="name">Own Contact: modify own contacts</field>
+        <field name="name">Own Contact: create and delete own contacts</field>
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="domain_force">['|', ('user_id', '=', user.id), ('id', '=', user.partner_id.id)] if user.has_group('own_contact.group_own_contact') and not user.has_group('own_contact.group_all_contacts') else [(1, '=', 1)]</field>
         <field name="perm_read" eval="False"/>
-        <field name="perm_write" eval="True"/>
+        <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
+    </record>
+    <!-- res.users delegates to res.partner. Its write rule also includes the
+         partner write domain, even when only user groups are being changed.
+         Keep Settings administrators able to manage internal user accounts;
+         standard user ACLs/field restrictions still apply. This exception does
+         not grant delete access, or write access to unrelated customer records. -->
+    <record id="rule_own_contact_write" model="ir.rule">
+        <field name="name">Own Contact: write own contacts and administer internal users</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">(
+            ['|', '|', ('user_id', '=', user.id), ('id', '=', user.partner_id.id), ('partner_share', '=', False)]
+            if user.has_group('base.group_system') else
+            ['|', ('user_id', '=', user.id), ('id', '=', user.partner_id.id)]
+            ) if user.has_group('own_contact.group_own_contact') and not user.has_group('own_contact.group_all_contacts') else [(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
     <record id="rule_all_contacts" model="ir.rule">
         <field name="name">Own Contact: manager all contacts</field>

@@ -24,7 +24,12 @@ Internal user partners and the user's allowed company partners remain readable s
 Odoo can display user/company relations, but they are excluded from contact lists
 unless assigned to the current user. This is a display restriction: system partners
 remain accessible by direct record reads/links. These exceptions do not permit
-editing other users/company records. A user may still update their own profile partner.
+editing other users/company records for ordinary Own Contact users. A user may
+still update their own profile partner. Settings administrators keep write access
+to internal user partners, so Odoo's delegated user model can save user permissions
+and account details. This preserves the normal user-management ACLs and protected
+fields; it grants no new user-management rights to contact managers or ordinary
+salespeople. It does not widen contact lists or allow editing unrelated customers.
 Child contacts require their own salesperson assignment; the parent's ownership
 does not grant access. Superuser/sudo operations retain Odoo's standard bypass.
 Other installed global restrictions (including Access Roles) still apply.
