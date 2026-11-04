@@ -38,7 +38,7 @@ jobs:
 
           OLD_COMMIT=$(git rev-parse HEAD)
 
-          git pull origin main
+          git pull --ff-only https://github.com/autochapeau/autochapeau-test_staging.git main
 
           NEW_COMMIT=$(git rev-parse HEAD)
 
