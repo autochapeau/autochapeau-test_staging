@@ -81,6 +81,11 @@ class CarWorkOrderProduct(models.Model):
 
     @api.onchange("product_id")
     def _onchange_product_id_component_qty(self):
+        if self.material_category_id:
+            # A substitute retains the configured suggested and actual quantity.
+            self.used_uom_id = self.product_id.uom_id
+            self.lot_id = False
+            return
         if not self.product_id:
             self.suggested_qty = 0.0
             self.used_uom_id = False
@@ -105,6 +110,7 @@ class CarWorkOrderProduct(models.Model):
         uom = component.product_uom_id or product.uom_id
         return {
             "service_id": service.id,
+            "material_category_id": component.material_category_id.id,
             "tag_id": tag.id if tag and product and tag in product.product_tag_ids else False,
             "product_id": product.id,
             "suggested_qty": component.quantity,
@@ -154,6 +160,8 @@ class CarWorkOrderProduct(models.Model):
                 ], limit=1)
             if component and "suggested_qty" not in vals:
                 vals["suggested_qty"] = component.quantity
+            if component and "material_category_id" not in vals:
+                vals["material_category_id"] = component.material_category_id.id
             if "used_uom_id" not in vals:
                 uom = component.product_uom_id if component else product.uom_id
                 if uom:

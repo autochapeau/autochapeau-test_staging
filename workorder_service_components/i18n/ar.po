@@ -18,8 +18,12 @@ msgstr ""
 
 #. module: workorder_service_components
 #: model:ir.module.module,summary:base.module_workorder_service_components
-msgid "Service tags, default components, and suggested versus used quantities on work orders"
-msgstr "تاج الخدمة، المكونات الافتراضية، والكمية المقترحة مقابل المستخدمة في أمر العمل"
+msgid ""
+"Service tags, default components, and suggested versus used quantities on "
+"work orders"
+msgstr ""
+"تاج الخدمة، المكونات الافتراضية، والكمية المقترحة مقابل المستخدمة في أمر "
+"العمل"
 
 #. module: workorder_service_components
 #: model:ir.module.module,shortdesc:base.module_workorder_service_components
@@ -45,8 +49,8 @@ msgid ""
 "A tag with the same name is created automatically. It only filters products "
 "on the work order; products are not assigned to it automatically."
 msgstr ""
-"ينشأ تلقائياً تاج بنفس اسم الخدمة. التاج يفلتر الأصناف في أمر العمل فقط، "
-"ولا تُسنَد الأصناف إليه تلقائياً."
+"ينشأ تلقائياً تاج بنفس اسم الخدمة. التاج يفلتر الأصناف في أمر العمل فقط، ولا"
+" تُسنَد الأصناف إليه تلقائياً."
 
 #. module: workorder_service_components
 #: model:ir.model.fields,field_description:workorder_service_components.field_car_bom__product_tmpl_id
@@ -80,3 +84,145 @@ msgstr "الكمية المستخدمة"
 #, python-format
 msgid "You cannot modify products after the work order has been confirmed."
 msgstr "لا يمكنك تعديل الأصناف بعد تأكيد أمر العمل."
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_product_category__is_main_material_category
+msgid "Main Material Category"
+msgstr "تصنيف خامات رئيسي"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_bom__material_category_id
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__material_category_id
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_service_component_batch_line__material_category_id
+msgid "Material Category"
+msgstr "تصنيف الخامة"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_service_component_batch__service_ids
+msgid "Service Variants"
+msgstr "متغيرات الخدمة"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_template_form_service_components
+msgid "Configure Multiple Variants"
+msgstr "تجهيز خامات عدة متغيرات"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.service_component_batch_form
+#: model:ir.actions.act_window,name:workorder_service_components.service_component_batch_action
+msgid "Configure Variant Materials"
+msgstr "تجهيز خامات متغيرات الخدمة"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.service_component_batch_form
+msgid "Apply to Variants"
+msgstr "تطبيق على المتغيرات"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.service_component_batch_form
+msgid "Cancel"
+msgstr "إلغاء"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.service_component_batch_form
+msgid ""
+"Apply these materials to every selected variant. Existing materials on the "
+"same vehicle part are updated by product; other materials are kept. Existing"
+" work orders keep their saved materials."
+msgstr ""
+"تُطبّق الخامات على كل المتغيرات المختارة. تُحدّث الخامة الموجودة في نفس جزء "
+"السيارة حسب الصنف، وتبقى الخامات الأخرى. تحتفظ أوامر العمل الحالية بخاماتها "
+"المحفوظة."
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.product_template_form_service_components
+msgid ""
+"Save the service first. Use Configure Multiple Variants to apply the same "
+"materials to several variants, or open an individual vehicle part to edit "
+"its materials."
+msgstr ""
+"احفظ الخدمة أولًا. استخدم تجهيز خامات عدة متغيرات لتطبيق نفس الخامات على "
+"أكثر من متغير، أو افتح جزء سيارة لتعديل خاماته."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Only workshop managers can configure service materials."
+msgstr "يمكن لمديري الورشة فقط تجهيز خامات الخدمات."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Select a service, at least one variant and at least one material."
+msgstr "اختر خدمة ومتغيرًا واحدًا وخامة واحدة على الأقل."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "All variants must belong to the selected service template."
+msgstr "يجب أن تنتمي جميع المتغيرات إلى الخدمة الرئيسية المختارة."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Do not add the same material and category more than once."
+msgstr "لا تضف نفس الخامة والتصنيف أكثر من مرة."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid ""
+"This part has duplicate materials. Review its existing configuration first."
+msgstr "يوجد تكرار للخامات في هذا الجزء. راجع الإعداد الحالي أولًا."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Select a main material category."
+msgstr "اختر تصنيف خامات رئيسيًا."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid ""
+"Select a storable material from the selected category or its subcategories."
+msgstr "اختر خامة مخزنية من التصنيف المحدد أو تصنيفاته الفرعية."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Enter a positive quantity and a compatible unit of measure."
+msgstr "أدخل كمية أكبر من صفر ووحدة قياس متوافقة."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid ""
+"The replacement material must be a storable product in the configured "
+"category or its subcategories."
+msgstr ""
+"يجب أن تكون الخامة البديلة صنفًا مخزنيًا من التصنيف المحدد أو تصنيفاته "
+"الفرعية."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "The configured material category cannot be changed on this work order."
+msgstr "لا يمكن تغيير تصنيف الخامة المحدد في أمر العمل."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/component_batch.py:0
+#: code:addons/workorder_service_components/models/material_category.py:0
+#: code:addons/workorder_service_components/models/material_execution.py:0
+msgid "Select a storable replacement material."
+msgstr "اختر خامة بديلة من الأصناف المخزنية."

@@ -4,3 +4,5 @@ car_part_manager,Vehicle parts manager,model_car_part,work_orders.group_workshop
 service_part_read,Service parts read,model_car_service_part,base.group_user,1,0,0,0
 service_part_manager,Service parts manager,model_car_service_part,work_orders.group_workshop_manager,1,1,1,1
 car_bom_material_manager,Service material configuration manager,work_orders.model_car_bom,work_orders.group_workshop_manager,1,1,1,1
+service_component_batch_manager,Configure variant materials,model_car_service_component_batch,work_orders.group_workshop_manager,1,1,1,1
+service_component_batch_line_manager,Configure variant material lines,model_car_service_component_batch_line,work_orders.group_workshop_manager,1,1,1,1

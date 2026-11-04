@@ -1,6 +1,17 @@
 # Service components by vehicle part
 
-Odoo 17 — `workorder_service_components`, version `17.0.2.0.0`.
+Odoo 17 — `workorder_service_components`, version `17.0.3.0.0`.
+
+## Main categories, batch variants and replacement materials
+
+1. In Inventory → Configuration → Product Categories, enable **Main Material Category** on each category offered for service materials. Selecting a category includes all of its descendants.
+2. Define **Vehicle Parts** under Work Orders → Configuration or Inventory → Configuration → Products. Workshop managers can also create a part from the configuration form's selector.
+3. Open a saved service template → Service Components → **Configure Multiple Variants**. Select the vehicle part and one or more variants of that template. Add materials with their main categories, positive default quantities and compatible units, then **Apply to Variants**.
+4. Each variant receives independent `car.service.part` / `car.bom` records. Applying again updates the same product on the same part without duplicating it. Other existing materials are kept. Duplicate existing rows for that product require review before applying. Existing ungrouped materials remain available for manual assignment, as before.
+5. Single-variant configuration remains available. Its material category is optional for compatibility with older recipes. New batch configuration requires a marked main category on every material.
+6. New work-order snapshots carry the configured material category. The category stays fixed on the order. Product selection includes the category and all subcategories, and is validated on the server.
+7. Workshop managers can replace categorized materials while the order is new, confirmed or in progress, until the material is issued. Service, vehicle part, source component and suggested quantity are retained. Actual quantity is retained; the product's default unit is selected and the old lot is cleared when changing products in the form. Review actual usage and choose a new lot/serial if needed. Finish issues the selected replacement product.
+8. Issued materials remain locked. Older uncategorized lines retain their existing tag validation and confirmation locks. Upgrading does not rewrite historical orders or infer a material category for them. Configure categories on recipes for future orders.
 
 ## Configuration and operation
 

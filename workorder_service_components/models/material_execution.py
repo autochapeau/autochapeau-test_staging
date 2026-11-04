@@ -16,6 +16,26 @@ class WorkOrderProduct(models.Model):
     lot_id = fields.Many2one("stock.lot", string="Lot / Serial", check_company=True,
                              domain="[('product_id', '=', product_id)]", copy=False)
     company_id = fields.Many2one(related="workorder_id.company_id", store=True)
+    material_category_id = fields.Many2one(
+        "product.category", string="Material Category", ondelete="restrict",
+        domain="[('is_main_material_category', '=', True)]",
+    )
+    product_id = fields.Many2one(domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else []))")
+
+    @api.constrains("tag_id", "product_id", "material_category_id")
+    def _check_product_matches_tag(self):
+        # Categorized materials use the configured category instead of legacy tags.
+        return super(WorkOrderProduct, self.filtered(lambda line: not line.material_category_id))._check_product_matches_tag()
+
+    @api.constrains("material_category_id", "product_id")
+    def _check_material_category(self):
+        for line in self.filtered("material_category_id"):
+            if not self.env["product.product"].search_count([
+                ("id", "=", line.product_id.id),
+                ("categ_id", "child_of", line.material_category_id.id),
+                ("detailed_type", "=", "product"),
+            ]):
+                raise ValidationError(_("The replacement material must be a storable product in the configured category or its subcategories."))
 
     @api.model
     def _values_from_component(self, service, component):
@@ -27,6 +47,7 @@ class WorkOrderProduct(models.Model):
         super()._apply_component(service, component)
         self.part_id = component.part_id
         self.source_component_id = component
+        self.material_category_id = component.material_category_id
 
     @api.onchange("part_id")
     def _onchange_vehicle_part(self):
@@ -46,14 +67,34 @@ class WorkOrderProduct(models.Model):
     def write(self, vals):
         if "material_move_id" in vals and self.env.context.get("material_issue_token") is not _ISSUE_TOKEN:
             raise UserError(_("Material movements are assigned only when finishing a service."))
-        if {"quantity", "lot_id"} & vals.keys():
+        if {"quantity", "lot_id", "product_id", "material_category_id"} & vals.keys():
             for order in self.workorder_id.sorted("id"):
                 self.env.cr.execute("SELECT id FROM car_work_order WHERE id = %s FOR UPDATE", (order.id,))
             self.source_task_id.invalidate_recordset(["materials_issued"])
         protected = {"quantity", "product_id", "service_id", "part_id", "used_uom_id",
-                     "suggested_qty", "source_task_id", "source_component_id", "workorder_id", "lot_id"}
+                     "suggested_qty", "source_task_id", "source_component_id", "workorder_id", "lot_id", "material_category_id"}
         if protected & vals.keys() and self.filtered(lambda line: line.materials_issued or line.material_move_id.state == "done"):
             raise UserError(_("Issued materials cannot be changed. Use a stock return or a separate replacement delivery."))
+        if "material_category_id" in vals and any(
+            line.material_category_id.id != vals["material_category_id"]
+            and (line.source_component_id or line.workorder_id.state != "new") for line in self
+        ):
+            raise UserError(_("The configured material category cannot be changed on this work order."))
+        if "product_id" in vals and self and all(line.material_category_id for line in self):
+            allowed = {"product_id", "quantity", "lot_id", "used_uom_id", "tag_id"}
+            if set(vals) <= allowed and all(line.workorder_id.state in ("new", "confirmed", "progress") for line in self):
+                product = self.env["product.product"].browse(vals["product_id"])
+                if not product or product.detailed_type != "product":
+                    raise ValidationError(_("Select a storable replacement material."))
+                # A different product must never inherit the previous lot or an
+                # incompatible unit. A compatible explicit unit is validated below.
+                for line in self:
+                    replacement = dict(vals)
+                    if line.product_id != product:
+                        replacement.setdefault("lot_id", False)
+                        replacement.setdefault("used_uom_id", product.uom_id.id)
+                    super(WorkOrderProduct, line.with_context(contract_upsell_sync=True)).write(replacement)
+                return True
         # The existing work-order lock keeps structural fields frozen. Actual usage
         # remains editable by workshop managers until the service is finished.
         if set(vals) <= {"quantity", "lot_id"} and self and all(
@@ -145,6 +186,7 @@ class WorkOrder(models.Model):
                         candidate.write({
                             "source_task_id": task.id, "source_component_id": bom.id,
                             "part_id": bom.part_id.id, "suggested_qty": bom.quantity,
+                            "material_category_id": bom.material_category_id.id,
                             "used_uom_id": (candidate.used_uom_id or bom.product_uom_id or bom.product_id.uom_id).id,
                         })
                         available -= candidate

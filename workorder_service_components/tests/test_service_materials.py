@@ -1,5 +1,5 @@
 from odoo import Command
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
 from odoo.tests.common import new_test_user
 
@@ -299,5 +299,253 @@ class TestServiceMaterials(TransactionCase):
             ("product.template", "product.product_template_only_form_view"),
             ("car.work.order", "work_orders.car_work_order_view_form"),
             ("car.service.part", "workorder_service_components.service_part_form"),
+            ("car.service.component.batch", "workorder_service_components.service_component_batch_form"),
         ]:
             self.assertTrue(self.env[model].get_view(self.env.ref(view).id, "form")["arch"])
+
+    def _categorized_materials(self):
+        category = self.env["product.category"].create({"name": "Main films test", "is_main_material_category": True})
+        child = self.env["product.category"].create({"name": "Child films test", "parent_id": category.id})
+        grandchild = self.env["product.category"].create({"name": "Grandchild films test", "parent_id": child.id})
+        self.film.categ_id = child
+        self.liquid.categ_id = grandchild
+        self.service.bom_ids.material_category_id = category
+        return category
+
+    def _batch_template(self):
+        attribute = self.env["product.attribute"].create({"name": "Batch size test"})
+        values = self.env["product.attribute.value"].create([
+            {"name": name, "attribute_id": attribute.id} for name in ("Medium", "Large")
+        ])
+        return self.env["product.template"].create({
+            "name": "Batch film service test", "detailed_type": "service",
+            "attribute_line_ids": [Command.create({"attribute_id": attribute.id, "value_ids": [Command.set(values.ids)]})],
+        })
+
+    def _batch(self, template, category):
+        return self.env["car.service.component.batch"].create({
+            "product_tmpl_id": template.id, "service_ids": [Command.set(template.product_variant_ids.ids)],
+            "part_id": self.right.id,
+            "line_ids": [Command.create({"material_category_id": category.id, "product_id": self.film.id,
+                                         "quantity": 4, "product_uom_id": self.unit.id})],
+        })
+
+    def test_batch_variants_independent_idempotent_and_existing_materials_kept(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        batch = self._batch(template, category)
+        batch.action_apply()
+        self.assertEqual(len(template.service_part_ids), 2)
+        for variant in template.product_variant_ids:
+            self.assertEqual(len(variant.bom_ids), 1)
+            self.assertEqual(variant.bom_ids.material_category_id, category)
+            self.assertEqual(variant.bom_ids.quantity, 4)
+        self.env["car.bom"].create({"service_part_id": template.service_part_ids[0].id,
+                                    "product_id": self.liquid.id, "quantity": 2})
+        batch.line_ids.quantity = 6
+        batch.action_apply()
+        self.assertEqual(len(template.service_component_ids), 3)
+        lines = template.service_component_ids.filtered(lambda line: line.product_id == self.film)
+        lines[0].quantity = 7
+        self.assertEqual(lines[1].quantity, 6)
+
+    def test_batch_rejects_foreign_variant_without_partial_changes(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        batch = self._batch(template, category)
+        batch.service_ids = self.service | template.product_variant_ids
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            batch.action_apply()
+        self.assertFalse(template.service_part_ids)
+
+    def test_batch_form_and_category_filter(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        with Form(self.env["car.service.component.batch"].with_context(default_product_tmpl_id=template.id),
+                  view="workorder_service_components.service_component_batch_form") as form:
+            form.part_id = self.right
+            for service in template.product_variant_ids:
+                form.service_ids.add(service)
+            with form.line_ids.new() as line:
+                line.material_category_id = category
+                line.product_id = self.liquid
+                line.quantity = 3
+                self.assertEqual(line.product_uom_id, self.unit)
+        form.record.action_apply()
+        self.assertEqual(len(template.service_component_ids), 2)
+
+    def test_configuration_rejects_material_outside_category(self):
+        category = self._categorized_materials()
+        other = self.env["product.product"].create({"name": "Outside material test", "detailed_type": "product"})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.right_config.component_ids[0].product_id = other
+        batch = self._batch(self._batch_template(), category)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            batch.line_ids.product_id = other
+
+    def test_replacement_in_confirmed_and_progress_issues_actual_substitute(self):
+        category = self._categorized_materials()
+        order = self._order()
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        self.assertEqual(line.material_category_id, category)
+        source = line.source_component_id
+        order.picking_id = order._create_delivery_picking()
+        order.state = "confirmed"
+        line.product_id = self.liquid
+        self.assertEqual(line.suggested_qty, 2)
+        self.assertEqual(line.quantity, 2)
+        order.action_start_materials()
+        line.product_id = self.film
+        line.product_id = self.liquid
+        self.assertEqual(line.source_component_id, source)
+        self.assertEqual(line.service_id, self.service)
+        self.assertEqual(line.part_id, self.right)
+        order.action_finish_materials()
+        self.assertEqual(line.material_move_id.product_id, self.liquid)
+        self.assertEqual(self._available(self.film), 97)
+        self.assertEqual(self._available(self.liquid), 97)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.product_id = self.film
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.material_category_id = False
+
+    def test_replacement_rejects_other_category_and_category_tampering(self):
+        self._categorized_materials()
+        order = self._order()
+        self._start(order)
+        line = order.product_ids[0]
+        other = self.env["product.product"].create({"name": "Other category test", "detailed_type": "product"})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.product_id = other
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.material_category_id = other.categ_id
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.service_id = other
+
+    def test_replacement_clears_lot_and_updates_unit(self):
+        self._categorized_materials()
+        self.film.tracking = "lot"
+        lot = self.env["stock.lot"].create({"name": "Old replacement lot", "product_id": self.film.id, "company_id": self.env.company.id})
+        order = self._order()
+        self._start(order)
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        line.lot_id = lot
+        replacement = self.env["product.product"].create({
+            "name": "Length replacement test", "detailed_type": "product", "categ_id": self.liquid.categ_id.id,
+            "uom_id": self.env.ref("uom.product_uom_meter").id,
+            "uom_po_id": self.env.ref("uom.product_uom_meter").id,
+        })
+        line.product_id = replacement
+        self.assertFalse(line.lot_id)
+        self.assertEqual(line.used_uom_id, replacement.uom_id)
+
+    def test_explicit_replacement_lot_is_validated_and_retained(self):
+        self._categorized_materials()
+        self.liquid.tracking = "lot"
+        lot = self.env["stock.lot"].create({"name": "Replacement lot test", "product_id": self.liquid.id, "company_id": self.env.company.id})
+        order = self._order()
+        self._start(order)
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        line.write({"product_id": self.liquid.id, "lot_id": lot.id})
+        self.assertEqual(line.lot_id, lot)
+        line.write({"product_id": self.liquid.id, "quantity": 4})
+        self.assertEqual(line.lot_id, lot)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.write({"product_id": self.film.id, "lot_id": lot.id})
+
+    def test_draft_resync_does_not_restore_replaced_product(self):
+        self._categorized_materials()
+        order = self._order()
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        line.product_id = self.liquid
+        order._sync_part_materials()
+        order._sync_part_materials()
+        self.assertEqual(len(order.product_ids), 3)
+        self.assertEqual(line.product_id, self.liquid)
+
+    def test_legacy_product_lock_and_tags_preserved(self):
+        order = self._order()
+        self._start(order)
+        line = order.product_ids[0]
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.product_id = self.liquid
+        draft = self._order()
+        tag = self.env["product.tag"].create({"name": "Legacy restricted test"})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            draft.product_ids[0].tag_id = tag
+
+    def test_categorized_replacement_uses_category_instead_of_legacy_tag(self):
+        self._categorized_materials()
+        tag = self.service.service_tag_id
+        self.film.product_tag_ids = tag
+        order = self._order()
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        self.assertEqual(line.tag_id, tag)
+        self._start(order)
+        line.product_id = self.liquid
+        self.assertEqual(line.product_id, self.liquid)
+
+    def test_workshop_manager_can_batch_configure_and_replace_before_issue(self):
+        category = self._categorized_materials()
+        user = new_test_user(self.env, login="material_batch_manager", groups="work_orders.group_workshop_manager")
+        self.staff.user_id = user
+        template = self._batch_template()
+        batch = self._batch(template, category)
+        batch.with_user(user).action_apply()
+        self.assertEqual(len(template.service_part_ids), 2)
+        order = self._order()
+        self._start(order)
+        line = order.product_ids.filtered(lambda item: item.product_id == self.film)[0]
+        line.with_user(user).product_id = self.liquid
+        order.with_user(user).action_finish_materials()
+        self.assertEqual(line.material_move_id.product_id, self.liquid)
+
+    def test_batch_rejects_ordinary_user(self):
+        category = self._categorized_materials()
+        user = new_test_user(self.env, login="material_batch_reader", groups="base.group_user")
+        batch = self._batch(self._batch_template(), category)
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            batch.with_user(user).action_apply()
+
+    def test_replacement_form_preserves_quantities_and_source(self):
+        self._categorized_materials()
+        order = self._order()
+        self._start(order)
+        with Form(order, view="work_orders.car_work_order_view_form") as form:
+            # Products occur twice in the combined form (draft and confirmed).
+            # Form resolves the editable list for the current order state.
+            with form.product_ids.edit(0) as line:
+                original_quantity = line.quantity
+                original_suggested = line.suggested_qty
+                line.product_id = self.liquid
+                self.assertEqual(line.quantity, original_quantity)
+                self.assertEqual(line.suggested_qty, original_suggested)
+        self.assertEqual(order.product_ids[0].product_id, self.liquid)
+
+    def test_replacement_shortage_rolls_back_finish(self):
+        self._categorized_materials()
+        order = self._order()
+        self._start(order)
+        replacement = self.env["product.product"].create({
+            "name": "Unavailable substitute test", "detailed_type": "product", "categ_id": self.film.categ_id.id,
+        })
+        line = order.product_ids[0]
+        line.product_id = replacement
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        self.assertEqual(order.service_ids.state, "progress")
+        self.assertFalse(order.service_ids.materials_issued)
+        self.assertFalse(order.material_picking_ids)
+        self.assertEqual(self._available(self.film), 100)
+
+    def test_batch_requires_marked_category_and_rejects_duplicate_input(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        batch = self._batch(template, category)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            batch.line_ids.material_category_id = self.film.categ_id
+        batch.line_ids = [Command.create({"material_category_id": category.id, "product_id": self.film.id,
+                                          "quantity": 2, "product_uom_id": self.unit.id})]
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            batch.action_apply()
+        self.assertFalse(template.service_part_ids)
