@@ -1,6 +1,14 @@
 # Service components by vehicle part
 
-Odoo 17 — `workorder_service_components`, version `17.0.3.0.0`.
+Odoo 17 — `workorder_service_components`, version `17.0.3.1.0`.
+
+## Branch material availability
+
+The work order's Products tab shows **Available in Branch** in the row's UoM. This is unreserved stock under the branch warehouse's stock location, including its sublocations. It excludes other branches and follows the work order's company. A selected lot/serial restricts the balance to that exact lot. The optional **Material Warehouse** column identifies the warehouse used.
+
+Choosing a material or changing its used quantity, unit or lot displays an **Insufficient Branch Stock** warning when stock is insufficient. The **Stock Warning** column and highlighted rows retain the warning on saved orders. Demand includes other pending rows for the same product on the order (for a selected lot, other rows using that lot), so repeated parts cannot each assume the entire balance is available. Issued rows no longer contribute to pending demand.
+
+These are advisory checks: they do not reserve stock or block saving. Reload the order to refresh balances changed by other operations. The existing Finish checks still revalidate availability and prevent issuing a shortage. Missing branch/warehouse configuration is explained in the warning column without preventing historical orders from opening; legacy consumables do not produce stock shortage warnings.
 
 ## Main categories, batch variants and replacement materials
 
