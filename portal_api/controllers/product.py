@@ -62,6 +62,61 @@ def _videos_from_products(products):
     return _serialize_video_attachments(products.mapped("video_ids"))
 
 
+SORT_VALUES = ("price_asc", "price_desc", "name_asc", "best_sellers")
+
+
+def _invalid_sort_message(sort):
+    if not sort:
+        return None
+    if sort not in SORT_VALUES:
+        return "sort must be one of: %s" % ", ".join(SORT_VALUES)
+    return None
+
+
+def _selling_price(product):
+    return product.lst_price_discount or product.lst_price or 0.0
+
+
+def _matched_service_variants(template, vehicle, brand_sizes):
+    variants = template._get_published_variants_for_vehicle(vehicle)
+    if not variants or brand_sizes is None:
+        return variants
+    if not brand_sizes:
+        return variants.browse()
+    return variants.filtered(
+        lambda variant: any(
+            code in brand_sizes
+            for code in variant.product_template_variant_value_ids.product_attribute_value_id.mapped("code")
+        )
+    )
+
+
+def _service_price(template, vehicle, brand_sizes):
+    variants = _matched_service_variants(template, vehicle, brand_sizes)
+    if not variants:
+        return 0.0
+    return min(variant.lst_price or 0.0 for variant in variants)
+
+
+def _service_sales(template, vehicle, brand_sizes):
+    variants = _matched_service_variants(template, vehicle, brand_sizes)
+    return sum(variant.total_sales_count or 0.0 for variant in variants)
+
+
+def _sort_products(products, sort):
+    if sort == "price_asc":
+        return products.sorted(key=_selling_price)
+    if sort == "price_desc":
+        return products.sorted(key=_selling_price, reverse=True)
+    if sort == "name_asc":
+        return products.sorted(key=lambda product: (product.name or "").lower())
+    if sort == "best_sellers":
+        return products.sorted(
+            key=lambda product: product.total_sales_count or 0.0, reverse=True
+        )
+    return products
+
+
 def _parse_pagination(params, default_limit=20):
     """Return (page, limit, offset) from request params/body."""
     try:
@@ -494,13 +549,27 @@ class ProductAPI(http.Controller):
     @with_lang
     def v1_get_products(self):
         params = request.httprequest.args
+        sort = (params.get("sort") or "").strip()
+        sort_message = _invalid_sort_message(sort)
+        if sort_message:
+            return make_response(422, {"message": sort_message})
         domain = [("detailed_type", "!=", "service"),
                   ("is_published", "=", True)]
         domain = _append_categ_domain(domain, _get_categ_ids(params))
         page, limit, offset = _parse_pagination(params)
         product_env = request.env["product.product"].sudo()
-        total = product_env.search_count(domain)
-        products = product_env.search_read(domain, FIELDS_READ, limit=limit, offset=offset)
+        if sort:
+            products = _sort_products(product_env.search(domain), sort)
+            total = len(products)
+            page_products = products[offset:offset + limit]
+            records = product_env.search_read(
+                [("id", "in", page_products.ids)], FIELDS_READ
+            )
+            by_id = {item["id"]: item for item in records}
+            products = [by_id[product_id] for product_id in page_products.ids if product_id in by_id]
+        else:
+            total = product_env.search_count(domain)
+            products = product_env.search_read(domain, FIELDS_READ, limit=limit, offset=offset)
         _logger.info("Number of products after filtering: %s / total=%s", len(products), total)
         _attach_features(products)
         result = format_search_read_result(
@@ -585,15 +654,28 @@ class ProductAPI(http.Controller):
         return make_response(200, result)
 
     @http.route(
-        "/v1/services/list", type="http", auth="none", csrf=False, methods=["POST", "OPTIONS"], cors="*")
+        "/v1/services/list",
+        type="http",
+        auth="none",
+        csrf=False,
+        methods=["GET", "POST", "OPTIONS"],
+        cors="*",
+    )
     @with_lang
     def v1_service_list(self):
         """List the services available for a car"""
-        data = json.loads(request.httprequest.data)
-        check_data = check_params(data, ["vehicle_id"])
-        if check_data:
-            return make_response(422, check_data)
-        vehicle_id = int(data.get("vehicle_id"))
+        if request.httprequest.method == "POST":
+            data = json.loads(request.httprequest.data or b"{}")
+            check_data = check_params(data, ["vehicle_id"])
+            if check_data:
+                return make_response(422, check_data)
+        else:
+            data = request.httprequest.args
+        sort = (data.get("sort") or "").strip()
+        sort_message = _invalid_sort_message(sort)
+        if sort_message:
+            return make_response(422, {"message": sort_message})
+        vehicle_id = int(data.get("vehicle_id") or -1)
         brand_id = data.get("brand_id", False)
         categ_ids = _get_categ_ids(data)
         page, limit, offset = _parse_pagination(data)
@@ -626,6 +708,24 @@ class ProductAPI(http.Controller):
                 if not variants:
                     continue
             matched_templates |= template
+        if sort == "price_asc":
+            matched_templates = matched_templates.sorted(
+                key=lambda template: _service_price(template, vehicle, brand_sizes)
+            )
+        elif sort == "price_desc":
+            matched_templates = matched_templates.sorted(
+                key=lambda template: _service_price(template, vehicle, brand_sizes),
+                reverse=True,
+            )
+        elif sort == "name_asc":
+            matched_templates = matched_templates.sorted(
+                key=lambda template: (template.name or "").lower()
+            )
+        elif sort == "best_sellers":
+            matched_templates = matched_templates.sorted(
+                key=lambda template: _service_sales(template, vehicle, brand_sizes),
+                reverse=True,
+            )
         total = len(matched_templates)
         page_templates = matched_templates[offset: offset + limit]
         result = []
