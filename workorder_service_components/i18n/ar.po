@@ -226,3 +226,34 @@ msgstr "لا يمكن تغيير تصنيف الخامة المحدد في أم�
 #: code:addons/workorder_service_components/models/material_execution.py:0
 msgid "Select a storable replacement material."
 msgstr "اختر خامة بديلة من الأصناف المخزنية."
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__branch_available_qty
+msgid "Available in Branch"
+msgstr "المتاح في مخزن الفرع"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__availability_warehouse_id
+msgid "Material Warehouse"
+msgstr "مخزن الخامات"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_car_workorder_product__material_stock_warning
+msgid "Stock Warning"
+msgstr "تنبيه المخزون"
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/material_availability.py:0
+msgid "Insufficient Branch Stock"
+msgstr "الكمية المتاحة في مخزن الفرع غير كافية"
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/material_availability.py:0
+msgid ""
+"Insufficient stock for %(product)s in %(warehouse)s: this order needs "
+"%(required)s %(unit)s; available %(available)s %(unit)s. Choose an available"
+" replacement or replenish stock before issuing."
+msgstr ""
+"مخزون %(product)s في %(warehouse)s غير كافٍ. المطلوب لأمر الشغل %(required)s"
+" %(unit)s والمتاح %(available)s %(unit)s. اختر بديلًا متوفرًا أو وفّر "
+"المخزون قبل الصرف."
