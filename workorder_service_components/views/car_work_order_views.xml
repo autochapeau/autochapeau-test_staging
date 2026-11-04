@@ -8,7 +8,8 @@
     <field name="arch" type="xml">
       <xpath expr="//page[@name='products']//field[@name='product_ids']" position="replace">
         <field name="product_ids" colspan="2" nolabel="1" invisible="state != 'new'">
-          <tree editable="bottom">
+          <tree editable="bottom" decoration-warning="material_stock_shortage">
+            <field name="material_stock_shortage" column_invisible="1"/>
             <field name="source_task_id" column_invisible="1"/>
             <field name="materials_issued" column_invisible="1"/>
             <field name="service_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
@@ -18,6 +19,9 @@
             <field name="product_id" readonly="materials_issued or (parent.state != 'new' and (not material_category_id or parent.state not in ('confirmed', 'progress')))" options="{'no_create': True}"/>
             <field name="suggested_qty" readonly="1" force_save="1"/>
             <field name="quantity" string="Used Quantity" readonly="materials_issued or (parent.state != 'new' and (not source_task_id or parent.state != 'progress'))"/>
+            <field name="branch_available_qty" readonly="1"/>
+            <field name="availability_warehouse_id" readonly="1" optional="hide" options="{'no_open': True}"/>
+            <field name="material_stock_warning" readonly="1" optional="show"/>
             <field name="company_id" column_invisible="1"/>
             <field name="lot_id" optional="hide" readonly="materials_issued" options="{'no_create': True}"/>
             <field name="product_uom_category_id" column_invisible="1"/>
@@ -25,7 +29,8 @@
           </tree>
         </field>
         <field name="product_ids" colspan="2" nolabel="1" invisible="state == 'new'" readonly="state not in ('confirmed', 'progress')">
-          <tree editable="bottom" create="0" delete="0">
+          <tree editable="bottom" create="0" delete="0" decoration-warning="material_stock_shortage">
+            <field name="material_stock_shortage" column_invisible="1"/>
             <field name="source_task_id" column_invisible="1"/>
             <field name="materials_issued" column_invisible="1"/>
             <field name="service_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
@@ -35,6 +40,9 @@
             <field name="product_id" readonly="materials_issued or not material_category_id or parent.state not in ('confirmed', 'progress')" options="{'no_create': True}"/>
             <field name="suggested_qty" readonly="1" force_save="1"/>
             <field name="quantity" string="Used Quantity" readonly="materials_issued or (parent.state != 'new' and (not source_task_id or parent.state != 'progress'))"/>
+            <field name="branch_available_qty" readonly="1"/>
+            <field name="availability_warehouse_id" readonly="1" optional="hide" options="{'no_open': True}"/>
+            <field name="material_stock_warning" readonly="1" optional="show"/>
             <field name="company_id" column_invisible="1"/>
             <field name="lot_id" optional="hide" readonly="materials_issued" options="{'no_create': True}"/>
             <field name="product_uom_category_id" column_invisible="1"/>

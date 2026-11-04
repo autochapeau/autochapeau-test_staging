@@ -549,3 +549,127 @@ class TestServiceMaterials(TransactionCase):
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
             batch.action_apply()
         self.assertFalse(template.service_part_ids)
+
+    def test_branch_availability_excludes_reservations_and_other_warehouses(self):
+        other_branch = self.env["hr.department"].create({"name": "Other stock branch", "department_type": "branche"})
+        other = self.env["stock.warehouse"].create({"name": "Other stock warehouse", "code": "AVOT", "branch_id": other_branch.id})
+        shelf = self.env["stock.location"].create({"name": "Material shelf", "usage": "internal", "location_id": self.warehouse.lot_stock_id.id})
+        Quant = self.env["stock.quant"]
+        Quant._update_available_quantity(self.film, other.lot_stock_id, 500)
+        Quant._update_available_quantity(self.film, shelf, 7)
+        Quant._update_reserved_quantity(self.film, self.warehouse.lot_stock_id, 15)
+        order = self._order()
+        lines = order.product_ids.filtered(lambda line: line.product_id == self.film)
+        self.assertEqual(lines.mapped("branch_available_qty"), [92, 92])
+        self.assertEqual(lines.availability_warehouse_id, self.warehouse)
+        self.assertFalse(any(lines.mapped("material_stock_shortage")))
+        order.branch_id = other_branch
+        self.assertEqual(lines.mapped("branch_available_qty"), [500, 500])
+        self.assertEqual(lines.availability_warehouse_id, other)
+
+    def test_branch_warning_totals_repeated_parts_and_does_not_reserve(self):
+        self.env["stock.quant"]._update_available_quantity(self.film, self.warehouse.lot_stock_id, -96)
+        order = self._order()
+        lines = order.product_ids.filtered(lambda line: line.product_id == self.film)
+        self.assertEqual(lines.mapped("branch_available_qty"), [4, 4])
+        self.assertTrue(all(lines.mapped("material_stock_shortage")))
+        message = lines[0]._onchange_warn_branch_stock()["warning"]
+        self.assertEqual(message["title"], "Insufficient Branch Stock")
+        self.assertIn(self.warehouse.name, message["message"])
+        self.assertIn("5.00", message["message"])
+        self.assertEqual(self._available(self.film), 4)
+        lines[1].quantity = 1
+        self.assertFalse(any(lines.mapped("material_stock_shortage")))
+        self.assertFalse(lines[0]._onchange_warn_branch_stock())
+
+    def test_branch_availability_unit_conversion(self):
+        order = self._order()
+        line = order.product_ids.filtered(lambda line: line.product_id == self.film)[0]
+        line.write({"used_uom_id": self.dozens.id, "quantity": 8})
+        self.assertAlmostEqual(line.branch_available_qty, 100 / 12, places=2)
+        self.assertFalse(line.material_stock_shortage)  # 96 + 3 units.
+        line.quantity = 9
+        self.assertTrue(line.material_stock_shortage)
+        self.assertIn(self.dozens.display_name, line.material_stock_warning)
+
+    def test_branch_availability_selected_lot_ignores_untracked_and_other_lots(self):
+        self.film.tracking = "lot"
+        lot = self.env["stock.lot"].create({"name": "Availability lot", "product_id": self.film.id, "company_id": self.env.company.id})
+        other = self.env["stock.lot"].create({"name": "Other availability lot", "product_id": self.film.id, "company_id": self.env.company.id})
+        Quant = self.env["stock.quant"]
+        Quant._update_available_quantity(self.film, self.warehouse.lot_stock_id, 2, lot_id=lot)
+        Quant._update_available_quantity(self.film, self.warehouse.lot_stock_id, 40, lot_id=other)
+        Quant._update_reserved_quantity(self.film, self.warehouse.lot_stock_id, 1, lot_id=lot)
+        line = self._order().product_ids.filtered(lambda line: line.product_id == self.film)[0]
+        line.lot_id = lot
+        self.assertEqual(line.branch_available_qty, 1)
+        self.assertTrue(line.material_stock_shortage)
+        line.lot_id = other
+        self.assertEqual(line.branch_available_qty, 40)
+        self.assertFalse(line.material_stock_shortage)
+
+    def test_branch_warning_handles_missing_configuration_and_legacy_products(self):
+        order = self._order()
+        line = order.product_ids[0]
+        order.branch_id = False
+        self.assertEqual(line.branch_available_qty, 0)
+        self.assertFalse(line.material_stock_shortage)
+        self.assertIn("no branch", line.material_stock_warning)
+        branch = self.env["hr.department"].create({"name": "Branch without warehouse", "department_type": "branche"})
+        order.branch_id = branch
+        self.assertIn("No warehouse", line.material_stock_warning)
+        legacy = self.env["product.product"].create({"name": "Legacy consumable availability", "detailed_type": "consu"})
+        manual = self.env["car.workorder.product"].create({"workorder_id": order.id, "product_id": legacy.id, "quantity": 10})
+        self.assertFalse(manual.material_stock_warning)
+        self.assertEqual(manual.branch_available_qty, 0)
+
+    def test_branch_availability_manager_without_stock_access(self):
+        user = new_test_user(self.env, login="material_availability_manager", groups="work_orders.group_workshop_manager")
+        self.staff.user_id = user
+        order = self._order()
+        line = order.product_ids[0].with_user(user)
+        self.assertFalse(user.has_group("stock.group_stock_user"))
+        self.assertEqual(line.branch_available_qty, 100)
+        line.quantity = 150
+        self.assertTrue(line.material_stock_shortage)
+        self.assertTrue(line._onchange_warn_branch_stock()["warning"])
+
+    def test_branch_availability_onchange_replacement_and_quantity_form(self):
+        self._categorized_materials()
+        self.env["stock.quant"]._update_available_quantity(self.liquid, self.warehouse.lot_stock_id, -99)
+        order = self._order()
+        self._start(order)
+        with Form(order, view="work_orders.car_work_order_view_form") as form:
+            with form.product_ids.edit(0) as line:
+                line.product_id = self.liquid
+                self.assertEqual(line.branch_available_qty, 1)
+                self.assertTrue(line.material_stock_shortage)
+                self.assertIn("Insufficient stock", line.material_stock_warning)
+                line.quantity = 0
+                self.assertFalse(line.material_stock_shortage)
+        self.assertEqual(order.product_ids[0].quantity, 0)
+        self.assertEqual(order.product_ids[0].product_id, self.liquid)
+
+    def test_branch_availability_no_warning_after_issue_and_refresh(self):
+        order = self._order()
+        self._start(order)
+        line = order.product_ids[0]
+        self.assertEqual(line.branch_available_qty, 100)
+        order.action_finish_materials()
+        self.assertEqual(line.branch_available_qty, 95)
+        self.assertFalse(line.material_stock_shortage)
+        self.assertFalse(line.material_stock_warning)
+        self.env["stock.quant"]._update_available_quantity(self.film, self.warehouse.lot_stock_id, 9)
+        line.invalidate_recordset(["branch_available_qty"])
+        self.assertEqual(line.branch_available_qty, 104)
+
+    def test_branch_availability_unsaved_line_does_not_double_count_origin(self):
+        order = self._order()
+        saved = order.product_ids[0]
+        self.env["stock.quant"]._update_available_quantity(self.film, self.warehouse.lot_stock_id, -95)
+        line = self.env["car.workorder.product"].new({
+            "workorder_id": order.id, "product_id": self.film.id, "quantity": 2,
+            "used_uom_id": self.unit.id,
+        }, origin=saved)
+        self.assertEqual(line.branch_available_qty, 5)
+        self.assertFalse(line.material_stock_shortage)  # 2 + the other part's 3.
