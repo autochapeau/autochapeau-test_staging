@@ -15,15 +15,26 @@ tree = etree.fromstring(root_view.arch_db.encode())
 nodes = tree.xpath("//field[@name='l10n_sa_qr_code_str']")
 if nodes:
     assert "l10n_sa_qr_code_str" in env["account.move"]._fields
-    assert len(nodes) == 1, "Review multiple root QR fields manually."
-    node = nodes[0]
-    previous = node.getprevious()
-    parent = node.getparent()
-    expression = tree.getroottree().getpath(previous if previous is not None else parent)
     inherited = etree.Element("data")
-    insertion = etree.SubElement(inherited, "xpath", expr=expression,
-                                 position="after" if previous is not None else "inside")
-    insertion.append(copy.deepcopy(node))
+    placements = []
+    for node in nodes:
+        previous, following = node.getprevious(), node.getnext()
+        while previous is not None and previous in nodes:
+            previous = previous.getprevious()
+        while following is not None and following in nodes:
+            following = following.getnext()
+        anchor = previous if previous is not None else following
+        placements.append((node, anchor if anchor is not None else node.getparent(),
+                           "after" if previous is not None else "before" if following is not None else "inside"))
+    for node in nodes:
+        node.getparent().remove(node)
+    insertions = {}
+    for node, anchor, position in placements:
+        key = (anchor, position)
+        if key not in insertions:
+            insertions[key] = etree.SubElement(inherited, "xpath",
+                expr=tree.getroottree().getpath(anchor), position=position)
+        insertions[key].append(copy.deepcopy(node))
     identifier = "l10n_sa.test_preserved_qr_move_form"
     assert not env.ref(identifier, raise_if_not_found=False), "Existing repair requires review."
     env["ir.attachment"].sudo().create({
@@ -39,9 +50,8 @@ if nodes:
     })
     env["ir.model.data"].create({"module": "l10n_sa", "name": "test_preserved_qr_move_form",
         "model": "ir.ui.view", "res_id": view.id, "noupdate": True})
-    parent.remove(node)
     root_view.write({"arch_db": etree.tostring(tree, encoding="unicode")})
     env.cr.commit()
-    print("TEST_QR_DEPENDENCY_REPAIR=preserved_in_localization_inherited_view")
+    print("TEST_QR_DEPENDENCY_REPAIR=preserved_in_localization_inherited_view nodes=%d" % len(nodes))
 else:
     print("TEST_QR_DEPENDENCY_REPAIR=not_needed")
