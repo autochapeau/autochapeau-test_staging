@@ -78,6 +78,10 @@ jobs:
             exit 1
           fi
 
+          sudo docker exec -i "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/repair_test_view_dependencies.py"
+
           INSTALL_MODULES=$(
             sudo docker exec -i \
               -e VIDEO_VERIFY_REQUIRED_MODULES="$REQUIRED_FEATURE_MODULES" \
