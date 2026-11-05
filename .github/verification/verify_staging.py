@@ -7,7 +7,7 @@ import json
 expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
-    "partner_management": "17.0.1.5.0",
+    "partner_management": "17.0.1.5.1",
     "sale_split_payment": "17.0.1.3.0",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.5.0.1",

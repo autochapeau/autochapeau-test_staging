@@ -5,19 +5,21 @@
   <xpath expr="//div[hasclass('page')]/h3" position="before">
    <style>
     .ac-invoice { font-size:13px; color:#203348; }
-    .ac-invoice h3 { background:#142c43; color:#fff; padding:16px 14px; border-bottom:5px solid #19a69a; font-size:18px; margin-bottom:18px; }
-    .ac-invoice .ac-meta { width:100%; border-collapse:collapse; margin:0 0 16px; background:#f3f7fa; }
-    .ac-invoice .ac-meta td { width:50%; vertical-align:top; padding:12px 15px; border:1px solid #dce5ed; overflow-wrap:break-word; }
-    .ac-invoice .ac-meta small { color:#54717c; font-size:12px; }
-    .ac-invoice .ac-meta p { margin:0 0 6px; }
+    .address [name='information_block'] img[src*='/report/barcode/'] { width:120px !important; height:120px !important; }
+    .address { margin-bottom:10px !important; }
+    .ac-invoice h3 { background:#142c43; color:#fff; padding:10px 12px; border-bottom:5px solid #19a69a; font-size:17px; margin-bottom:10px; }
+    .ac-invoice .ac-meta { width:100%; border-collapse:collapse; margin:0 0 10px; background:#f3f7fa; }
+    .ac-invoice .ac-meta td { width:50%; vertical-align:top; padding:8px 12px; border:1px solid #dce5ed; overflow-wrap:break-word; }
+    .ac-invoice .ac-meta small { color:#54717c; font-size:11.5px; }
+    .ac-invoice .ac-meta p { margin:0 0 3px; }
     .ac-invoice .ac-section { color:#087d77; font-weight:bold; padding-bottom:7px; margin-bottom:8px; border-bottom:1px solid #d4e5e6; }
     .ac-invoice table[name='invoice_line_table'] { font-size:10px; }
-    .ac-invoice table[name='invoice_line_table'] thead th { background:#142c43 !important; color:#fff !important; padding:9px 5px; vertical-align:middle; border:0; }
+    .ac-invoice table[name='invoice_line_table'] thead th { background:#142c43 !important; color:#fff !important; padding:7px 5px; vertical-align:middle; border:0; font-size:10.5px; line-height:1.2; }
     .ac-invoice table[name='invoice_line_table'] tbody td { padding:9px 5px; border-bottom:1px solid #dce5ed; vertical-align:top; font-size:12px; }
     .ac-invoice table[name='invoice_line_table'] tbody tr:nth-child(even) { background:#f3f7fa; }
     .ac-invoice thead { display:table-header-group; }
     .ac-invoice tr { page-break-inside:avoid; }
-    .ac-invoice #total table td { padding:8px; background:#fff !important; color:#203348 !important; font-size:12px; }
+    .ac-invoice #total table td { padding:6px; background:#fff !important; color:#203348 !important; font-size:12px; }
     .ac-invoice #total .o_total td { background:#e6f4f2 !important; color:#075a55 !important; font-size:13px; }
     .ac-invoice #total .o_total td * { color:#075a55 !important; }
    </style>
