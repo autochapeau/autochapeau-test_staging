@@ -1,11 +1,24 @@
 from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 from .test_commission import TestCommissionStudio
 
 
 @tagged("post_install", "-at_install", "target_tiers")
 class TestTargetTiers(TestCommissionStudio):
+    def test_rule_kind_switch_can_be_saved_from_form(self):
+        category = self.env["commission.category"].create({"name": "QA kind switch service"})
+        with Form(self.rule) as form:
+            form.kind = "service"
+            form.service_category_id = category
+        self.assertFalse(self.rule.category_id)
+        self.assertEqual(self.rule.service_category_id, category)
+        with Form(self.rule) as form:
+            form.kind = "product"
+            form.category_id = self.category
+        self.assertFalse(self.rule.service_category_id)
+        self.assertEqual(self.rule.category_id, self.category)
+
     def target(self, amount=1000, period="month", start="2026-11-01"):
         return self.env["sales.commission.target"].create({"team_id": self.branch.id, "month": start,
             "period_type": period, "amount": amount})

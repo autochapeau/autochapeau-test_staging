@@ -98,6 +98,13 @@ class Rule(models.Model):
     date_from = fields.Date(required=True, default=fields.Date.context_today)
     date_to = fields.Date()
 
+    @api.onchange('kind')
+    def _onchange_kind_category(self):
+        if self.kind == 'service':
+            self.category_id = False
+        else:
+            self.service_category_id = False
+
     @api.constrains('active', 'user_id', 'company_id', 'kind', 'category_id', 'service_category_id', 'rate', 'date_from', 'date_to')
     def _check_rule(self):
         for rule in self:
