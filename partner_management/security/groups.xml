@@ -24,4 +24,8 @@
         <field name="name">Contacts Configuration Access</field>
         <field name="category_id" ref="module_category_contact_partner_type"/>
     </record>
+    <record id="group_contact_agency" model="res.groups">
+        <field name="name">Agency Salesperson Access</field>
+        <field name="category_id" ref="module_category_contact_partner_type"/>
+    </record>
 </odoo>

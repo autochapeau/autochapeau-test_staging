@@ -1,0 +1,75 @@
+<odoo>
+    <record id="member_company_rule" model="ir.rule">
+        <field name="name">Individual target company isolation</field><field name="model_id" ref="model_sales_commission_target_member"/>
+        <field name="domain_force">[('company_id','in',company_ids)]</field>
+    </record>
+    <record id="member_own_rule" model="ir.rule">
+        <field name="name">Own individual target</field><field name="model_id" ref="model_sales_commission_target_member"/>
+        <field name="groups" eval="[(4, ref('group_user'))]"/><field name="domain_force">[('user_id','=',user.id)]</field>
+    </record>
+    <record id="member_region_rule" model="ir.rule">
+        <field name="name">Managed individual targets</field><field name="model_id" ref="model_sales_commission_target_member"/>
+        <field name="groups" eval="[(4, ref('group_manager'))]"/><field name="domain_force">[('team_id','in',user.commission_visible_team_ids())]</field>
+    </record>
+    <record id="member_admin_rule" model="ir.rule">
+        <field name="name">All individual targets</field><field name="model_id" ref="model_sales_commission_target_member"/>
+        <field name="groups" eval="[(4, ref('group_admin'))]"/><field name="domain_force">[(1,'=',1)]</field>
+    </record>
+    <record id="tier_company_rule" model="ir.rule">
+        <field name="name">Achievement tier company isolation</field><field name="model_id" ref="model_sales_commission_tier"/>
+        <field name="domain_force">[('company_id','in',company_ids)]</field>
+    </record>
+    <record id="tier_own_rule" model="ir.rule">
+        <field name="name">Own achievement tiers</field><field name="model_id" ref="model_sales_commission_tier"/>
+        <field name="groups" eval="[(4, ref('group_user'))]"/><field name="domain_force">[('rule_id.user_id','=',user.id)]</field>
+    </record>
+    <record id="tier_admin_rule" model="ir.rule">
+        <field name="name">All achievement tiers</field><field name="model_id" ref="model_sales_commission_tier"/>
+        <field name="groups" eval="[(4, ref('group_admin'))]"/><field name="domain_force">[(1,'=',1)]</field>
+    </record>
+    <record id="rule_form_target_tiers" model="ir.ui.view">
+        <field name="name">sales.commission.rule.target.tiers</field><field name="model">sales.commission.rule</field>
+        <field name="inherit_id" ref="rule_form"/><field name="arch" type="xml">
+            <field name="rate" position="after">
+                <field name="currency_id" invisible="1"/><field name="personal_target" readonly="1" string="Current Personal Target"/>
+                <field name="apply_discount_adjustment"/>
+            </field>
+            <xpath expr="//div[hasclass('alert-info')]" position="replace">
+                <div class="alert alert-info">Rates use net revenue before tax. With achievement tiers, the individual target share and posted sales in its calendar period determine the rate at posting. Without tiers, the fixed rate applies. Posted snapshots retain their rate. Discount adjustment: 0% → +20%, 1–10% → unchanged, 10.01–20% → −25%; other discounts require review.</div>
+                <group string="Achievement Tiers"><field name="tier_ids" nolabel="1"><tree editable="bottom">
+                    <field name="achievement_from"/><field name="achievement_to"/><field name="rate"/>
+                </tree></field></group>
+            </xpath>
+        </field>
+    </record>
+    <record id="target_tree_periods" model="ir.ui.view">
+        <field name="name">sales.commission.target.period.tree</field><field name="model">sales.commission.target</field>
+        <field name="inherit_id" ref="target_tree"/><field name="arch" type="xml">
+            <tree position="attributes"><attribute name="editable"/></tree>
+            <field name="month" position="before"><field name="period_type"/></field>
+            <field name="month" position="attributes"><attribute name="string">Period Start</attribute></field>
+            <field name="month" position="after"><field name="date_end"/></field>
+        </field>
+    </record>
+    <record id="target_form_periods" model="ir.ui.view">
+        <field name="name">sales.commission.target.period.form</field><field name="model">sales.commission.target</field>
+        <field name="arch" type="xml"><form><header>
+            <button name="action_distribute_members" type="object" string="Distribute to Members and Managers" class="oe_highlight"
+                    groups="sales_region_commission.group_admin" confirm="Redistribute this target equally across current members and managers? Existing individual shares will be replaced."/>
+        </header><sheet><group><group><field name="company_id"/><field name="team_id"/><field name="period_type"/>
+            <field name="month" string="Period Start"/><field name="date_end"/></group><group>
+            <field name="currency_id" invisible="1"/><field name="amount"/></group></group>
+            <div class="alert alert-info">Set a calendar period, then distribute the total to the current team members and managers. Shares can be adjusted below and must add up to the team total before tiered commissions can be calculated.</div>
+            <field name="member_target_ids"><tree editable="bottom"><field name="company_id" column_invisible="True"/><field name="user_id"/>
+                <field name="currency_id" column_invisible="True"/><field name="amount" sum="Individual targets"/></tree></field>
+        </sheet></form></field>
+    </record>
+    <record id="entry_form_target_snapshot" model="ir.ui.view">
+        <field name="name">sales.commission.entry.target.snapshot</field><field name="model">sales.commission.entry</field>
+        <field name="inherit_id" ref="entry_form"/><field name="arch" type="xml">
+            <field name="rate" position="after"><field name="personal_target"/><field name="achievement_percent"/></field>
+        </field>
+    </record>
+    <record id="target_action" model="ir.actions.act_window"><field name="name">Sales Targets</field></record>
+    <menuitem id="menu_targets" name="Sales targets" parent="menu_root" action="target_action" sequence="3" groups="group_user"/>
+</odoo>

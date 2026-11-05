@@ -7,3 +7,7 @@ access_target_admin,Manage targets,model_sales_commission_target,group_admin,1,1
 access_commission_team_admin,Manage commission teams,sales_team.model_crm_team,group_admin,1,1,1,0
 access_calculate_admin,Calculate posted commissions,model_sales_commission_calculate,group_admin,1,1,1,1
 access_service_category_admin,Manage service commission categories,commission.model_commission_category,group_admin,1,1,1,0
+access_member_target_user,View individual targets,model_sales_commission_target_member,group_user,1,0,0,0
+access_member_target_admin,Manage individual targets,model_sales_commission_target_member,group_admin,1,1,1,1
+access_tier_user,View own achievement tiers,model_sales_commission_tier,group_user,1,0,0,0
+access_tier_admin,Manage achievement tiers,model_sales_commission_tier,group_admin,1,1,1,1

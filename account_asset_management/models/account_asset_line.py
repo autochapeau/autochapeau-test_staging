@@ -111,10 +111,10 @@ class AccountAssetLine(models.Model):
                 dl.depreciated_value = depreciated_value
                 dl.remaining_value = remaining_value
 
-    @api.depends("move_id")
+    @api.depends("move_id", "move_id.state")
     def _compute_move_check(self):
         for line in self:
-            line.move_check = bool(line.move_id)
+            line.move_check = line.move_id.state == "posted"
 
     @api.onchange("amount")
     def _onchange_amount(self):
@@ -256,13 +256,39 @@ class AccountAssetLine(models.Model):
         return move_line_data
 
     def create_move(self):
+        self.check_access_rights("write")
+        self.check_access_rule("write")
+        # The scheduler and a user can reach the same line simultaneously.
+        # Serialize on the line, then discard the potentially stale relation.
+        if self.ids:
+            self.env.cr.execute(
+                "SELECT id FROM account_asset_line WHERE id IN %s ORDER BY id FOR UPDATE",
+                [tuple(self.ids)],
+            )
+            self.invalidate_recordset(["move_id"])
         created_move_ids = []
         asset_ids = set()
         ctx = dict(self.env.context, allow_asset=True, check_move_validity=False)
         for line in self:
             asset = line.asset_id
+            if line.init_entry or line.type == "create":
+                continue
+            if line.move_id:
+                move = line.move_id
+                if (
+                    move.state == "draft"
+                    and not self.env.context.get("asset_schedule_only")
+                    and move.date <= fields.Date.context_today(line)
+                ):
+                    move.action_post()
+                created_move_ids.append(move.id)
+                continue
+            if line.type == "depreciate" and asset.state != "open":
+                raise UserError(_("Only running assets can generate depreciation entries."))
             depreciation_date = line.line_date
             am_vals = line._setup_move_data(depreciation_date)
+            if line.type == "depreciate":
+                am_vals.update(auto_post="at_date", asset_schedule_entry=True)
             move = self.env["account.move"].with_context(**ctx).create(am_vals)
             depr_acc = asset.profile_id.account_depreciation_id
             exp_acc = asset.profile_id.account_expense_depreciation_id
@@ -274,8 +300,12 @@ class AccountAssetLine(models.Model):
                 depreciation_date, exp_acc, "expense", move
             )
             self.env["account.move.line"].with_context(**ctx).create(aml_e_vals)
-            move.action_post()
             line.with_context(allow_asset_line_update=True).write({"move_id": move.id})
+            if line.type != "depreciate" or (
+                not self.env.context.get("asset_schedule_only")
+                and depreciation_date <= fields.Date.context_today(line)
+            ):
+                move.action_post()
             created_move_ids.append(move.id)
             asset_ids.add(asset.id)
         # we re-evaluate the assets to determine if we can close them

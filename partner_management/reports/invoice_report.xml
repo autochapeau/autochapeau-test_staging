@@ -1,74 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="report_invoice_vehicle_custom" inherit_id="l10n_gcc_invoice.arabic_english_invoice">
-
-        <xpath expr="//div[@id='informations']" position="inside">
-
-            <div class="col-6" name="vehicle_block_info" style="margin-top:-120px; padding:10px;">
-                <div class="row" t-if="o.vehicle_id" style="line-height: 1.2; margin-bottom: 3px;">
-                    <div class="col-3 text-start">
-                        <span style="font-size: 0.85rem; color: #A29393;"><b>Vehicle</b></span>
-                    </div>
-                    <div class="col-6 text-center">
-                        <span t-field="o.vehicle_id" style="font-size: 0.85rem;"/>
-                    </div>
-                    <div class="col-3 text-end">
-                        <span style="font-size: 0.85rem; color: #A29393;"><b>:المركبة</b></span>
-                    </div>
-                </div>
-
-                <div class="row" t-if="o.plate_numbers or o.plate_letters" style="line-height: 1.2; margin-bottom: 3px;">
-                    <div class="col-3 text-start">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Reg NB</b></span>
-                    </div>
-                    <div class="col-6 text-center">
-                        <span style="font-size: 0.85rem;">
-                            <span t-field="o.plate_letters"/>&#160;<span t-field="o.plate_numbers"/>
-                        </span>
-                    </div>
-                    <div class="col-3 text-end">
-                        <b><span style=" font-size: 0.85rem; color: #A29393;"><b>:رقم المركبة</b></span></b>
-                    </div>
-                </div>
-
-                <div class="row" t-if="o.vehicle_vin_sn" style="line-height: 1.2; margin-bottom: 3px;">
-                    <div class="col-3 text-start">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Chassis NB</b></span>
-                    </div>
-                    <div class="col-6 text-center">
-                        <span t-field="o.vehicle_vin_sn" style="font-size: 0.85rem; "/>
-                    </div>
-                    <div class="col-3 text-end">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:رقم الهيكل</b></span>
-                    </div>
-                </div>
-
-                <div class="row" t-if="o.vehicle_color_id" style="line-height: 1.2; margin-bottom: 3px;">
-                    <div class="col-3 text-start">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Car Color</b></span>
-                    </div>
-                    <div class="col-6 text-center">
-                        <span t-field="o.vehicle_color_id" style="font-size: 0.85rem; "/>
-                    </div>
-                    <div class="col-3 text-end">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:لون السيارة</b></span>
-                    </div>
-                </div>
-
-                <div class="row" t-if="o.vehicle_model_year" style="line-height: 1.2; margin-bottom: 3px;">
-                    <div class="col-3 text-start">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>Model Year</b></span>
-                    </div>
-                    <div class="col-6 text-center">
-                        <span t-field="o.vehicle_model_year" style="font-size: 0.85rem; "/>
-                    </div>
-                    <div class="col-3 text-end">
-                        <span style=" font-size: 0.85rem; color: #A29393;"><b>:سنة الصنع</b></span>
-                    </div>
-                </div>
-            </div>
-
-        </xpath>
-
-    </template>
+ <template id="report_invoice_vehicle_custom" inherit_id="l10n_gcc_invoice.arabic_english_invoice" priority="70">
+  <xpath expr="//div[hasclass('page')]" position="attributes"><attribute name="class" add="ac-invoice" separator=" "/></xpath>
+  <xpath expr="//div[hasclass('page')]/h3" position="before">
+   <style>
+    .ac-invoice { font-size:13px; color:#203348; }
+    .ac-invoice h3 { background:#142c43; color:#fff; padding:16px 14px; border-bottom:5px solid #19a69a; font-size:18px; margin-bottom:18px; }
+    .ac-invoice .ac-meta { width:100%; border-collapse:collapse; margin:0 0 16px; background:#f3f7fa; }
+    .ac-invoice .ac-meta td { width:50%; vertical-align:top; padding:12px 15px; border:1px solid #dce5ed; overflow-wrap:break-word; }
+    .ac-invoice .ac-meta small { color:#54717c; font-size:12px; }
+    .ac-invoice .ac-meta p { margin:0 0 6px; }
+    .ac-invoice .ac-section { color:#087d77; font-weight:bold; padding-bottom:7px; margin-bottom:8px; border-bottom:1px solid #d4e5e6; }
+    .ac-invoice table[name='invoice_line_table'] { font-size:10px; }
+    .ac-invoice table[name='invoice_line_table'] thead th { background:#142c43 !important; color:#fff !important; padding:9px 5px; vertical-align:middle; border:0; }
+    .ac-invoice table[name='invoice_line_table'] tbody td { padding:9px 5px; border-bottom:1px solid #dce5ed; vertical-align:top; font-size:12px; }
+    .ac-invoice table[name='invoice_line_table'] tbody tr:nth-child(even) { background:#f3f7fa; }
+    .ac-invoice thead { display:table-header-group; }
+    .ac-invoice tr { page-break-inside:avoid; }
+    .ac-invoice #total table td { padding:8px; background:#fff !important; color:#203348 !important; font-size:12px; }
+    .ac-invoice #total .o_total td { background:#e6f4f2 !important; color:#075a55 !important; font-size:13px; }
+    .ac-invoice #total .o_total td * { color:#075a55 !important; }
+   </style>
+  </xpath>
+  <xpath expr="//div[@id='informations']" position="replace">
+   <div id="informations"><table class="ac-meta"><tr>
+    <td>
+     <div class="ac-section">Invoice Details <span style="float:right" dir="rtl">بيانات الفاتورة</span></div>
+     <p t-if="o.invoice_date"><small>Invoice Date / تاريخ الفاتورة</small><br/><strong t-field="o.invoice_date"/></p>
+     <div name="due_date" t-if="o.invoice_date_due"><small>Due Date / تاريخ الاستحقاق</small><p t-field="o.invoice_date_due"/></div>
+     <p t-if="o.delivery_date"><small>Supply Date / تاريخ التوريد</small><br/><span t-field="o.delivery_date"/></p>
+     <p t-if="o.invoice_origin"><small>Order / أمر البيع</small><br/><span t-field="o.invoice_origin"/></p>
+     <p t-if="o.partner_id.ref"><small>Customer Code / كود العميل</small><br/><span t-field="o.partner_id.ref"/></p>
+     <p t-if="o.ref"><small>Reference / المرجع</small><br/><span t-field="o.ref"/></p>
+    </td>
+    <td name="vehicle_block_info">
+     <div class="ac-section">Vehicle Details <span style="float:right" dir="rtl">بيانات المركبة</span></div>
+     <p t-if="o.vehicle_id"><small>Vehicle / المركبة</small><br/><strong t-field="o.vehicle_id"/></p>
+     <p t-if="o.plate_numbers or o.plate_letters"><small>Plate Number / رقم اللوحة</small><br/><span t-field="o.plate_letters"/> &#160; <span t-field="o.plate_numbers"/></p>
+     <p t-if="o.vehicle_vin_sn"><small>VIN / رقم الهيكل</small><br/><span t-field="o.vehicle_vin_sn"/></p>
+     <p t-if="o.vehicle_color_id"><small>Color / اللون</small><br/><span t-field="o.vehicle_color_id"/></p>
+     <p t-if="o.vehicle_model_year"><small>Model Year / سنة الصنع</small><br/><span t-field="o.vehicle_model_year"/></p>
+     <p t-if="not o.vehicle_id"><small>Customer / العميل</small><br/><strong t-field="o.partner_id.name"/></p>
+    </td>
+   </tr></table></div>
+  </xpath>
+  <xpath expr="//i[hasclass('row')][.//div[hasclass('oe_payment_label')]]" position="replace">
+   <div>Paid on / دُفع في<br/><span t-out="payment_vals['date']"/></div>
+  </xpath>
+ </template>
 </odoo>

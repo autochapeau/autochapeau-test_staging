@@ -30,27 +30,21 @@ class ResPartner(models.Model):
             partner.wallet_card_id = wallet_card_id
             partner.wallet_balance = wallet_card_id and wallet_card_id.points or 0
 
-    def create(self, vals):
-        partner = super().create(vals)
-        # create loyalty card
+    @api.model_create_multi
+    def create(self, vals_list):
+        partners = super().create(vals_list)
         loyalty_obj = self.env["loyalty.card"]
         company_id = self.env.company
-        loyalty_obj.sudo().with_context(loyalty_no_mail=True, tracking_disable=True).create(
-            {
-                "program_id": company_id.loyalty_program_id.id,
-                "partner_id": partner.id,
-                "points": 0,
-            }
-        )
-        # create eWallet card
-        loyalty_obj.sudo().with_context(loyalty_no_mail=True, tracking_disable=True).create(
-            {
-                "program_id": company_id.wallet_program_id.id,
-                "partner_id": partner.id,
-                "points": 0,
-            }
-        )
-        return partner
+        programs = company_id.loyalty_program_id | company_id.wallet_program_id
+        values = [
+            {"program_id": program.id, "partner_id": partner.id, "points": 0}
+            for partner in partners for program in programs
+        ]
+        if values:
+            loyalty_obj.sudo().with_context(
+                loyalty_no_mail=True, tracking_disable=True
+            ).create(values)
+        return partners
 
     def exchange_loyalty_points_to_wallet(self, points=0):
         self.ensure_one()

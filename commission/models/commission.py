@@ -47,7 +47,8 @@ class CommissionDiscountSection(models.Model):
 
     amount_from = fields.Float(string="From")
     amount_to = fields.Float(string="To")
-    deduction_percent = fields.Float(required=True)
+    deduction_percent = fields.Float(string="Commission Adjustment %", required=True,
+        help="Positive increases the commission; negative reduces it. For example 20 adds 20%, and -25 reduces it by 25%.")
 
     @api.constrains("amount_from", "amount_to")
     def _check_amounts(self):

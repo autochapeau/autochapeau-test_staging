@@ -5,7 +5,7 @@ import re
 from urllib.parse import parse_qs
 import requests
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
@@ -62,6 +62,7 @@ class ResPartner(models.Model):
             ("customer", "Customer"),
             ("supplier", "Supplier"),
             ("employee", "Employee"),
+            ("agency_salesperson", "Agency Salesperson"),
         ],
         default="customer",
         string="Contact Type",
@@ -468,20 +469,61 @@ class ResPartner(models.Model):
             return "res.partner.customer"
         if contact_type == "supplier":
             return "res.partner.supplier"
+        if contact_type == "employee":
+            return "res.partner.employee"
+        if contact_type == "agency_salesperson":
+            return "res.partner.agency_salesperson"
         return False
 
     @api.model
+    def _next_contact_reference(self, contact_type):
+        sequence_code = self._partner_sequence_code(contact_type)
+        if not sequence_code:
+            return False
+        while True:
+            reference = self.env["ir.sequence"].next_by_code(sequence_code)
+            if not reference:
+                raise ValidationError(_("Please configure the reference sequence for this contact type."))
+            # Imported references can already use a newly introduced prefix.
+            if not self.sudo().with_context(active_test=False).search_count([("ref", "=", reference)]):
+                return reference
+
+    @api.model
     def _assign_partner_sequence(self, vals):
-        """Fill Reference (ref) from customer/vendor sequence when missing."""
-        if vals.get("ref") or vals.get("parent_id"):
+        """Number typed contacts while keeping ordinary address children unnumbered."""
+        if vals.get("ref"):
             return
         contact_type = vals.get("contact_partner_type") or self.env.context.get(
             "default_contact_partner_type", "customer"
         )
-        seq_code = self._partner_sequence_code(contact_type)
-        if not seq_code:
+        if vals.get("parent_id") and contact_type in ("customer", "supplier"):
             return
-        vals["ref"] = self.env["ir.sequence"].next_by_code(seq_code) or False
+        vals["ref"] = self._next_contact_reference(contact_type)
+
+    def action_fill_missing_contact_references(self):
+        """Number only reviewed, selected records; never replace an existing code."""
+        if not self.env.su and not self.env.user.has_group("partner_management.group_contact_all"):
+            raise AccessError(_("Only contact managers can generate missing references."))
+        self.check_access_rights("write")
+        self.check_access_rule("write")
+        if self.ids:
+            self.env.cr.execute(
+                "SELECT id FROM res_partner WHERE id IN %s ORDER BY id FOR UPDATE",
+                [tuple(self.ids)],
+            )
+            self.invalidate_recordset(["ref", "contact_partner_type"])
+        updated = 0
+        for partner in self.sorted("id"):
+            if not partner.ref:
+                reference = partner._next_contact_reference(partner.contact_partner_type)
+                if reference:
+                    partner.ref = reference
+                    updated += 1
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"title": _("Contact references"), "type": "success",
+                       "message": _("Generated %s missing references. Existing references were kept.") % updated},
+        }
 
     @api.model_create_multi
     def create(self, vals_list):

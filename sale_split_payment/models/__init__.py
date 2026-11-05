@@ -3,3 +3,5 @@ from . import res_config_settings
 from . import sale_collection_method
 from . import sale_order
 from . import sale_order_payment
+from . import collection_fees
+from . import cash_custody

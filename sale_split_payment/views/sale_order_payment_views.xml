@@ -71,7 +71,7 @@
         <field name="name">sale.order.payment.form</field>
         <field name="model">sale.order.payment</field>
         <field name="arch" type="xml">
-            <form create="0" edit="0">
+            <form create="0" edit="1">
                 <header>
                     <button name="action_process"
                             type="object"
@@ -111,21 +111,27 @@
                     </div>
                     <group>
                         <group>
-                            <field name="sale_order_id"/>
+                            <field name="sale_order_id" readonly="1"/>
                             <field name="partner_id"/>
                             <field name="company_id" invisible="1"/>
-                            <field name="collection_method_id"/>
+                            <field name="collection_method_id" readonly="1"/>
                             <field name="processing_type"/>
-                            <field name="journal_id"/>
+                            <field name="journal_id" readonly="1"/>
                         </group>
                         <group>
-                            <field name="amount"/>
+                            <field name="amount" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="provider_reference"/>
+                            <field name="provider_reference" readonly="1"/>
                             <field name="external_reference"/>
                             <field name="provider_status"/>
                             <field name="account_payment_id"/>
                         </group>
+                    </group>
+                    <group string="Transfer Proof">
+                        <field name="journal_type" invisible="1"/>
+                        <field name="provider_payment_confirmed" invisible="1"/>
+                        <field name="transfer_proof_ids" widget="many2many_binary"
+                               readonly="state in ('paid', 'cancelled')"/>
                     </group>
                     <group string="Card Terminal Details"
                            invisible="processing_type != 'terminal' or (not terminal_rr_number and not terminal_approval_code and not terminal_txn_id and not terminal_device_serial)">

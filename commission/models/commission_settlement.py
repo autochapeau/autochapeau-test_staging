@@ -65,10 +65,9 @@ class CommissionSettlement(models.Model):
 
     def _commission_signed_subtotal(self, move_line):
         """Customer invoices add to sales. Credit notes subtract."""
-        subtotal = move_line.price_subtotal
-        if move_line.move_id.move_type == "out_refund":
-            return -subtotal
-        return subtotal
+        if move_line.is_downpayment or getattr(move_line, "is_service_advance", False):
+            return 0.0
+        return -move_line.balance
 
     def generate_commission_lines(self):
         commissions = self.commission_ids
@@ -92,10 +91,14 @@ class CommissionSettlement(models.Model):
                         ("move_id.move_type", "in", ("out_invoice", "out_refund")),
                         ("product_id.commission_category_id", "!=", False),
                         ("move_id.state", "=", "posted"),
+                        ("company_id", "=", self.company_id.id),
+                        ("display_type", "=", "product"),
+                        ("is_downpayment", "=", False),
                         ("invoice_date", ">=", self.date_from),
                         ("invoice_date", "<=", self.date_to),
                     ]
                 )
+                move_lines = move_lines.filtered(lambda line: not getattr(line, "is_service_advance", False))
                 invoiced_amount = sum(self._commission_signed_subtotal(line) for line in move_lines)
                 current_target = commission_targets[commission_id][employee_id]
                 percent = (invoiced_amount / current_target) * 100 if current_target else 0.0
@@ -118,7 +121,7 @@ class CommissionSettlement(models.Model):
                                     move_line_ids.append(line.id)
                                     for discount_section in commission.discount_section_ids:
                                         if discount_section.amount_from <= line.discount <= discount_section.amount_to:
-                                            discount_deduction += curr_amount * (
+                                            discount_deduction -= curr_amount * (
                                                 discount_section.deduction_percent / 100
                                             )
 

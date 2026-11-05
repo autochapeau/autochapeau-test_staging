@@ -6,7 +6,7 @@ import requests
 import urllib3
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -160,6 +160,9 @@ class SaleOrderPayment(models.Model):
         readonly=True,
         check_company=True,
     )
+    transfer_proof_ids = fields.Many2many("ir.attachment", string="Transfer Proof", copy=False)
+    journal_type = fields.Selection(related="journal_id.type")
+    provider_payment_confirmed = fields.Boolean(readonly=True, copy=False)
     access_token = fields.Char(
         default=lambda self: str(uuid.uuid4()),
         required=True,
@@ -171,6 +174,9 @@ class SaleOrderPayment(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if vals.get("provider_payment_confirmed"):
+                raise AccessError(_("Provider confirmation can only be recorded by the payment processing flow."))
+            vals["provider_payment_confirmed"] = False
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "sale.order.payment"
@@ -180,7 +186,47 @@ class SaleOrderPayment(models.Model):
             )
             if method and not vals.get("journal_id"):
                 vals["journal_id"] = method.resolve_journal().id
-        return super().create(vals_list)
+        allocations = super().create(vals_list)
+        allocations._own_transfer_proofs()
+        return allocations
+
+    def _own_transfer_proofs(self):
+        for allocation in self:
+            owned = self.env["ir.attachment"]
+            for attachment in allocation.transfer_proof_ids:
+                attachment.check("read")
+                if attachment.type != "binary" or not attachment.file_size:
+                    raise ValidationError(_("Transfer proof must be a non-empty uploaded file."))
+                if attachment.res_model == self._name and attachment.res_id == allocation.id:
+                    owned |= attachment
+                else:
+                    owned |= attachment.copy({"res_model": self._name, "res_id": allocation.id,
+                                               "public": False, "access_token": False})
+            if owned != allocation.transfer_proof_ids:
+                super(SaleOrderPayment, allocation).write({"transfer_proof_ids": [(6, 0, owned.ids)]})
+
+    def write(self, vals):
+        if "provider_payment_confirmed" in vals:
+            raise AccessError(_("Provider confirmation cannot be edited directly."))
+        if {"sale_order_id", "collection_method_id", "journal_id", "amount"}.intersection(vals):
+            for allocation in self.filtered(lambda record: record.provider_payment_confirmed or record.state in ("paid", "cancelled")):
+                for name in {"sale_order_id", "collection_method_id", "journal_id", "amount"}.intersection(vals):
+                    current = allocation[name].id if allocation._fields[name].type == "many2one" else allocation[name]
+                    if current != vals[name]:
+                        raise UserError(_("Confirmed collections cannot change order, payment method, journal or amount. Review the linked accounting payment instead."))
+        if "transfer_proof_ids" in vals and self.filtered(lambda allocation: allocation.state in ("paid", "cancelled")):
+            raise UserError(_("Transfer proof can only be changed before payment confirmation."))
+        result = super().write(vals)
+        if "transfer_proof_ids" in vals:
+            self._own_transfer_proofs()
+        return result
+
+    def _check_transfer_proof(self):
+        for allocation in self:
+            if allocation._get_journal().type == "bank":
+                if not allocation.transfer_proof_ids:
+                    raise UserError(_("Upload transfer proof before confirming a bank payment."))
+                allocation.transfer_proof_ids.check("read")
 
     @api.onchange("collection_method_id")
     def _onchange_collection_method_id(self):
@@ -194,6 +240,24 @@ class SaleOrderPayment(models.Model):
             if payment.amount <= 0:
                 raise ValidationError(_("The payment amount must be greater than zero."))
 
+    @api.constrains("state", "account_payment_id", "amount", "journal_id")
+    def _check_paid_allocation(self):
+        paid = self.filtered(lambda allocation: allocation.state == "paid")
+        payments = paid.account_payment_id.sudo()
+        payments._lock_collection_proofs()
+        for allocation in paid:
+            payment = allocation.account_payment_id.sudo()
+            if not payment or payment.state != "posted":
+                raise ValidationError(_("A paid collection must be linked to a posted customer payment."))
+            if (payment.company_id != allocation.company_id or payment.currency_id != allocation.currency_id
+                or payment.partner_id.commercial_partner_id != allocation.partner_id.commercial_partner_id
+                or payment.payment_type != "inbound" or payment.partner_type != "customer"
+                or payment.journal_id != allocation.journal_id):
+                raise ValidationError(_("The linked customer payment must match the collection's customer, journal, company and currency."))
+            allocated = sum(self.sudo().search([("account_payment_id", "=", payment.id), ("state", "=", "paid")]).mapped("amount"))
+            if allocation.currency_id.compare_amounts(allocated, payment.amount) > 0:
+                raise ValidationError(_("The collections exceed the linked customer payment amount."))
+
     def unlink(self):
         if any(payment.state not in ("draft", "failed", "cancelled") for payment in self):
             raise UserError(_("Only draft, failed, or cancelled payments can be deleted."))
@@ -205,6 +269,10 @@ class SaleOrderPayment(models.Model):
             raise UserError(
                 _("Only draft, failed, or needs-review payments can be processed.")
             )
+        if self.processing_type == "manual" or self.provider_payment_confirmed:
+            self._check_transfer_proof()
+        if self.provider_payment_confirmed:
+            return self._mark_provider_paid(self.provider_status)
         if not self.collection_method_id:
             raise UserError(_("Please select a payment method."))
         if (
@@ -347,7 +415,13 @@ class SaleOrderPayment(models.Model):
         """Create and post a customer payment that appears on the Partner Ledger."""
         self.ensure_one()
         if self.account_payment_id:
-            return self.account_payment_id
+            payment = self.account_payment_id.sudo()
+            if payment.state == "draft":
+                payment.action_post()
+            if payment.state != "posted":
+                raise UserError(_("The linked customer payment is cancelled. Review it before retrying."))
+            return payment
+        self._check_transfer_proof()
         journal = self._get_journal()
         method_line = self.collection_method_id.get_payment_method_line(journal)
         if not method_line:
@@ -374,6 +448,8 @@ class SaleOrderPayment(models.Model):
                 "journal_id": journal.id,
                 "payment_method_line_id": method_line.id,
                 "ref": " / ".join(reference_bits),
+                "transfer_proof_ids": [(6, 0, self.transfer_proof_ids.ids)],
+                "cash_collector_user_id": self.create_uid.id,
             }
         )
         payment.sudo().action_post()
@@ -382,8 +458,13 @@ class SaleOrderPayment(models.Model):
 
     def _mark_provider_paid(self, provider_status):
         self.ensure_one()
+        super(SaleOrderPayment, self).write({"provider_payment_confirmed": True})
         try:
-            payment = self._create_advance_payment()
+            with self.env.cr.savepoint():
+                payment = self._create_advance_payment()
+                self.write({"state": "paid", "provider_status": provider_status,
+                            "error_message": False, "account_payment_id": payment.id})
+                self._reconcile_available_invoices()
         except Exception as error:
             _logger.exception("Could not create advance payment for %s", self.name)
             self.write(
@@ -394,15 +475,6 @@ class SaleOrderPayment(models.Model):
                 }
             )
             return False
-        self.write(
-            {
-                "state": "paid",
-                "provider_status": provider_status,
-                "error_message": False,
-                "account_payment_id": payment.id,
-            }
-        )
-        self._reconcile_available_invoices()
         return True
 
     def _terminal_headers(self):

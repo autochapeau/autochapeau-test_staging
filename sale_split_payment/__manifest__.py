@@ -1,10 +1,10 @@
 {
     "name": "Sale Order Collection Payments",
     "summary": "Collect configurable advance payments from sale orders onto the partner ledger",
-    "version": "17.0.1.2.4",
+    "version": "17.0.1.3.0",
     "author": "Wellknot",
     "category": "Sales/Accounting",
-    "depends": ["sale_management", "account", "payment"],
+    "depends": ["sale_management", "account", "payment", "hr"],
     "data": [
         "security/sale_split_payment_security.xml",
         "security/ir.model.access.csv",
@@ -14,6 +14,8 @@
         "views/sale_order_payment_views.xml",
         "views/sale_order_views.xml",
         "wizard/sale_split_payment_wizard_views.xml",
+        "views/collection_fee_views.xml",
+        "views/cash_custody_views.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

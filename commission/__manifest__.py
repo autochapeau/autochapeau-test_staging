@@ -1,6 +1,6 @@
 {
     "name": "Commissions",
-    "version": "17.0.1.2.0",
+    "version": "17.0.1.3.0",
     "author": "Wellknot",
     "category": "Invoicing",
     "license": "AGPL-3",

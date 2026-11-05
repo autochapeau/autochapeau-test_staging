@@ -185,6 +185,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('contact_partner_type', '=', 'employee')]</field>
+        <field name="context">{'default_contact_partner_type': 'employee'}</field>
     </record>
 
     <menuitem id="menu_item_client_menu" name="Client"
@@ -205,6 +206,28 @@
     <menuitem id="menu_item_employee_menu" name="Employee"
               parent="contacts.menu_contacts"
               action="partner_employee_action" sequence="4"/>
+
+    <record id="partner_agency_salesperson_action" model="ir.actions.act_window">
+        <field name="name">Agency Salespersons</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('contact_partner_type', '=', 'agency_salesperson')]</field>
+        <field name="context">{'default_contact_partner_type': 'agency_salesperson'}</field>
+    </record>
+    <menuitem id="menu_item_agency_salesperson" name="Agency Salespersons"
+              parent="contacts.menu_contacts" sequence="5"
+              action="partner_agency_salesperson_action"
+              groups="partner_management.group_contact_agency,partner_management.group_contact_all"/>
+
+    <record id="action_fill_missing_contact_references" model="ir.actions.server">
+        <field name="name">Generate Missing Contact References</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(4, ref('partner_management.group_contact_all'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_fill_missing_contact_references()</field>
+    </record>
 
     <!-- Restrict standard "all contacts" menu to dedicated access group -->
     <record id="contacts.res_partner_menu_contacts" model="ir.ui.menu">

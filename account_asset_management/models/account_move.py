@@ -33,6 +33,23 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     asset_count = fields.Integer(compute="_compute_asset_count")
+    asset_schedule_entry = fields.Boolean(copy=False, readonly=True)
+
+    def _post(self, soft=True):
+        lines = self.env["account.asset.line"].search(
+            [("move_id", "in", self.ids), ("type", "=", "depreciate")]
+        )
+        if lines.filtered(lambda line: line.asset_id.state != "open"):
+            raise UserError(_("Depreciation can only be posted for a running asset."))
+        if not soft and lines.filtered(
+            lambda line: line.move_id.date > fields.Date.context_today(line)
+        ):
+            raise UserError(_("Future depreciation must remain in draft until its accounting date."))
+        posted = super()._post(soft=soft)
+        for asset in lines.filtered(lambda line: line.move_id in posted).asset_id:
+            if asset.currency_id.is_zero(asset.value_residual):
+                asset.state = "close"
+        return posted
 
     def _compute_asset_count(self):
         rg_res = self.env["account.asset.line"].read_group(
@@ -133,7 +150,15 @@ class AccountMove(models.Model):
         invoices = self.filtered(lambda r: r.is_purchase_document())
         if invoices:
             invoices.line_ids.asset_id.unlink()
-        return super().button_draft()
+        assets = self.env["account.asset.line"].search(
+            [("move_id", "in", self.ids), ("type", "=", "depreciate")]
+        ).asset_id
+        result = super().button_draft()
+        assets.filtered(
+            lambda asset: asset.state == "close"
+            and not asset.currency_id.is_zero(asset.value_residual)
+        ).write({"state": "open"})
+        return result
 
     def _reverse_move_vals(self, default_values, cancel=True):
         move_vals = super()._reverse_move_vals(default_values, cancel)

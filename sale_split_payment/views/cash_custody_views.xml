@@ -1,0 +1,80 @@
+<odoo>
+    <record id="view_payment_cash_custody" model="ir.ui.view">
+        <field name="name">account.payment.cash.custody</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_send_cash_to_coach" type="object" string="Send Cash to Coach"
+                        invisible="not can_handover_cash or cash_stage != 'collected'"/>
+                <button name="action_send_cash_to_manager" type="object" string="Send Cash to Manager"
+                        invisible="not can_handover_cash or cash_stage not in ('collected', 'coach')"/>
+                <button name="action_return_cash_to_collector" type="object" string="Return Cash to Collector"
+                        invisible="not can_handover_cash or cash_stage not in ('coach', 'manager')"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <field name="can_handover_cash" invisible="1"/>
+                <group string="Cash Custody" invisible="not cash_stage">
+                    <field name="cash_collector_user_id"/>
+                    <field name="cash_holder_name"/>
+                    <field name="cash_stage" string="Handover Stage"/>
+                </group>
+                <field name="cash_transfer_ids" invisible="not cash_transfer_ids" nolabel="1">
+                    <tree create="0" delete="0">
+                        <field name="date"/>
+                        <field name="actor_id" string="Recorded By"/>
+                        <field name="from_name" string="From"/>
+                        <field name="to_name" string="To"/>
+                        <field name="stage"/>
+                        <field name="amount"/>
+                        <field name="currency_id" column_invisible="1"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_allocation_cash_custody" model="ir.ui.view">
+        <field name="name">sale.order.payment.cash.custody</field>
+        <field name="model">sale.order.payment</field>
+        <field name="inherit_id" ref="sale_split_payment.view_sale_order_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_send_cash_to_coach" type="object" string="Send Cash to Coach"
+                        invisible="not can_handover_cash or cash_stage != 'collected'"/>
+                <button name="action_send_cash_to_manager" type="object" string="Send Cash to Manager"
+                        invisible="not can_handover_cash or cash_stage not in ('collected', 'coach')"/>
+                <button name="action_return_cash_to_collector" type="object" string="Return Cash to Collector"
+                        invisible="not can_handover_cash or cash_stage not in ('coach', 'manager')"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <field name="can_handover_cash" invisible="1"/>
+                <group string="Cash Custody" invisible="not cash_stage">
+                    <field name="cash_holder_name"/>
+                    <field name="cash_stage" string="Handover Stage"/>
+                </group>
+                <field name="cash_transfer_ids" invisible="not cash_transfer_ids" nolabel="1">
+                    <tree create="0" delete="0">
+                        <field name="date"/>
+                        <field name="actor_id" string="Recorded By"/>
+                        <field name="from_name" string="From"/>
+                        <field name="to_name" string="To"/>
+                        <field name="stage"/>
+                        <field name="amount"/>
+                        <field name="currency_id" column_invisible="1"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_allocation_cash_holder_tree" model="ir.ui.view">
+        <field name="name">sale.order.payment.cash.holder.tree</field>
+        <field name="model">sale.order.payment</field>
+        <field name="inherit_id" ref="sale_split_payment.view_sale_order_payment_tree"/>
+        <field name="arch" type="xml">
+            <field name="account_payment_id" position="after">
+                <field name="cash_holder_name" optional="show"/>
+                <field name="cash_stage" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

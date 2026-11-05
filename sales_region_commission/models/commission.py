@@ -1,4 +1,5 @@
 import calendar
+from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, AccessError
 
@@ -177,14 +178,18 @@ class Entry(models.Model):
         return super().unlink()
 
     @api.model
-    def dashboard(self, month=False, team_id=False):
+    def dashboard(self, month=False, team_id=False, period_type='month'):
         self.check_access_rights('read')
         start = fields.Date.to_date(month) if month else fields.Date.context_today(self)
-        start = start.replace(day=1)
-        end = start.replace(day=calendar.monthrange(start.year, start.month)[1])
+        lengths = {'month': 1, 'quarter': 3, 'half': 6, 'year': 12}
+        if period_type not in lengths:
+            raise ValidationError(_('Select a valid calendar period.'))
+        length = lengths[period_type]
+        start = start.replace(day=1, month=((start.month - 1) // length) * length + 1)
+        end = start + relativedelta(months=length, days=-1)
         domain = [('company_id', '=', self.env.company.id), ('date', '>=', start), ('date', '<=', end)]
         # Build team choices only from the current user's readable ledger/targets.
-        targets = self.env['sales.commission.target'].search([('company_id', '=', self.env.company.id), ('month', '=', start)])
+        targets = self.env['sales.commission.target'].search([('company_id', '=', self.env.company.id), ('month', '<=', end), ('date_end', '>=', start)])
         groups = self.read_group(domain, ['team_id'], ['team_id'], lazy=False)
         teams = self.env['crm.team'].browse([g['team_id'][0] for g in groups if g['team_id']]) | targets.team_id
         if self.env.user.has_group('sales_region_commission.group_manager'):
@@ -194,18 +199,31 @@ class Entry(models.Model):
             if not selected:
                 raise AccessError(_('This team is outside your commission scope.'))
             domain += [('team_id', 'in', selected._commission_descendants().ids)]
-            targets = targets.filtered(lambda t: t.team_id == selected)
-        else:
-            target_teams = targets.team_id
-            targets = targets.filtered(lambda t: not any(p in target_teams for p in self._team_parents(t.team_id)))
+            targets = targets.filtered(lambda t: t.team_id in selected._commission_descendants())
+        target_total = 0
+        cursor = start
+        personal = not self.env.user.has_group('sales_region_commission.group_manager')
+        while cursor <= end:
+            current = targets.filtered(lambda target: target.month <= cursor <= target.date_end)
+            if personal:
+                for target in current:
+                    own_share = target.member_target_ids.filtered(lambda share: share.user_id == self.env.user)
+                    # Keep legacy undivided targets visible until an administrator distributes them.
+                    value = sum(own_share.mapped('amount')) if target.sudo().member_target_ids else target.amount
+                    target_total += value / lengths[target.period_type]
+            else:
+                current_teams = current.team_id
+                for target in current.filtered(lambda t: not any(p in current_teams for p in self._team_parents(t.team_id))):
+                    target_total += target.amount / lengths[target.period_type]
+            cursor += relativedelta(months=1)
         totals = self.read_group(domain, ['base:sum', 'amount:sum'], [], lazy=False)
         total = totals[0] if totals else {}
         people = self.read_group(domain, ['base:sum', 'amount:sum', 'user_id'], ['user_id'], lazy=False)
         people.sort(key=lambda r: r.get('amount', 0), reverse=True)
         daily = self.read_group(domain, ['base:sum', 'amount:sum'], ['date:day'], lazy=False)
-        return {'month': str(start), 'currency': self.env.company.currency_id.name,
+        return {'month': str(start), 'period_type': period_type, 'date_end': str(end), 'currency': self.env.company.currency_id.name,
                 'net': total.get('base', 0), 'commission': total.get('amount', 0),
-                'target': sum(targets.mapped('amount')), 'review': self.search_count(domain + [('status', '=', 'review')]),
+                'target': self.env.company.currency_id.round(target_total), 'review': self.search_count(domain + [('status', '=', 'review')]),
                 'count': self.search_count(domain), 'refunds': -sum(r['base'] for r in self.read_group(domain + [('base', '<', 0)], ['base:sum'], [], lazy=False)),
                 'teams': [{'id': t.id, 'name': t.display_name} for t in teams.sorted('name')],
                 'people': [{'id': p['user_id'][0] if p['user_id'] else False, 'name': p['user_id'][1] if p['user_id'] else _('Unassigned'), 'net': p['base'], 'amount': p['amount']} for p in people],
@@ -238,7 +256,8 @@ class Invoice(models.Model):
         Entry = self.env['sales.commission.entry'].sudo()
         for move in self.sudo().filtered(lambda m: m.state == 'posted' and m.move_type in ('out_invoice', 'out_refund')):
             existing = Entry.search([('move_id', '=', move.id)]).invoice_line_id
-            for line in move.invoice_line_ids.filtered(lambda l: l.display_type == 'product' and l.product_id) - existing:
+            for line in move.invoice_line_ids.filtered(lambda l: l.display_type == 'product' and l.product_id
+                    and not l.is_downpayment and not getattr(l, 'is_service_advance', False)) - existing:
                 sales = line.sale_line_ids.order_id
                 users = sales.user_id
                 teams = sales.team_id
@@ -271,7 +290,9 @@ class Invoice(models.Model):
                     rule_domain += [('kind', '=', 'service'), ('service_category_id', '=', category.id)] if product.detailed_type == 'service' else [('kind', '=', 'product'), ('category_id', '=', category.id)]
                     rule = self.env['sales.commission.rule'].sudo().search(rule_domain, limit=2)
                     if len(rule) == 1:
-                        vals.update(rate=rule.rate, rule_id=rule.id, status='earned', note=False)
+                        rate, achievement, personal_target, note = rule._rate_for_invoice_line(line, team, vals['date'])
+                        vals.update(rate=rate or 0, rule_id=rule.id, status='review' if note else 'earned', note=note,
+                                    achievement_percent=achievement, personal_target=personal_target)
                 vals['amount'] = move.company_id.currency_id.round(vals['base'] * vals['rate'] / 100)
                 if vals.get('origin_id'):
                     original_amount = origin.invoice_line_id.amount_currency

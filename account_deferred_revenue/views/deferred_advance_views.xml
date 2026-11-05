@@ -1,0 +1,33 @@
+<odoo>
+    <record id="journal_form_service_advance" model="ir.ui.view">
+        <field name="name">account.journal.service.advance</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <field name="default_account_id" position="after">
+                <field name="service_advance_account_id" invisible="type != 'sale'"/>
+            </field>
+        </field>
+    </record>
+    <record id="advance_wizard_deferred_service" model="ir.ui.view">
+        <field name="name">sale.advance.payment.deferred.service</field>
+        <field name="model">sale.advance.payment.inv</field>
+        <field name="inherit_id" ref="sale.view_sale_advance_payment_inv"/>
+        <field name="arch" type="xml">
+            <group name="down_payment_specification" position="attributes">
+                <attribute name="invisible">advance_payment_method not in ('fixed', 'percentage', 'deferred_service')</attribute>
+            </group>
+            <field name="fixed_amount" position="attributes">
+                <attribute name="invisible">advance_payment_method not in ('fixed', 'deferred_service')</attribute>
+                <attribute name="required">advance_payment_method in ('fixed', 'deferred_service')</attribute>
+            </field>
+            <label for="fixed_amount" position="attributes">
+                <attribute name="invisible">advance_payment_method not in ('fixed', 'deferred_service')</attribute>
+            </label>
+            <field name="deposit_account_id" position="before">
+                <field name="service_advance_journal_id" invisible="advance_payment_method != 'deferred_service'"
+                       required="advance_payment_method == 'deferred_service'" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -23,4 +23,9 @@
         <field name="model_id" ref="model_sale_collection_method"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="cash_custody_company_rule" model="ir.rule">
+        <field name="name">Cash handovers by company</field>
+        <field name="model_id" ref="model_cash_custody_transfer"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

@@ -205,6 +205,7 @@
                                     <field name="remaining_value" readonly="1" />
                                     <field name="init_entry" string="Init" />
                                     <field name="move_check" />
+                                    <field name="move_id" optional="show" />
                                     <field name="parent_state" column_invisible="1" />
                                     <field name="currency_id" column_invisible="1" />
                                     <button
@@ -212,14 +213,14 @@
                                         icon="fa-cog"
                                         string="Create Move"
                                         type="object"
-                                        invisible="init_entry or move_check or parent_state != 'open'"
+                                        invisible="init_entry or move_id or parent_state != 'open'"
                                     />
                                     <button
                                         name="open_move"
                                         icon="fa-folder-open-o"
                                         string="View Move"
                                         type="object"
-                                        invisible="not move_check"
+                                        invisible="not move_id"
                                     />
                                     <button
                                         name="unlink_move"
@@ -228,7 +229,7 @@
                                         type="object"
                                         confirm="Are you sure ?"
                                         groups="account.group_account_manager"
-                                        invisible="not move_check"
+                                        invisible="not move_id"
                                     />
                                 </tree>
                                 <form string="Asset Line">

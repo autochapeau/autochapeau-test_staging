@@ -1,4 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cash_custody_transfer_cashier,cash.custody.transfer.cashier,model_cash_custody_transfer,sale_split_payment.group_split_payment_cashier,1,0,0,0
+access_cash_custody_transfer_account,cash.custody.transfer.account,model_cash_custody_transfer,account.group_account_invoice,1,0,0,0
 access_sale_collection_method_user,sale.collection.method.user,model_sale_collection_method,sale_split_payment.group_split_payment_cashier,1,0,0,0
 access_sale_collection_method_manager,sale.collection.method.manager,model_sale_collection_method,sales_team.group_sale_manager,1,1,1,1
 access_sale_order_payment_user,sale.order.payment.user,model_sale_order_payment,sale_split_payment.group_split_payment_cashier,1,1,1,0

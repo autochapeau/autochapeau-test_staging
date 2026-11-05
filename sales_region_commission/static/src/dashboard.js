@@ -11,7 +11,7 @@ export class CommissionDashboard extends Component {
         this.action = useService('action');
         this.user = useService('user');
         const now = new Date();
-        this.state = useState({ month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`, team: '', loading: true, error: '', data: null, admin: false });
+        this.state = useState({ month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`, period: 'month', team: '', loading: true, error: '', data: null, admin: false });
         this.request = 0;
         onWillStart(async () => {
             this.state.admin = await this.user.hasGroup('sales_region_commission.group_admin');
@@ -23,7 +23,7 @@ export class CommissionDashboard extends Component {
         this.state.loading = true;
         this.state.error = '';
         try {
-            const data = await this.orm.call('sales.commission.entry', 'dashboard', [], { month: `${this.state.month}-01`, team_id: this.state.team ? Number(this.state.team) : false });
+            const data = await this.orm.call('sales.commission.entry', 'dashboard', [], { month: `${this.state.month}-01`, period_type: this.state.period, team_id: this.state.team ? Number(this.state.team) : false });
             if (request === this.request) this.state.data = data;
         } catch (error) {
             if (request === this.request) {
@@ -41,6 +41,7 @@ export class CommissionDashboard extends Component {
         await this.load();
     }
     async changeTeam(ev) { this.state.team = ev.target.value; await this.load(); }
+    async changePeriod(ev) { this.state.period = ev.target.value; this.state.team = ''; await this.load(); }
     money(amount) {
         return new Intl.NumberFormat((this.user.lang || 'en-US').replace('_', '-'), { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(amount || 0);
     }

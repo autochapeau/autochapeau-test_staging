@@ -1,0 +1,48 @@
+<odoo>
+    <record id="crm_team_analytic_form" model="ir.ui.view">
+        <field name="name">crm.team.sales.analytic.account</field>
+        <field name="model">crm.team</field>
+        <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="company_id" invisible="1"/>
+                <field name="sales_analytic_account_id" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+    <record id="team_analytic_backfill_form" model="ir.ui.view">
+        <field name="name">team.analytic.backfill.form</field>
+        <field name="model">team.analytic.backfill</field>
+        <field name="arch" type="xml">
+            <form string="Review Team Analytics">
+                <p>Review the selected orders and invoices before applying team accounts. Existing allocations in the same plan will be kept. Only analytic allocations change; invoice amounts and taxes stay the same.</p>
+                <group>
+                    <field name="eligible_count" string="Lines to Update"/>
+                    <field name="protected_count" string="Existing Allocations Kept"/>
+                    <field name="locked_count" string="Cancelled or Inapplicable Lines"/>
+                    <field name="missing_team_count" string="Missing or Ambiguous Team Account"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply Team Accounts" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_sale_team_analytic_backfill" model="ir.actions.server">
+        <field name="name">Review Team Analytics</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="groups_id" eval="[(4, ref('sales_team.group_sale_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_prepare_team_analytic_backfill()</field>
+    </record>
+    <record id="action_invoice_team_analytic_backfill" model="ir.actions.server">
+        <field name="name">Review Team Analytics</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_prepare_team_analytic_backfill()</field>
+    </record>
+</odoo>

@@ -15,4 +15,18 @@
         <field name="padding">5</field>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="seq_partner_employee" model="ir.sequence">
+        <field name="name">Partner Employee</field>
+        <field name="code">res.partner.employee</field>
+        <field name="prefix">EMP</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_partner_agency_salesperson" model="ir.sequence">
+        <field name="name">Partner Agency Salesperson</field>
+        <field name="code">res.partner.agency_salesperson</field>
+        <field name="prefix">AGS</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

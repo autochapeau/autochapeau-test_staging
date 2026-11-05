@@ -1,12 +1,12 @@
 {
     "name": "Partner Management",
     "summary": "Contact type, city selection, customer mobile OTP, partner sequences, and related sale orders",
-    "version": "17.0.1.4.4",
+    "version": "17.0.1.5.0",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
         "base", "contacts",  "mail", "sale", "sale_product_configurator",
-        "account", "infinito_sms", "cars_management", "appointment_management", "work_orders",
+        "account", "l10n_gcc_invoice", "infinito_sms", "cars_management", "appointment_management", "work_orders",
         "commission", "sale_split_payment",
     ],
     "data": [
@@ -29,6 +29,7 @@
         "views/car_workorder_service_views.xml",
         "views/product_product_views.xml",
         "views/account_move.xml",
+        "views/team_analytic_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

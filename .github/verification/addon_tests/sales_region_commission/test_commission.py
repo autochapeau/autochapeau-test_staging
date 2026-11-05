@@ -17,7 +17,7 @@ class TestCommissionStudio(TransactionCase):
         journal=cls.env['account.journal'].create({'name':'Commission test sales','code':'CSTS','type':'sale','company_id':company.id,'default_account_id':revenue.id})
         journal.edi_format_ids=[Command.clear()]
         cls.company_data={'company':company,'default_account_revenue':revenue,'default_journal_sale':journal}
-        other_partner=cls.env['res.partner'].with_context(no_vat_validation=True).create({'name':'Commission isolated company', 'is_company':True, 'street':'Local test address', 'vat':'CS-TEST'})
+        other_partner=cls.env['res.partner'].with_context(no_vat_validation=True).create({'name':'Commission isolated company', 'is_company':True, 'street':'Local test address', 'vat':'CS-TEST', 'company_registry':'CS-QA-CR'})
         other_company=cls.env['res.company'].create({'name':'Commission isolated company','partner_id':other_partner.id,'currency_id':company.currency_id.id})
         other_revenue=Account.create({'name':'Commission other revenue','code':'CSREV','account_type':'income','company_id':other_company.id})
         other_journal=cls.env['account.journal'].create({'name':'Commission other sales','code':'CSTS','type':'sale','company_id':other_company.id,'default_account_id':other_revenue.id})

@@ -82,6 +82,7 @@ jobs:
             odoo \
             -d "$ODOO_DATABASE" \
             -u "$MODULES" \
+            -i account_move_print \
             --stop-after-init \
             --http-port=8075 \
             --max-cron-threads=0
@@ -89,6 +90,21 @@ jobs:
           sudo docker service update \
             --force \
             "$ODOO_SERVICE"
+
+          # Verify the restarted TEST service using the freshly deployed code.
+          ODOO_CONTAINER=$(
+            sudo docker ps --filter "name=$ODOO_CONTAINER_NAME" --format '{{.ID}}' | head -1
+          )
+          test -n "$ODOO_CONTAINER"
+          VERIFY_PATH="/tmp/video_requirements_verify_${NEW_COMMIT}"
+          sudo docker exec "$ODOO_CONTAINER" mkdir -p "$VERIFY_PATH"
+          sudo docker cp "$PROJECT_PATH/.github/verification/." "$ODOO_CONTAINER:$VERIFY_PATH/"
+          sudo docker exec -i "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/verify_staging.py"
+          sudo docker exec -i -e VIDEO_VERIFICATION_ROOT="$VERIFY_PATH" "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/run_regression.py"
 
           echo "Deployment completed successfully."
           REMOTE_SCRIPT

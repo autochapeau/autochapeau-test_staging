@@ -1,6 +1,6 @@
 {
     "name": "Appointment management",
-    "version": "17.0.1.1.0",
+    "version": "17.0.1.1.1",
     "author": "WellKnot",
     "depends": ["resource", "cars_management", "sale_loyalty", "account", "infinito_sms"],
     "data": [

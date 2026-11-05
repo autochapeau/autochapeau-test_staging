@@ -416,6 +416,10 @@ class AccountAsset(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
+        if vals.get("state") in ("draft", "close", "removed"):
+            self.depreciation_line_ids.move_id.filtered(
+                lambda move: move.asset_schedule_entry and move.state == "draft"
+            ).write({"auto_post": "no"})
         for asset in self:
             if self.env.context.get("asset_validate_from_write"):
                 continue
@@ -483,7 +487,28 @@ class AccountAsset(models.Model):
                     lambda line: line.type != "create"
                 ):
                     asset.compute_depreciation_board()
+        self.filtered(lambda asset: asset.state == "open")._create_depreciation_schedule()
         return True
+
+    def _create_depreciation_schedule(self):
+        """Prepare all depreciation entries without recognizing future expense."""
+        for asset in self.filtered(lambda asset: asset.state == "open"):
+            lines = asset.depreciation_line_ids.filtered(
+                lambda line: line.type == "depreciate" and not line.init_entry
+            )
+            lines.move_id.filtered(
+                lambda move: move.asset_schedule_entry and move.state == "draft"
+            ).write({"auto_post": "at_date"})
+            lines.filtered(lambda line: not line.move_id).with_context(
+                asset_schedule_only=True
+            ).create_move()
+
+    def _discard_draft_depreciation_schedule(self):
+        """Rebuild only generated drafts; posted history remains authoritative."""
+        moves = self.depreciation_line_ids.move_id.filtered(
+            lambda move: move.asset_schedule_entry and move.state in ("draft", "cancel")
+        )
+        moves.with_context(unlink_from_asset=True, force_delete=True).unlink()
 
     def remove(self):
         self.ensure_one()
@@ -604,6 +629,7 @@ class AccountAsset(models.Model):
             line_i_start = 0
 
     def compute_depreciation_board(self):
+        self._discard_draft_depreciation_schedule()
         line_obj = self.env["account.asset.line"]
 
         for asset in self:
@@ -720,6 +746,7 @@ class AccountAsset(models.Model):
                 last_line,
                 posted_lines,
             )
+        self.filtered(lambda asset: asset.state == "open")._create_depreciation_schedule()
         return True
 
     def _get_fy_duration(self, fy, option="days"):

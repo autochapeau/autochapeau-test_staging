@@ -5,3 +5,5 @@ access_partner_send_otp_wizard_user,partner.send.otp.wizard.user,model_partner_s
 access_sale_extra_order_otp_wizard_user,sale.extra.order.otp.wizard.user,model_sale_extra_order_otp_wizard,base.group_user,1,1,1,1
 access_sale_extra_order_type_wizard_user,sale.extra.order.type.wizard.user,model_sale_extra_order_type_wizard,base.group_user,1,1,1,1
 access_sale_order_confirm_otp_wizard_user,sale.order.confirm.otp.wizard.user,model_sale_order_confirm_otp_wizard,base.group_user,1,1,1,1
+access_team_analytic_backfill_sales,team.analytic.backfill.sales,model_team_analytic_backfill,sales_team.group_sale_manager,1,1,1,1
+access_team_analytic_backfill_account,team.analytic.backfill.account,model_team_analytic_backfill,account.group_account_manager,1,1,1,1
