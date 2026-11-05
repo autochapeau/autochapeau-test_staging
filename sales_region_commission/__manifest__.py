@@ -1,6 +1,6 @@
 {
     'name': 'Sales Commission Studio',
-    'version': '17.0.5.0.0',
+    'version': '17.0.5.0.1',
     'license': 'LGPL-3',
     'depends': ['sale_management', 'account', 'commission'],
     'data': ['security/security.xml', 'security/ir.model.access.csv', 'views/views.xml', 'views/target_tiers.xml', 'views/accounting.xml', 'views/res_users.xml', 'views/guide.xml'],

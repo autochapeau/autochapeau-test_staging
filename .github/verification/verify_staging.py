@@ -10,7 +10,7 @@ expected = {
     "partner_management": "17.0.1.5.0",
     "sale_split_payment": "17.0.1.3.0",
     "account_deferred_revenue": "17.0.1.2.0",
-    "sales_region_commission": "17.0.5.0.0",
+    "sales_region_commission": "17.0.5.0.1",
     "account_move_print": "17.0.1.1.0",
     "commission": "17.0.1.3.0",
 }
@@ -44,10 +44,11 @@ assert "agency_salesperson" in types and "employee" in types
 assert env.ref("sales_region_commission.menu_targets").parent_id == env.ref("sales_region_commission.menu_root")
 
 for model in ("account.asset", "account.journal", "account.payment", "sale.order.payment", "res.partner",
-        "sales.commission.rule", "sales.commission.target", "sale.advance.payment.inv", "account.payment.register"):
+        "sales.commission.rule", "sales.commission.target", "sale.advance.payment.inv", "account.payment.register", "crm.team"):
     view = env[model].get_view(view_type="form")
     assert view["arch"], model
     result["views"].append(model)
+assert "sales_analytic_account_id" in env["crm.team"].get_view(view_type="form")["arch"], "The default Sales Team form must expose its analytic account."
 
 for name, model, domain, report in (
     ("invoice", "account.move", [("state", "=", "posted"), ("move_type", "=", "out_invoice")], "account.account_invoices"),
