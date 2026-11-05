@@ -32,10 +32,28 @@
    <div style="clear:both;height:3px;background:#4c153e;"><div style="width:18%;height:3px;background:#b79a73;"/></div>
   </div>
   <div t-attf-class="article ac-document o_company_#{company.id}_layout" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')" style="font-family:Arial,sans-serif;color:#29252d;">
+   <style>
+    .ac-document.ac-document table, .ac-document.ac-document thead,
+    .ac-document.ac-document tbody, .ac-document.ac-document tfoot,
+    .ac-document.ac-document tr, .ac-document.ac-document th,
+    .ac-document.ac-document td { border:0 !important; outline:0 !important; box-shadow:none !important; }
+    .ac-document.ac-document h3, .ac-document.ac-document .ac-title,
+    .ac-document.ac-document .ac-section { border:0 !important; outline:0 !important; }
+    .ac-document.ac-document #total table, .ac-document.ac-document #total tr,
+    .ac-document.ac-document #total td, .ac-document.ac-document #total th {
+     border:0 !important; border-top:0 !important; border-bottom:0 !important;
+    }
+   </style>
    <t t-out="0"/>
   </div>
-  <div t-attf-class="footer o_company_#{company.id}_layout ac-brand-footer" style="font-family:Arial,sans-serif;color:#fff;font-size:10px;background:#4c153e;border-top:3px solid #b79a73;padding:10px 12px;">
-   <style>.ac-brand-footer p { margin:0; } .ac-brand-footer a, .ac-brand-footer span { color:inherit; }</style>
+  <div t-attf-class="footer o_company_#{company.id}_layout ac-brand-footer" style="font-family:Arial,sans-serif;color:#fff;font-size:10px;background:#4c153e;padding:10px 12px;">
+   <style>
+    .ac-brand-footer p { margin:0; } .ac-brand-footer a, .ac-brand-footer span { color:inherit; }
+    .ac-brand-footer.ac-brand-footer table, .ac-brand-footer.ac-brand-footer thead,
+    .ac-brand-footer.ac-brand-footer tbody, .ac-brand-footer.ac-brand-footer tfoot,
+    .ac-brand-footer.ac-brand-footer tr, .ac-brand-footer.ac-brand-footer th,
+    .ac-brand-footer.ac-brand-footer td { border:0 !important; outline:0 !important; box-shadow:none !important; }
+   </style>
    <table style="width:100%;border:0;border-collapse:collapse;"><tr>
     <td style="border:0;padding:0;width:76%;vertical-align:top;">
      <strong style="color:#fff;font-size:11px;" t-field="company.name"/>
