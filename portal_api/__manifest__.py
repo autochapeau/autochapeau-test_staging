@@ -1,6 +1,6 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.29",
+    "version": "17.0.1.0.30",
     "author": "Wellknot",
     "depends": [
         "cars_management",
@@ -23,6 +23,7 @@
         "views/security_update_templates.xml",
         "views/crm_lead_views.xml",
         "views/hr_department_views.xml",
+        "views/product_product_views.xml",
     ],
     "license": "LGPL-3",
 }
