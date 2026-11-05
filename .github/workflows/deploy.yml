@@ -33,6 +33,7 @@ jobs:
           ODOO_DATABASE="autochapeau"
           ODOO_SERVICE="autochapeau_staging_odoo_odoo"
           ODOO_CONTAINER_NAME="autochapeau_staging_odoo_odoo"
+          REQUIRED_FEATURE_MODULES="account_asset_management,appointment_management,partner_management,sale_split_payment,account_deferred_revenue,sales_region_commission,account_move_print,commission"
 
           cd "$PROJECT_PATH"
 
@@ -43,8 +44,7 @@ jobs:
           NEW_COMMIT=$(git rev-parse HEAD)
 
           if [ "$OLD_COMMIT" = "$NEW_COMMIT" ]; then
-            echo "No new changes found."
-            exit 0
+            echo "No new source changes; checking required feature modules and verification."
           fi
 
           MODULES=$(
@@ -60,8 +60,7 @@ jobs:
           )
 
           if [ -z "$MODULES" ]; then
-            echo "No changed Odoo modules detected."
-            exit 0
+            MODULES="$REQUIRED_FEATURE_MODULES"
           fi
 
           echo "Changed modules: $MODULES"
@@ -82,7 +81,7 @@ jobs:
             odoo \
             -d "$ODOO_DATABASE" \
             -u "$MODULES" \
-            -i account_move_print \
+            -i "$REQUIRED_FEATURE_MODULES" \
             --stop-after-init \
             --http-port=8075 \
             --max-cron-threads=0
