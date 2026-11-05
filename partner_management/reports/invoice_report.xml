@@ -3,6 +3,7 @@
  <template id="report_invoice_vehicle_custom" inherit_id="l10n_gcc_invoice.arabic_english_invoice" priority="70">
   <xpath expr="//t[@t-call='web.external_layout']" position="attributes"><attribute name="t-call">account_move_print.external_layout_autochapeau</attribute></xpath>
   <xpath expr="//div[hasclass('page')]" position="attributes"><attribute name="class" add="ac-invoice" separator=" "/></xpath>
+  <xpath expr="//div[hasclass('page')]/h3/div/div[1]" position="attributes"><attribute name="t-translation">off</attribute></xpath>
   <xpath expr="//div[hasclass('page')]/h3" position="before">
    <style>
     .ac-invoice { font-size:12px; color:#29252d; }
