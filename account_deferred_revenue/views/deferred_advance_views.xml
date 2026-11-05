@@ -8,7 +8,7 @@
                 <button id="create_deferred_service_invoice" name="%(sale.action_view_sale_advance_payment_inv)d"
                         string="Invoice before Service" type="action"
                         context="{'default_advance_payment_method': 'deferred_service'}"
-                        invisible="state not in ('sale', 'done') or amount_total &lt;= 0"/>
+                        invisible="state not in ('sale', 'done')"/>
             </xpath>
         </field>
     </record>
