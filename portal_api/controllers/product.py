@@ -805,6 +805,7 @@ class ProductAPI(http.Controller):
             return make_response(200, [])
 
         attr_keys, variant_attributes = _variant_attributes_payload(template, vehicle)
+        default_variant = variants.sorted(key=lambda variant: variant.lst_price)[0]
 
         data = {
             "id": template.id,
@@ -812,6 +813,7 @@ class ProductAPI(http.Controller):
             "categ_id": template.categ_id.name,
             "description": template.description or False,
             "description_website": template.description_website or False,
+            "web_note": default_variant.web_note or False,
             "feature_ids": [{"id": f.id, "name": f.name} for f in template.feature_ids],
             "image_1920": get_binary_url(
                 "product.template", template.id, "image_1920") if template.image_1920 else False,
