@@ -3,6 +3,7 @@
 The shell provides ``env``. No financial records are created, posted or edited.
 """
 import json
+from lxml import etree
 
 expected = {
     "account_asset_management": "17.0.1.1.0",
@@ -11,7 +12,7 @@ expected = {
     "sale_split_payment": "17.0.1.3.0",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.5.0.2",
-    "account_move_print": "17.0.1.2.1",
+    "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
 }
 result = {"database": env.cr.dbname, "modules": {}, "views": [], "reports": {}}
@@ -50,6 +51,16 @@ for model in ("account.asset", "account.journal", "account.payment", "sale.order
     result["views"].append(model)
 assert "sales_analytic_account_id" in env["crm.team"].get_view(view_type="form")["arch"], "The default Sales Team form must expose its analytic account."
 assert "create_deferred_service_invoice" in env["sale.order"].get_view(view_type="form")["arch"], "Service orders need a reachable advance invoice action."
+
+# Check a real billing-only user, since superuser views hide group regressions.
+billing_users = env.ref("account.group_account_invoice").users.filtered(
+    lambda user: user.active and not user.share
+    and not user.has_group("account.group_account_readonly")
+    and not user.has_group("account.group_account_user"))
+for user in billing_users[:1]:
+    arch = env["account.payment"].with_user(user).get_view(view_type="form")["arch"]
+    assert etree.fromstring(arch).xpath("//button[@name='button_open_journal_entry']"), "Billing users need the payment Journal Entry button."
+    result["payment_journal_button_billing_user"] = user.id
 
 for name, model, domain, report in (
     ("invoice", "account.move", [("state", "=", "posted"), ("move_type", "=", "out_invoice")], "account.account_invoices"),

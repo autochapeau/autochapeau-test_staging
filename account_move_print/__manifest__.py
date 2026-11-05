@@ -2,7 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 {
     "name": "Account Move Print",
-    "version": "17.0.1.2.1",
+    "version": "17.0.1.2.2",
     "category": "Accounting/Accounting",
     "license": "LGPL-3",
     "summary": "Adds the option to print Journal Entries",
@@ -10,7 +10,7 @@
     "website": "https://github.com/OCA/account-financial-tools",
     "depends": ["account"],
     "maintainers": ["JordiBForgeFlow"],
-    "data": ["report/brand_layout.xml", "report/journal_report.xml"],
+    "data": ["report/brand_layout.xml", "report/journal_report.xml", "views/account_payment_views.xml"],
     "demo": [],
     "installable": True,
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_journal_entry_button" model="ir.ui.view">
+        <field name="name">account.payment.journal.entry.button</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <!-- Billing users already have move access. Keep the native action
+                 and record rules; no full-accounting group grant is needed. -->
+            <xpath expr="//button[@name='button_open_journal_entry']" position="attributes">
+                <attribute name="groups">account.group_account_invoice,account.group_account_user,account.group_account_readonly</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
