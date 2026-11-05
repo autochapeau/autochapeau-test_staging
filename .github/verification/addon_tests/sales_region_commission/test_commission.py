@@ -121,12 +121,13 @@ class TestCommissionStudio(TransactionCase):
         self.assertFalse(self.entries(move))
 
     def test_own_manager_and_admin_scope_in_search_and_dashboard(self):
+        Ledger=self.env['sales.commission.entry']
+        existing_admin_ids=set(Ledger.with_user(self.admin).search([]).ids)
         a=self.invoice(price=1000);a.action_post()
         b=self.invoice(user=self.bob,price=2000);b.action_post()
-        Ledger=self.env['sales.commission.entry']
         self.assertEqual(Ledger.with_user(self.alice).search([]),self.entries(a))
         self.assertEqual(Ledger.with_user(self.manager).search([]),self.entries(a))
-        self.assertEqual(set(Ledger.with_user(self.admin).search([]).ids),set((self.entries(a)|self.entries(b)).ids))
+        self.assertEqual(set(Ledger.with_user(self.admin).search([]).ids),existing_admin_ids | set((self.entries(a)|self.entries(b)).ids))
         own=Ledger.with_user(self.alice).dashboard('2026-11-01')
         region=Ledger.with_user(self.manager).dashboard('2026-11-01')
         self.assertEqual(own['commission'],100)
