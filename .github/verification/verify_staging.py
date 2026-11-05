@@ -7,11 +7,11 @@ import json
 expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
-    "partner_management": "17.0.1.5.1",
+    "partner_management": "17.0.1.6.0",
     "sale_split_payment": "17.0.1.3.0",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.5.0.2",
-    "account_move_print": "17.0.1.1.0",
+    "account_move_print": "17.0.1.2.0",
     "commission": "17.0.1.3.0",
 }
 result = {"database": env.cr.dbname, "modules": {}, "views": [], "reports": {}}
@@ -58,6 +58,8 @@ for name, model, domain, report in (
     assert record, name
     html, _ = env["ir.actions.report"]._render_qweb_html(report, record.ids)
     assert len(html) > 1000, name
+    assert b"ac-brand-footer" in html, (name, "Missing branded header/footer")
+    assert env.ref(report).get_paperformat() == env.ref("account_move_print.paperformat_autochapeau"), name
     if name == "journal":
         assert b"ac-lines" in html and b"TOTAL" in html
     else:

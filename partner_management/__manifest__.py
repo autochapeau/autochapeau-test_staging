@@ -1,13 +1,13 @@
 {
     "name": "Partner Management",
     "summary": "Contact type, city selection, customer mobile OTP, partner sequences, and related sale orders",
-    "version": "17.0.1.5.1",
+    "version": "17.0.1.6.0",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
         "base", "contacts",  "mail", "sale", "sale_product_configurator",
         "account", "l10n_gcc_invoice", "infinito_sms", "cars_management", "appointment_management", "work_orders",
-        "commission", "sale_split_payment",
+        "commission", "sale_split_payment", "account_move_print",
     ],
     "data": [
         "security/groups.xml",

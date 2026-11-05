@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+ <record id="paperformat_autochapeau" model="report.paperformat">
+  <field name="name">AutoChapeau A4</field><field name="format">A4</field>
+  <field name="orientation">Portrait</field><field name="margin_top">35</field>
+  <field name="margin_bottom">24</field><field name="margin_left">14</field>
+  <field name="margin_right">14</field><field name="header_spacing">28</field>
+  <field name="dpi">90</field>
+ </record>
+ <!-- Dedicated layout: other business documents keep their configured layout. -->
+ <template id="external_layout_autochapeau">
+  <t t-set="company" t-value="o.company_id.sudo() if o and 'company_id' in o else res_company"/>
+  <div t-attf-class="header o_company_#{company.id}_layout" style="font-family:Arial,sans-serif;color:#29252d;height:105px;overflow:hidden;">
+   <div style="height:100px;width:100%;">
+    <div style="width:40%;float:left;padding-top:2px;">
+     <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Company logo" style="max-width:230px;max-height:88px;width:auto;height:auto;"/>
+     <img t-elif="company.website and 'autochapeau.com' in company.website.lower()" src="/account_move_print/static/src/img/autochapeau_logo.png" alt="AutoChapeau" style="max-width:230px;max-height:88px;width:auto;height:auto;"/>
+     <strong t-else="" style="font-size:26px;color:#4c153e;" t-field="company.name"/>
+    </div>
+    <div style="width:58%;float:right;text-align:right;padding-top:7px;">
+     <div style="font-size:14px;font-weight:700;line-height:1.5;color:#4c153e;" t-field="company.name"/>
+     <div style="font-size:10px;color:#6d6770;line-height:1.6;">
+      <span t-field="company.partner_id.street"/><t t-if="company.partner_id.street2"> · <span t-field="company.partner_id.street2"/></t><br/>
+      <span t-field="company.partner_id.city"/> <span t-field="company.partner_id.zip"/><t t-if="company.country_id"> · <span t-field="company.country_id.name"/></t>
+     </div>
+     <div style="font-size:10px;color:#39323c;margin-top:4px;">
+      <t t-if="company.vat"><strong>VAT / الرقم الضريبي </strong><span t-out="forced_vat if forced_vat else company.vat"/></t>
+      <t t-if="company.company_registry"><span style="color:#b79a73;"> &#160; / &#160; </span><strong>CR / س.ت </strong><span t-field="company.company_registry"/></t>
+     </div>
+    </div>
+   </div>
+   <div style="clear:both;height:3px;background:#4c153e;"><div style="width:18%;height:3px;background:#b79a73;"/></div>
+  </div>
+  <div t-attf-class="article ac-document o_company_#{company.id}_layout" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')" style="font-family:Arial,sans-serif;color:#29252d;">
+   <t t-out="0"/>
+  </div>
+  <div t-attf-class="footer o_company_#{company.id}_layout ac-brand-footer" style="font-family:Arial,sans-serif;color:#fff;font-size:10px;background:#4c153e;border-top:3px solid #b79a73;padding:10px 12px;">
+   <style>.ac-brand-footer p { margin:0; } .ac-brand-footer a, .ac-brand-footer span { color:inherit; }</style>
+   <table style="width:100%;border:0;border-collapse:collapse;"><tr>
+    <td style="border:0;padding:0;width:76%;vertical-align:top;">
+     <strong style="color:#fff;font-size:11px;" t-field="company.name"/>
+     <div t-if="not company.report_footer" style="margin-top:3px;line-height:1.5;">
+      <span t-if="company.phone" t-field="company.phone"/>
+      <t t-if="company.email"><span t-if="company.phone"> &#160; | &#160; </span><span t-field="company.email"/></t>
+      <t t-if="company.website"><span t-if="company.phone or company.email"> &#160; | &#160; </span><span t-field="company.website"/></t>
+     </div>
+    </td>
+    <td style="border:0;padding:0;text-align:right;vertical-align:top;width:24%;">
+     <div style="color:#ead7bb;font-weight:bold;" t-out="o.name if o and o.name and o.name != '/' else ''"/>
+     <div t-if="report_type == 'pdf'" style="margin-top:3px;">PAGE / <span dir="rtl">صفحة</span> &#160; <span dir="ltr" style="unicode-bidi:embed;"><span class="page"/> / <span class="topage"/></span></div>
+     <div t-if="additional_footer_text" style="font-size:8px;margin-top:3px;" t-out="additional_footer_text"/>
+    </td>
+   </tr></table>
+   <div t-if="company.report_footer" style="font-size:9px;line-height:1.4;margin-top:5px;color:#fff;" t-field="company.report_footer"/>
+  </div>
+ </template>
+</odoo>
