@@ -163,8 +163,9 @@ class TestCommissionStudio(TransactionCase):
 
     def test_date_boundaries(self):
         move=self.invoice(invoice_date='2026-10-31');move.action_post()
-        self.assertEqual(self.env['sales.commission.entry'].dashboard('2026-11-01')['commission'],0)
-        self.assertEqual(self.env['sales.commission.entry'].dashboard('2026-10-01')['commission'],10)
+        ledger=self.env['sales.commission.entry'].with_user(self.alice)
+        self.assertEqual(ledger.dashboard('2026-11-01')['commission'],0)
+        self.assertEqual(ledger.dashboard('2026-10-01')['commission'],10)
 
     def test_company_isolation(self):
         move=self.invoice();move.action_post()

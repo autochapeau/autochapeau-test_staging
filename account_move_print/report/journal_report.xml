@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
  <template id="report_journal_entry_document">
-  <t t-call="web.external_layout">
+  <t t-call="account_move_print.external_layout_autochapeau">
    <t t-set="o" t-value="o.with_context(lang=lang or user.lang)"/>
    <t t-set="lines" t-value="o.line_ids.filtered('account_id')"/>
    <t t-set="foreign" t-value="any(l.currency_id and l.currency_id != o.company_currency_id for l in lines)"/>
@@ -9,26 +9,27 @@
    <t t-set="total_credit" t-value="sum(lines.mapped('credit'))"/>
    <div class="page ac-journal">
     <style>
-     .ac-journal { font-size:13px; color:#203348; }
-     .ac-journal .ac-title { padding:17px 16px; background:#142c43; color:#fff; border-bottom:5px solid #19a69a; margin-bottom:17px; }
+     .ac-journal { font-size:12px; color:#29252d; }
+     .ac-journal .ac-title { padding:14px 16px; background:#f5f1ed; color:#4c153e; border-left:4px solid #b79a73; margin-bottom:18px; }
      .ac-journal .ac-title table { width:100%; background:transparent; color:inherit; border:none; }
-     .ac-journal .ac-title td { border:none; padding:0; vertical-align:middle; background:#142c43 !important; color:#fff !important; }
-     .ac-journal .ac-title td * { color:#fff !important; }
-     .ac-journal h2 { font-size:22px; color:white; margin:3px 0; }
-     .ac-journal .ac-kicker { font-size:11px; color:#b9deda; }
-     .ac-journal .ac-meta { width:100%; background:#f3f7fa; margin-bottom:18px; }
-     .ac-journal .ac-meta td { width:50%; padding:10px 14px; vertical-align:top; border:1px solid #dce5ed; background:#f3f7fa !important; }
-     .ac-journal small { color:#54717c; }
-     .ac-journal .ac-meta p { margin:3px 0 8px; }
+     .ac-journal .ac-title tr { border:0 !important; }
+     .ac-journal .ac-title td { border:none; padding:0; vertical-align:middle; background:#f5f1ed !important; color:#4c153e !important; }
+     .ac-journal .ac-title td * { color:#4c153e !important; }
+     .ac-journal h2 { font-size:24px; color:#4c153e; margin:5px 0 0; letter-spacing:.4px; }
+     .ac-journal .ac-kicker { font-size:10px; color:#9b7b53 !important; letter-spacing:1.5px; }
+     .ac-journal .ac-meta { width:100%; background:#faf8f5; margin-bottom:18px; border-collapse:collapse; }
+     .ac-journal .ac-meta td { width:50%; padding:10px 14px 4px; vertical-align:top; border:1px solid #e7e1da; background:#faf8f5 !important; }
+     .ac-journal small { color:#807680; font-size:10px; }
+     .ac-journal .ac-meta p { margin:2px 0 9px; font-size:12px; }
      .ac-journal .ac-lines { width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed; }
-     .ac-journal .ac-lines thead th { background:#142c43 !important; color:#fff !important; padding:10px 7px; border:0; }
+     .ac-journal .ac-lines thead th { background:#4c153e !important; color:#fff !important; padding:10px 7px; border:0; font-size:10px; line-height:1.5; }
      .ac-journal .ac-lines thead th * { color:#fff !important; }
-     .ac-journal .ac-lines td { padding:9px 7px; vertical-align:top; border-bottom:1px solid #dce5ed; word-wrap:break-word; }
-     .ac-journal .ac-lines tbody tr:nth-child(even) { background:#f3f7fa; }
-     .ac-journal .ac-lines tfoot td { background:#e6f4f2 !important; color:#075a55 !important; font-size:12px; font-weight:bold; border-top:2px solid #19a69a; }
+     .ac-journal .ac-lines td { padding:11px 7px; vertical-align:top; border-bottom:1px solid #e7e1da; word-wrap:break-word; font-size:11px; line-height:1.5; }
+     .ac-journal .ac-lines tbody tr:nth-child(even) { background:#faf8f5; }
+     .ac-journal .ac-lines tfoot td { background:#4c153e !important; color:#fff !important; font-size:12px; font-weight:bold; border-top:2px solid #b79a73; }
      .ac-journal .num { text-align:right; white-space:nowrap; }
-     .ac-journal .ac-signatures { width:100%; margin-top:28px; page-break-inside:avoid; }
-     .ac-journal .ac-signatures td { width:33.33%; padding:9px; border-top:1px solid #ccd9e4; vertical-align:top; background:#fff !important; }
+     .ac-journal .ac-signatures { width:100%; margin-top:32px; page-break-inside:avoid; border-collapse:separate; border-spacing:10px 0; }
+     .ac-journal .ac-signatures td { width:33.33%; padding:12px 10px; border:1px solid #e7e1da; border-top:2px solid #b79a73; vertical-align:top; background:#faf8f5 !important; height:70px; }
      .ac-journal thead { display:table-header-group; }
      .ac-journal tfoot { display:table-row-group; }
      .ac-journal tr { page-break-inside:avoid; }
@@ -92,6 +93,7 @@
   <field name="report_type">qweb-pdf</field><field name="report_name">account_move_print.report_journal_entries</field>
   <field name="report_file">account_move_print.report_journal_entries</field>
   <field name="binding_model_id" ref="account.model_account_move"/><field name="binding_view_types">list,form</field>
+  <field name="paperformat_id" ref="account_move_print.paperformat_autochapeau"/>
   <field name="print_report_name">'Journal - %s' % (object.name or 'Draft').replace('/', '-')</field>
  </record>
 </odoo>
