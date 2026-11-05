@@ -5,8 +5,10 @@ validation. Their sources are retained here, outside addon directories, to make
 post-deployment verification reproducible. Existing test sources retain their
 original licenses.
 
-The deployment workflow upgrades the changed TEST addons, installs
-`account_move_print` if needed, restarts the staging service, then runs:
+The deployment workflow reads the module catalog without loading a registry,
+installs only missing required feature addons, and upgrades the installed addons.
+It preserves the distinction between installation and upgrade, then restarts the
+staging service and runs:
 
 1. `verify_staging.py`: installed versions, fields, contact selections, combined
    form views and actual invoice/journal QWeb HTML. Its transaction is rolled back.

@@ -77,11 +77,23 @@ jobs:
             exit 1
           fi
 
+          INSTALL_MODULES=$(
+            sudo docker exec -i \
+              -e VIDEO_VERIFY_REQUIRED_MODULES="$REQUIRED_FEATURE_MODULES" \
+              -e VIDEO_VERIFY_DATABASE="$ODOO_DATABASE" "$ODOO_CONTAINER" python3 - \
+              < "$PROJECT_PATH/.github/verification/installation_plan.py"
+          )
+          INSTALL_ARGS=()
+          if [ -n "$INSTALL_MODULES" ]; then
+            INSTALL_ARGS=(-i "$INSTALL_MODULES")
+            echo "Install missing feature addons: $INSTALL_MODULES"
+          fi
+
           sudo docker exec "$ODOO_CONTAINER" \
             odoo \
             -d "$ODOO_DATABASE" \
             -u "$MODULES" \
-            -i "$REQUIRED_FEATURE_MODULES" \
+            "${INSTALL_ARGS[@]}" \
             --stop-after-init \
             --http-port=8075 \
             --max-cron-threads=0
