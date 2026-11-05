@@ -32,6 +32,13 @@ fields = {"account.journal": ["service_advance_account_id", "collection_fee_enab
     "account.move": ["asset_schedule_entry"]}
 for model, names in fields.items():
     assert set(names).issubset(env[model]._fields), (model, names)
+    # Registry metadata alone can pass while the website database lacks columns.
+    stored = [name for name in names if env[model]._fields[name].store
+              and env[model]._fields[name].type not in ("one2many", "many2many")]
+    if stored:
+        env[model].sudo().search([], limit=1).read(stored)
+        env.cr.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name=%s", [env[model]._table])
+        assert set(stored).issubset({row[0] for row in env.cr.fetchall()}), (model, stored)
 types = dict(env["res.partner"]._fields["contact_partner_type"]._description_selection(env))
 assert "agency_salesperson" in types and "employee" in types
 assert env.ref("sales_region_commission.menu_targets").parent_id == env.ref("sales_region_commission.menu_root")

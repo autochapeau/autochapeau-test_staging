@@ -30,7 +30,8 @@ jobs:
           set -e
 
           PROJECT_PATH="/home/admin/custom_addons"
-          ODOO_DATABASE="autochapeau"
+          # The database exposed by erp-test.autochapeau.com/database/selector.
+          ODOO_DATABASE="autochapeau_prod_test"
           ODOO_SERVICE="autochapeau_staging_odoo_odoo"
           ODOO_CONTAINER_NAME="autochapeau_staging_odoo_odoo"
           REQUIRED_FEATURE_MODULES="account_asset_management,appointment_management,partner_management,sale_split_payment,account_deferred_revenue,sales_region_commission,account_move_print,commission"
