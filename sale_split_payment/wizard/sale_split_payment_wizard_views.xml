@@ -21,7 +21,7 @@
                         <field name="collection_method_id"
                                options="{'no_create': True, 'no_create_edit': True}"/>
                         <field name="amount"/>
-                        <field name="journal_id"
+                        <field name="journal_id" readonly="1"
                                options="{'no_create_edit': True}"/>
                         <field name="provider_reference"
                                invisible="not require_reference"
@@ -63,7 +63,7 @@
                         <field name="collection_method_id"
                                options="{'no_create': True, 'no_create_edit': True}"/>
                         <field name="amount"/>
-                        <field name="journal_id"
+                        <field name="journal_id" readonly="1"
                                options="{'no_create_edit': True}"/>
                         <field name="provider_reference"
                                invisible="not require_reference"

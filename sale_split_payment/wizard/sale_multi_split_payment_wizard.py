@@ -54,6 +54,7 @@ class SaleMultiSplitPaymentWizard(models.TransientModel):
     )
     journal_id = fields.Many2one(
         "account.journal",
+        readonly=True,
         domain="[('type', 'in', ('cash', 'bank')), ('company_id', '=', company_id)]",
         check_company=True,
     )

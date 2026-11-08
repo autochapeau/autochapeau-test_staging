@@ -21,6 +21,7 @@ class TestCollectionFeesProof(TransactionCase):
         ])
         cls.bank = cls.env["account.journal"].create({
             "name": "QA Collection Bank", "code": "QACB", "type": "bank",
+            "require_payment_attachment": True,
             "default_account_id": cls.bank_account.id, "collection_fee_enabled": True,
             "collection_fee_percent": 1.5, "collection_fee_tax_percent": 15,
             "collection_fee_account_id": cls.fee_account.id, "collection_fee_tax_account_id": cls.tax_account.id,

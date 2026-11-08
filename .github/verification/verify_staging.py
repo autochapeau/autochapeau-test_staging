@@ -9,7 +9,7 @@ expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
     "partner_management": "17.0.1.6.0",
-    "sale_split_payment": "17.0.1.3.0",
+    "sale_split_payment": "17.0.1.3.1",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.5.0.2",
     "account_move_print": "17.0.1.2.2",
@@ -22,7 +22,7 @@ for name, version in expected.items():
     assert module.latest_version == version, (name, module.latest_version, version)
     result["modules"][name] = module.latest_version
 
-fields = {"account.journal": ["service_advance_account_id", "collection_fee_enabled"],
+fields = {"account.journal": ["service_advance_account_id", "collection_fee_enabled", "require_payment_attachment"],
     "account.payment": ["collection_net_amount", "transfer_proof_ids", "cash_stage", "cash_holder_name"],
     "sale.order.payment": ["transfer_proof_ids", "cash_holder_name", "provider_payment_confirmed"],
     "sales.commission.target": ["period_type", "date_end", "member_target_ids"],
@@ -51,6 +51,16 @@ for model in ("account.asset", "account.journal", "account.payment", "sale.order
     result["views"].append(model)
 assert "sales_analytic_account_id" in env["crm.team"].get_view(view_type="form")["arch"], "The default Sales Team form must expose its analytic account."
 assert "create_deferred_service_invoice" in env["sale.order"].get_view(view_type="form")["arch"], "Service orders need a reachable advance invoice action."
+
+for model, xmlid in (
+    ("sale.split.payment.wizard", "sale_split_payment.view_sale_split_payment_wizard_form"),
+    ("sale.multi.split.payment.wizard", "sale_split_payment.view_sale_multi_split_payment_wizard_form"),
+):
+    arch = etree.fromstring(env[model].get_view(env.ref(xmlid).id, "form")["arch"])
+    assert arch.xpath("//field[@name='journal_id'][@readonly='1']"), model
+    uploads = arch.xpath("//field[@name='transfer_proof_ids']")
+    assert len(uploads) == 1 and uploads[0].get("required") == "transfer_proof_required", model
+result["collection_wizard_journal_readonly"] = True
 
 # Check a real billing-only user, since superuser views hide group regressions.
 billing_users = env.ref("account.group_account_invoice").users.filtered(

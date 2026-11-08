@@ -160,8 +160,9 @@ class SaleOrderPayment(models.Model):
         readonly=True,
         check_company=True,
     )
-    transfer_proof_ids = fields.Many2many("ir.attachment", string="Transfer Proof", copy=False)
+    transfer_proof_ids = fields.Many2many("ir.attachment", string="Payment Attachment", copy=False)
     journal_type = fields.Selection(related="journal_id.type")
+    transfer_proof_required = fields.Boolean(related="journal_id.require_payment_attachment")
     provider_payment_confirmed = fields.Boolean(readonly=True, copy=False)
     access_token = fields.Char(
         default=lambda self: str(uuid.uuid4()),
@@ -223,9 +224,9 @@ class SaleOrderPayment(models.Model):
 
     def _check_transfer_proof(self):
         for allocation in self:
-            if allocation._get_journal().type == "bank":
+            if allocation._get_journal().require_payment_attachment:
                 if not allocation.transfer_proof_ids:
-                    raise UserError(_("Upload transfer proof before confirming a bank payment."))
+                    raise UserError(_("Upload a payment attachment before confirming payment in journal '%s'.") % allocation._get_journal().display_name)
                 allocation.transfer_proof_ids.check("read")
 
     @api.onchange("collection_method_id")
@@ -269,8 +270,7 @@ class SaleOrderPayment(models.Model):
             raise UserError(
                 _("Only draft, failed, or needs-review payments can be processed.")
             )
-        if self.processing_type == "manual" or self.provider_payment_confirmed:
-            self._check_transfer_proof()
+        self._check_transfer_proof()
         if self.provider_payment_confirmed:
             return self._mark_provider_paid(self.provider_status)
         if not self.collection_method_id:

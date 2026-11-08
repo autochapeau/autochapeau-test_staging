@@ -13,12 +13,13 @@ import types
 
 from odoo import tools
 from odoo.tests import loader
+from odoo.modules.module import get_module_path
 
 root = Path(os.environ["VIDEO_VERIFICATION_ROOT"]).resolve()
 sources = {
     "account_asset_management": ["test_draft_schedule"],
     "partner_management": ["test_contact_references", "test_team_analytic"],
-    "sale_split_payment": ["test_collection_fees", "test_cash_custody"],
+    "sale_split_payment": ["test_collection_fees", "test_cash_custody", "test_payment_attachment"],
     "account_deferred_revenue": ["test_service_advance"],
     "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers"],
 }
@@ -31,13 +32,16 @@ for addon, names in sources.items():
     sys.modules[name] = package
     for leaf in names:
         full_name = name + "." + leaf
-        spec = importlib.util.spec_from_file_location(full_name, path / (leaf + ".py"))
+        source = path / (leaf + ".py")
+        if leaf == "test_payment_attachment":
+            source = Path(get_module_path(addon)) / "tests" / (leaf + ".py")
+        spec = importlib.util.spec_from_file_location(full_name, source)
         module = importlib.util.module_from_spec(spec)
         sys.modules[full_name] = module
         spec.loader.exec_module(module)
         setattr(package, leaf, module)
 
-tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,cash_custody_flow,service_advance_flow,/sales_region_commission"
+tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission"
 suite = loader.make_suite(list(sources), position="post_install")
 original_connect = socket.socket.connect
 

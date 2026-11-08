@@ -127,11 +127,12 @@
                             <field name="account_payment_id"/>
                         </group>
                     </group>
-                    <group string="Transfer Proof">
-                        <field name="journal_type" invisible="1"/>
+                    <group string="Payment Attachment">
+                        <field name="transfer_proof_required" invisible="1"/>
                         <field name="provider_payment_confirmed" invisible="1"/>
                         <field name="transfer_proof_ids" widget="many2many_binary"
-                               readonly="state in ('paid', 'cancelled')"/>
+                               readonly="state in ('paid', 'cancelled')"
+                               required="transfer_proof_required and state not in ('paid', 'cancelled')"/>
                     </group>
                     <group string="Card Terminal Details"
                            invisible="processing_type != 'terminal' or (not terminal_rr_number and not terminal_approval_code and not terminal_txn_id and not terminal_device_serial)">
