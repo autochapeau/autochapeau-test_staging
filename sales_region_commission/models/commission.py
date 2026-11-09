@@ -90,13 +90,36 @@ class Rule(models.Model):
     name = fields.Char(required=True)
     active = fields.Boolean(default=True)
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
-    user_id = fields.Many2one('res.users', string='Salesperson', required=True, check_company=True)
+    user_id = fields.Many2one('res.users', string='Legacy salesperson', check_company=True)
+    scope = fields.Selection([('people', 'Salespeople'), ('team', 'Sales team')], required=True, default='people')
+    user_ids = fields.Many2many('res.users', 'sales_commission_rule_user_rel', 'rule_id', 'user_id',
+                               string='Salespeople', check_company=True)
+    team_id = fields.Many2one('crm.team', string='Sales team', check_company=True)
     kind = fields.Selection([('product', 'Product category'), ('service', 'Service category')], required=True, default='product')
     category_id = fields.Many2one('product.category', string='Product category')
     service_category_id = fields.Many2one('commission.category', string='Service category')
-    rate = fields.Float(string='Commission %', required=True, digits=(16, 4))
+    rate = fields.Float(string='Commission %', required=True, default=0, digits=(16, 4))
     date_from = fields.Date(required=True, default=fields.Date.context_today)
     date_to = fields.Date()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        values = []
+        for vals in vals_list:
+            vals = dict(vals)
+            if vals.get('user_id') and 'user_ids' not in vals:
+                vals['user_ids'] = [(6, 0, [vals['user_id']])]
+            vals['user_id'] = False
+            values.append(vals)
+        return super().create(values)
+
+    def write(self, vals):
+        vals = dict(vals)
+        if 'user_id' in vals and 'user_ids' not in vals:
+            vals['user_ids'] = [(6, 0, [vals['user_id']] if vals['user_id'] else [])]
+        if 'user_ids' in vals:
+            vals['user_id'] = False
+        return super().write(vals)
 
     @api.onchange('kind')
     def _onchange_kind_category(self):
@@ -105,23 +128,60 @@ class Rule(models.Model):
         else:
             self.service_category_id = False
 
-    @api.constrains('active', 'user_id', 'company_id', 'kind', 'category_id', 'service_category_id', 'rate', 'date_from', 'date_to')
+    def init(self):
+        # Populate the new selector on upgrade while retaining legacy API support.
+        self.env.cr.execute('''INSERT INTO sales_commission_rule_user_rel (rule_id, user_id)
+            SELECT id, user_id FROM sales_commission_rule WHERE user_id IS NOT NULL
+            AND NOT EXISTS (SELECT 1 FROM sales_commission_rule_user_rel rel
+                            WHERE rel.rule_id = sales_commission_rule.id)
+            ON CONFLICT DO NOTHING''')
+        self.env.cr.execute('UPDATE sales_commission_rule SET user_id = NULL WHERE user_id IS NOT NULL')
+
+    def _scope_users(self):
+        self.ensure_one()
+        return self.user_ids or self.user_id
+
+    def _category_keys(self):
+        self.ensure_one()
+        if self.tier_ids:
+            return {tier._category_key() for tier in self.tier_ids}
+        return {(self.kind, self.category_id.id if self.kind == 'product' else self.service_category_id.id)}
+
+    @api.model
+    def _matching_rules(self, user, team, company, date, kind, category):
+        rules = self.search([('company_id', '=', company.id), ('date_from', '<=', date),
+            '|', ('date_to', '=', False), ('date_to', '>=', date)])
+        rules = rules.filtered(lambda rule: (kind, category.id) in rule._category_keys())
+        personal = rules.filtered(lambda rule: rule.scope == 'people' and user in rule._scope_users())
+        # Explicit personal rules override a team's default for this category.
+        return personal or rules.filtered(lambda rule: rule.scope == 'team' and rule.team_id == team)
+
+    @api.constrains('active', 'user_id', 'user_ids', 'scope', 'team_id', 'company_id', 'kind',
+                    'category_id', 'service_category_id', 'rate', 'date_from', 'date_to', 'tier_ids')
     def _check_rule(self):
         for rule in self:
+            if rule.scope == 'people' and not rule._scope_users():
+                raise ValidationError(_('Select at least one salesperson.'))
+            if rule.scope == 'team' and not rule.team_id:
+                raise ValidationError(_('Select a sales team.'))
             if not 0 <= rule.rate <= 100 or (rule.date_to and rule.date_to < rule.date_from):
                 raise ValidationError(_('Use a rate between 0 and 100 and a valid date range.'))
-            if (rule.kind == 'product' and (not rule.category_id or rule.service_category_id)) or (rule.kind == 'service' and (not rule.service_category_id or rule.category_id)):
+            if not rule.tier_ids and ((rule.kind == 'product' and (not rule.category_id or rule.service_category_id)) or (rule.kind == 'service' and (not rule.service_category_id or rule.category_id))):
                 raise ValidationError(_('Select only the category matching the rule type.'))
+            if any(not category_id for kind, category_id in rule._category_keys()):
+                raise ValidationError(_('Select a product or service category on every achievement tier.'))
             if not rule.active:
                 continue
-            domain = [('id', '!=', rule.id), ('active', '=', True), ('user_id', '=', rule.user_id.id),
-                      ('company_id', '=', rule.company_id.id), ('kind', '=', rule.kind),
-                      ('category_id', '=', rule.category_id.id), ('service_category_id', '=', rule.service_category_id.id),
+            domain = [('id', '!=', rule.id), ('active', '=', True), ('scope', '=', rule.scope),
+                      ('company_id', '=', rule.company_id.id),
                       '|', ('date_to', '=', False), ('date_to', '>=', rule.date_from)]
             if rule.date_to:
                 domain += [('date_from', '<=', rule.date_to)]
-            if self.search_count(domain):
-                raise ValidationError(_('Commission rules for the same salesperson and category must not overlap.'))
+            for other in self.sudo().search(domain):
+                same_scope = (rule.team_id == other.team_id if rule.scope == 'team'
+                              else bool(rule._scope_users() & other._scope_users()))
+                if same_scope and rule._category_keys() & other._category_keys():
+                    raise ValidationError(_('Active rules for the same salespeople or team and category must not overlap.'))
 
 
 class Target(models.Model):
@@ -292,10 +352,9 @@ class Invoice(models.Model):
                     else:
                         vals['note'] = _('Credit note needs one identifiable calculated original invoice line.')
                 elif user and team and all(s.user_id == user and s.team_id == team for s in sales) and len(sales.company_id) == 1 and sales.company_id == move.company_id:
-                    rule_domain = [('company_id', '=', move.company_id.id), ('user_id', '=', user.id),
-                                   ('date_from', '<=', vals['date']), '|', ('date_to', '=', False), ('date_to', '>=', vals['date'])]
-                    rule_domain += [('kind', '=', 'service'), ('service_category_id', '=', category.id)] if product.detailed_type == 'service' else [('kind', '=', 'product'), ('category_id', '=', category.id)]
-                    rule = self.env['sales.commission.rule'].sudo().search(rule_domain, limit=2)
+                    kind = 'service' if product.detailed_type == 'service' else 'product'
+                    rule = self.env['sales.commission.rule'].sudo()._matching_rules(
+                        user, team, move.company_id, vals['date'], kind, category)
                     if len(rule) == 1:
                         rate, achievement, personal_target, note = rule._rate_for_invoice_line(line, team, vals['date'])
                         vals.update(rate=rate or 0, rule_id=rule.id, status='review' if note else 'earned', note=note,

@@ -31,3 +31,19 @@ No business configuration or historical contact references/analytics are applied
 automatically. Configure journal fee/accounts, deferred account, target allocation,
 achievement tiers and optional discount adjustment through their forms. Historical
 backfills have explicit, permission-checked actions.
+
+For the 17.0.6.0.0 commission migration, `commission_upgrade_preservation.py`
+runs before replacing the old checkout. It intentionally persists distinctly
+labelled QA rules (product/service tiers, fixed and archived), a team target and
+individual shares, three posted fictional invoices and a partial credit note on
+`autochapeau_prod_test`. No user roles or existing business settings are changed.
+The pre-upgrade baseline includes all existing rows in the audited commission,
+legacy settlement, invoice, invoice-line, order and category tables. After restart,
+row counts and hashes of original values must match. Salesperson assignments and
+tier categories are compared semantically across the schema change. Baselines
+and results remain under the persistent Odoo data directory in
+`commission_upgrade_preservation/`. Logs include
+`COMMISSION_PRESERVATION_BEFORE=` and `COMMISSION_PRESERVATION_AFTER=`.
+This is a one-time legacy-schema audit; unrelated future deployments do not seed
+more invoices once multi-salesperson rules are installed. It also permits the
+explicitly named local rehearsal database `commission_preservation_legacy_20261109`.

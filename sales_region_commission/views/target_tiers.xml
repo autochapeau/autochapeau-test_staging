@@ -21,7 +21,7 @@
     </record>
     <record id="tier_own_rule" model="ir.rule">
         <field name="name">Own achievement tiers</field><field name="model_id" ref="model_sales_commission_tier"/>
-        <field name="groups" eval="[(4, ref('group_user'))]"/><field name="domain_force">[('rule_id.user_id','=',user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_user'))]"/><field name="domain_force">['|', '&amp;', ('rule_id.scope', '=', 'people'), '|', ('rule_id.user_ids', 'in', [user.id]), ('rule_id.user_id', '=', user.id), '&amp;', ('rule_id.scope', '=', 'team'), '|', '|', ('rule_id.team_id.member_ids', 'in', [user.id]), ('rule_id.team_id.user_id', '=', user.id), ('rule_id.team_id.commission_manager_id', '=', user.id)]</field>
     </record>
     <record id="tier_admin_rule" model="ir.rule">
         <field name="name">All achievement tiers</field><field name="model_id" ref="model_sales_commission_tier"/>
@@ -31,14 +31,20 @@
         <field name="name">sales.commission.rule.target.tiers</field><field name="model">sales.commission.rule</field>
         <field name="inherit_id" ref="rule_form"/><field name="arch" type="xml">
             <field name="rate" position="after">
-                <field name="currency_id" invisible="1"/><field name="personal_target" readonly="1" string="Current Personal Target"/>
+                <field name="currency_id" invisible="1"/><field name="personal_target" readonly="1" string="Current Selected Target Total"/>
                 <field name="apply_discount_adjustment"/>
             </field>
             <xpath expr="//div[hasclass('alert-info')]" position="replace">
-                <div class="alert alert-info">Rates use net revenue before tax. With achievement tiers, the individual target share and posted sales in its calendar period determine the rate at posting. Without tiers, the fixed rate applies. Posted snapshots retain their rate. Discount adjustment: 0% → +20%, 1–10% → unchanged, 10.01–20% → −25%; other discounts require review.</div>
-                <group string="Achievement Tiers"><field name="tier_ids" nolabel="1"><tree editable="bottom">
-                    <field name="achievement_from"/><field name="achievement_to"/><field name="rate"/>
-                </tree></field></group>
+                <div class="alert alert-info">Select multiple salespeople or one sales team. Personal rules override team defaults for the same category. Each achievement tier specifies a product or service category and its rate. Achievement uses the invoice salesperson's individual target and posted sales for that period. Without tiers, the fixed category and rate apply. Posted snapshots retain their rate. Discount adjustment: 0% → +20%, 1–10% → unchanged, 10.01–20% → −25%; other discounts require review.</div>
+                <separator string="Achievement Tiers"/>
+                <field name="tier_ids" nolabel="1" context="{'default_kind': 'product'}">
+                    <tree editable="bottom">
+                        <field name="kind" required="1" width="160px"/>
+                        <field name="category_id" readonly="kind != 'product'" required="kind == 'product'" width="220px"/>
+                        <field name="service_category_id" readonly="kind != 'service'" required="kind == 'service'" width="220px"/>
+                        <field name="achievement_from" width="160px"/><field name="achievement_to" width="160px"/><field name="rate" width="140px"/>
+                    </tree>
+                </field>
             </xpath>
         </field>
     </record>

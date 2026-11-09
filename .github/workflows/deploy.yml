@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,7 +22,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
         run: |
-          set -e
+          set -euo pipefail
 
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
@@ -27,7 +31,7 @@ jobs:
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE_SCRIPT'
-          set -e
+          set -euo pipefail
 
           PROJECT_PATH="/home/admin/custom_addons"
           # The database exposed by erp-test.autochapeau.com/database/selector.
@@ -40,7 +44,20 @@ jobs:
 
           OLD_COMMIT=$(git rev-parse HEAD)
 
-          git pull --ff-only https://github.com/autochapeau/autochapeau-test_staging.git main
+          # Run the new audit against the OLD source/ORM before replacing it.
+          git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
+          INCOMING_COMMIT=$(git rev-parse FETCH_HEAD)
+          ODOO_CONTAINER=$(
+            sudo docker ps --filter "name=$ODOO_CONTAINER_NAME" --format '{{.ID}}' | head -1
+          )
+          test -n "$ODOO_CONTAINER"
+          git show "$INCOMING_COMMIT:.github/verification/commission_upgrade_preservation.py" |
+            sudo docker exec -i \
+              -e COMMISSION_UPGRADE_PHASE=before \
+              -e COMMISSION_UPGRADE_AUDIT_ID="$INCOMING_COMMIT" "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0
+
+          git merge --ff-only "$INCOMING_COMMIT"
 
           NEW_COMMIT=$(git rev-parse HEAD)
 
@@ -118,6 +135,11 @@ jobs:
           sudo docker exec -i "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/verify_staging.py"
+          sudo docker exec -i \
+            -e COMMISSION_UPGRADE_PHASE=after \
+            -e COMMISSION_UPGRADE_AUDIT_ID="$NEW_COMMIT" "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/commission_upgrade_preservation.py"
           sudo docker exec -i -e VIDEO_VERIFICATION_ROOT="$VERIFY_PATH" "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/run_regression.py"

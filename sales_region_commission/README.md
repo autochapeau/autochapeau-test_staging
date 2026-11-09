@@ -6,6 +6,14 @@ Version **17.0.4.0.0** includes an app icon, a comprehensive Arabic/English hand
 
 ## Configuration
 
+### Shared rules and category tiers (17.0.6.0.0)
+
+Choose **Salespeople** to select several users, or **Sales team** to apply a rule to orders assigned to one exact team. Team rules do not automatically include child teams. An explicit personal rule takes priority over a team rule for the same category/date. Overlapping active rules within the same scope and category are rejected.
+
+The full-width **Achievement Tiers** table accepts both product and service category rows. Every row has its own category, achievement bounds and commission percentage. Bounds may repeat across different categories; bounds for the same category cannot overlap. Zero upper bound means unlimited. Without tiers, the rule's fixed category and percentage apply. With tiers, a category without a matching achievement band earns zero, retaining existing behavior.
+
+Achievement always uses the source salesperson's individual target and their posted sales for the relevant team and target period, including when a rule covers several people. The displayed selected-target total respects the viewer's existing target access. Existing single-person rules and their tiers are migrated into the new selectors on module upgrade; posted commission snapshots and accounting entries retain their captured values. Upgrade the addon and refresh the browser.
+
 1. Install `sales_region_commission` on the intended database in an offline maintenance window. Dependencies: `sale_management`, `account`, `commission` and their existing dependencies.
 2. Open Settings / Users & Companies / Users and use the dedicated **Commission Access** tab. A system administrator selects No access, Salesperson, Region manager or Commission administrator. The duplicate generated selector in Access Rights is hidden. Existing users are not automatically granted access.
 3. An administrator configures **Regions and teams** using CRM sales teams: Region → Subregion → Branch. Set the company, parent region and **Team Leader**, then assign salespeople as team members. With the **Region manager** commission role, a leader automatically receives that team and its descendants. **Commission manager** is optional additional scope. Leadership supplies scope but never grants a commission role.

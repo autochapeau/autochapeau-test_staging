@@ -92,16 +92,46 @@ class Tier(models.Model):
     achievement_from = fields.Float(string="Achievement From %", digits=(16, 2), required=True)
     achievement_to = fields.Float(string="Achievement To %", digits=(16, 2), help="Zero means no upper limit.")
     rate = fields.Float(string="Commission %", digits=(16, 4), required=True)
+    kind = fields.Selection([('product', 'Product category'), ('service', 'Service category')],
+                            string='Category Type', help='Empty on legacy tiers: use the category on the rule.')
+    category_id = fields.Many2one('product.category', string='Product Category')
+    service_category_id = fields.Many2one('commission.category', string='Service Category')
 
-    @api.constrains("rule_id", "achievement_from", "achievement_to", "rate")
+    def init(self):
+        self.env.cr.execute('''UPDATE sales_commission_tier tier
+            SET kind = rule.kind, category_id = rule.category_id, service_category_id = rule.service_category_id
+            FROM sales_commission_rule rule WHERE tier.rule_id = rule.id AND tier.kind IS NULL''')
+
+    @api.onchange('kind')
+    def _onchange_kind(self):
+        if self.kind == 'service':
+            self.category_id = False
+        else:
+            self.service_category_id = False
+
+    def _category_key(self):
+        self.ensure_one()
+        kind = self.kind or self.rule_id.kind
+        category = (self.category_id if kind == 'product' else self.service_category_id) if self.kind else (
+            self.rule_id.category_id if kind == 'product' else self.rule_id.service_category_id)
+        return kind, category.id
+
+    @api.constrains("rule_id", "achievement_from", "achievement_to", "rate", "kind", "category_id", "service_category_id")
     def _check_tier(self):
         for tier in self:
+            if tier.kind and ((tier.kind == 'product' and (not tier.category_id or tier.service_category_id))
+                              or (tier.kind == 'service' and (not tier.service_category_id or tier.category_id))):
+                raise ValidationError(_("Select only the category matching the tier type."))
+            if not tier._category_key()[1]:
+                raise ValidationError(_("Select a category for the achievement tier."))
             if tier.achievement_from < 0 or (tier.achievement_to and tier.achievement_to < tier.achievement_from) or not 0 <= tier.rate <= 100:
                 raise ValidationError(_("Use non-negative achievement bounds and a commission rate between 0 and 100."))
             others = tier.rule_id.sudo().tier_ids - tier
             upper = tier.achievement_to or float("inf")
-            if any(tier.achievement_from <= (other.achievement_to or float("inf")) and other.achievement_from <= upper for other in others):
-                raise ValidationError(_("Achievement tiers within a rule must not overlap."))
+            if any(tier._category_key() == other._category_key()
+                   and tier.achievement_from <= (other.achievement_to or float("inf")) and other.achievement_from <= upper for other in others):
+                raise ValidationError(_("Achievement tiers for the same category must not overlap."))
+        self.rule_id._check_rule()
 
 
 class Rule(models.Model):
@@ -113,22 +143,28 @@ class Rule(models.Model):
     personal_target = fields.Monetary(compute="_compute_personal_target", currency_field="currency_id")
     currency_id = fields.Many2one(related="company_id.currency_id")
 
-    @api.depends("user_id", "company_id")
+    @api.depends("user_id", "user_ids", "scope", "team_id", "company_id")
+    @api.depends_context('uid')
     def _compute_personal_target(self):
         today = fields.Date.context_today(self)
         for rule in self:
-            shares = self.env["sales.commission.target.member"].search([
-                ("user_id", "=", rule.user_id.id), ("company_id", "=", rule.company_id.id),
-                ("target_id.month", "<=", today), ("target_id.date_end", ">=", today)])
+            domain = [("company_id", "=", rule.company_id.id),
+                ("target_id.month", "<=", today), ("target_id.date_end", ">=", today)]
+            domain += [("team_id", "=", rule.team_id.id)] if rule.scope == 'team' else [("user_id", "in", rule._scope_users().ids)]
+            shares = self.env["sales.commission.target.member"].search(domain)
             rule.personal_target = sum(shares.mapped("amount"))
 
     def _rate_for_invoice_line(self, line, team, date):
         self.ensure_one()
+        # A shared rule must use the invoice's salesperson, never its legacy owner.
+        user = line.sale_line_ids.order_id.user_id
+        if len(user) != 1:
+            return False, 0, 0, _("The invoice line needs one identifiable salesperson.")
         rate = self.rate
         achievement, personal_target = 0, 0
         if self.tier_ids:
             shares = self.env["sales.commission.target.member"].sudo().search([
-                ("user_id", "=", self.user_id.id), ("team_id", "=", team.id), ("company_id", "=", self.company_id.id),
+                ("user_id", "=", user.id), ("team_id", "=", team.id), ("company_id", "=", self.company_id.id),
                 ("target_id.month", "<=", date), ("target_id.date_end", ">=", date)])
             if len(shares) != 1 or shares.amount <= 0:
                 return False, 0, 0, _("A tiered rule needs one positive individual target for this team and invoice date.")
@@ -141,12 +177,16 @@ class Rule(models.Model):
                 ("company_id", "=", self.company_id.id), ("parent_state", "=", "posted"),
                 ("move_id.move_type", "in", ["out_invoice", "out_refund"]), ("display_type", "=", "product"),
                 ("is_downpayment", "=", False), ("invoice_date", ">=", target.month), ("invoice_date", "<=", target.date_end),
-                ("sale_line_ids.order_id.user_id", "=", self.user_id.id), ("sale_line_ids.order_id.team_id", "=", team.id)])
+                ("sale_line_ids.order_id.user_id", "=", user.id), ("sale_line_ids.order_id.team_id", "=", team.id)])
             lines = lines.filtered(lambda item: not getattr(item, "is_service_advance", False)
-                and item.sale_line_ids.order_id.user_id == self.user_id and item.sale_line_ids.order_id.team_id == team)
+                and item.sale_line_ids.order_id.user_id == user and item.sale_line_ids.order_id.team_id == team)
             personal_target = shares.amount
             achievement = float_round(-sum(lines.mapped("balance")) / personal_target * 100, precision_digits=2)
-            tiers = self.tier_ids.filtered(lambda tier: tier.achievement_from <= achievement
+            product = line.product_id
+            kind = 'service' if product.detailed_type == 'service' else 'product'
+            category = product.commission_category_id if kind == 'service' else product.categ_id
+            tiers = self.tier_ids.filtered(lambda tier: tier._category_key() == (kind, category.id)
+                and tier.achievement_from <= achievement
                 and (not tier.achievement_to or achievement <= tier.achievement_to))
             rate = tiers.rate if len(tiers) == 1 else 0
         if self.apply_discount_adjustment:

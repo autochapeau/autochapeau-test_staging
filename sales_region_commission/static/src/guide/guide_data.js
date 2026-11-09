@@ -27,10 +27,10 @@ export const GUIDE_TOPICS = [
       ], tip: ['المندوب ومدير المنطقة يقدروا يطّلعوا على التارجت المسموح ليهم. إنشاء الأهداف وتعديلها لمسؤول العمولات.', 'Salespeople and region managers can read permitted targets. Only commission administrators create or change them.'] },
     { id: 'rules', menu: 'menu_rules', image: 'rules.jpg',
       title: ['النسبة المناسبة للتصنيف', 'The right rate for each category'], label: ['قواعد العمولة', 'Commission rules'],
-      intro: ['حدد نسبة لكل مندوب وتصنيف، بفترة سريان واضحة. المندوب ومدير المنطقة يراجعوا القواعد اللي تخص نطاقهم.', 'Define a dated rate per salesperson and category. Salespeople and region managers can inspect rules within their scope.'],
+      intro: ['حدد قاعدة لمجموعة مندوبي مبيعات أو لفريق مبيعات، بفترة سريان واضحة. كل شريحة إنجاز تقدر تحدد فئة منتج أو خدمة ونسبتها.', 'Define a dated rule for several salespeople or one sales team. Each achievement tier can specify a product or service category and its own rate.'],
       steps: [
-        ['مسؤول العمولات ينشئ قاعدة ويحدد الشركة والمندوب ونوع Product أو Service.', 'A commission administrator creates a rule and selects the company, salesperson and Product or Service type.'],
-        ['للمنتج اختار Product Category بالضبط. للخدمة اختار Service Category زي VIP، مع التأكد إن التصنيف متسجل على المنتج الخدمي.', 'For goods, choose the exact Product Category. For services, choose the Service Category, such as VIP, and assign it on the service product.'],
+        ['مسؤول العمولات ينشئ قاعدة ويحدد الشركة، ثم Salespeople لاختيار أكثر من مندوب أو Sales team لاختيار فريق محدد.', 'A commission administrator selects the company, then Salespeople to choose several users or Sales team to choose one exact team.'],
+        ['في Achievement Tiers حدد نوع وفئة المنتج أو الخدمة ونسبة العمولة وحدود الإنجاز لكل سطر. بدون شرائح، حدد الفئة والنسبة الثابتة أعلى الفورم.', 'In Achievement Tiers set the product or service type, category, commission rate and achievement bounds per row. Without tiers, set the fixed category and rate above the table.'],
         ['حدد النسبة الثابتة أو شرائح نسبة تحقيق التارجت. فعّل تأثير الخصم عند الحاجة: صفر +20%، من 1 إلى 10 دون تغيير، ومن 10.01 إلى 20 تخفيض25%.', 'Choose a fixed rate or achievement tiers. Enable discount adjustment when needed: 0% adds 20%, 1–10% leaves commission unchanged, and 10.01–20% reduces it by 25%.'],
       ], tip: ['تغيير القاعدة مش بيغير عمولات اتحسبت قبل كده. أرشف القاعدة المستخدمة بدل حذفها؛ الأرقام الموجودة في الصور أمثلة QA.', 'Changing a rule does not rewrite calculated commissions. Archive used rules instead of deleting them. Screenshot rates are QA examples.'] },
     { id: 'regions', menu: 'menu_teams', image: 'regions.jpg',
