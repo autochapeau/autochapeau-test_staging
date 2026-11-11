@@ -8,8 +8,8 @@ from lxml import etree
 expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
-    "partner_management": "17.0.1.6.0",
-    "sale_split_payment": "17.0.1.3.1",
+    "partner_management": "17.0.1.6.1",
+    "sale_split_payment": "17.0.1.3.2",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.6.0.0",
     "account_move_print": "17.0.1.2.2",

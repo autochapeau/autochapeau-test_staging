@@ -1,7 +1,7 @@
 {
     "name": "Partner Management",
     "summary": "Contact type, city selection, customer mobile OTP, partner sequences, and related sale orders",
-    "version": "17.0.1.6.0",
+    "version": "17.0.1.6.1",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
@@ -33,6 +33,7 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "partner_management/static/src/scss/phone_direction.scss",
             "partner_management/static/src/js/vehicle_size_configurator.js",
             "partner_management/static/src/js/vehicle_size_configurator.xml",
         ],

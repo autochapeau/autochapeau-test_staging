@@ -57,6 +57,5 @@ class CollectMultiple(models.TransientModel):
         self.ensure_one()
         check_upload(self.transfer_proof_ids, self.journal_id or self.collection_method_id.resolve_journal())
         return super(CollectMultiple, self.with_context(
-            default_transfer_proof_ids=[Command.set(self.transfer_proof_ids.ids)],
             default_cash_collector_user_id=self.env.uid,
         )).action_collect_payment()

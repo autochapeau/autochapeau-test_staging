@@ -1,0 +1,8 @@
+// Keep international phone numbers readable in Arabic forms and lists.
+// Ignore RTL conversion so the country code stays before the local number.
+.o_field_phone .o_phone_content > .o_form_uri,
+.o_field_phone .o_phone_content > input[type="tel"] {
+    /* rtl:ignore */
+    direction: ltr;
+    unicode-bidi: isolate;
+}
