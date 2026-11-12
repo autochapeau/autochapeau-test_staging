@@ -1,3 +1,5 @@
+from lxml import etree
+
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
@@ -291,7 +293,134 @@ class TestServiceMaterials(TransactionCase):
         self.service.invalidate_recordset(["ungrouped_component_ids"])
         self.assertNotIn(legacy, self.service.ungrouped_component_ids)
         self.assertIn(legacy, self.right_config.component_ids)
-        self.assertEqual(len(self.service.bom_ids), count)
+        self.assertEqual(len(self.service.bom_ids), count + 1)
+
+    def test_ungrouped_materials_are_reference_only(self):
+        legacy = self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": self.film.id, "quantity": 99,
+        })
+        order = self._order()
+        self.assertIn(legacy, self.service.ungrouped_component_ids)
+        self.assertIn(legacy, self.service.product_tmpl_id.ungrouped_component_ids)
+        self.assertNotIn(legacy, self.service.bom_ids)
+        self.assertEqual(len(order.product_ids), 3)
+        self.assertNotIn(legacy, order.product_ids.source_component_id)
+        self.assertEqual(sum(order.product_ids.mapped("suggested_qty")), 6)
+        self.assertNotIn(legacy, order.service_ids._get_service_boms())
+        order.service_ids._ensure_qa_items()
+        self.assertNotIn(legacy, order.service_ids.qa_check_item_ids.bom_id)
+
+    def test_deleting_configured_parts_does_not_reactivate_legacy_rows(self):
+        legacy = self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": self.film.id, "quantity": 99,
+        })
+        existing_order = self._order()
+        existing_ids = existing_order.product_ids.ids
+        self.service.service_part_ids.unlink()
+        self.assertTrue(legacy.exists())
+        self.assertFalse(self.service.bom_ids)
+        self.assertFalse(self._order().product_ids)
+        self.assertEqual(existing_order.product_ids.ids, existing_ids)
+        self.assertEqual(sum(existing_order.product_ids.mapped("quantity")), 6)
+
+    def test_ungrouped_material_does_not_supply_manual_line_defaults(self):
+        service = self.env["product.product"].create({
+            "name": "Reference only service", "detailed_type": "service",
+        })
+        category = self.film.categ_id
+        category.is_main_material_category = True
+        self.env["car.bom"].create({
+            "service_id": service.id, "product_id": self.film.id,
+            "quantity": 99, "product_uom_id": self.dozens.id,
+            "material_category_id": category.id,
+        })
+        order = self._order(services=service, products=[Command.create({
+            "service_id": service.id, "product_id": self.film.id, "quantity": 1,
+        })])
+        line = order.product_ids
+        self.assertEqual(len(line), 1)
+        self.assertEqual(line.suggested_qty, 0)
+        self.assertEqual(line.quantity, 1)
+        self.assertEqual(line.used_uom_id, self.unit)
+        self.assertFalse(line.material_category_id)
+        self.assertFalse(line.source_component_id)
+
+    def test_service_onchange_does_not_load_ungrouped_materials(self):
+        self.service.service_part_ids.unlink()
+        self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": self.film.id, "quantity": 99,
+        })
+        line = self.env["car.workorder.product"].new({"service_id": self.service.id})
+        line._onchange_service_id_load_components()
+        self.assertFalse(line.product_id)
+        self.assertEqual(line.suggested_qty, 0)
+
+    def test_ungrouped_reference_tables_are_readonly(self):
+        for model, view in [
+            ("product.product", "product.product_normal_form_view"),
+            ("product.template", "product.product_template_only_form_view"),
+        ]:
+            arch = self.env[model].get_view(self.env.ref(view).id, "form")["arch"]
+            fields = etree.fromstring(arch).xpath("//field[@name='ungrouped_component_ids']")
+            self.assertTrue(fields)
+            for field in fields:
+                self.assertEqual(field.get("readonly"), "1")
+                self.assertFalse(field.xpath("./tree[@editable]"))
+
+    def test_appointment_only_loads_configured_materials(self):
+        legacy = self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": self.film.id, "quantity": 99,
+        })
+        slot = self.env["car.appointment.slot"].create({
+            "date": "2099-01-15", "start_hour": 9, "duration": 1, "capacity": 5,
+            "is_available": True,
+        })
+        appointment = self.env["car.appointment"].create({
+            "appointment_slot_id": slot.id, "partner_id": self.customer.id,
+            "vehicle_id": self.vehicle.id, "branch_id": self.branch.id,
+            "service_ids": [Command.create({"product_id": self.service.id})],
+        })
+        appointment.action_done()
+        order = appointment.car_work_order_id
+        self.assertTrue(order)
+        self.assertEqual(len(order.product_ids), 3)
+        self.assertNotIn(legacy, order.product_ids.source_component_id)
+        self.assertEqual(sum(order.product_ids.mapped("quantity")), 6)
+
+    def test_upsells_only_load_configured_materials(self):
+        SaleOrder = self.env["sale.order"]
+        methods = [(kind, getattr(SaleOrder, "_sync_%s_upsell_to_work_order" % kind, None))
+                   for kind in ("contract", "extern")]
+        if not any(method for kind, method in methods):
+            self.skipTest("Upsell modules are not installed")
+        reference_product = self.env["product.product"].create({
+            "name": "Historical reference product", "detailed_type": "product",
+        })
+        self.env["car.bom"].create({
+            "service_id": self.service.id, "product_id": reference_product.id, "quantity": 99,
+        })
+        empty_service = self.env["product.product"].create({
+            "name": "Empty initial service", "detailed_type": "service",
+        })
+        for kind, method in methods:
+            if not method:
+                continue
+            with self.subTest(upsell=kind):
+                self.customer.partner_type = "contract"
+                parent = SaleOrder.create({
+                    "partner_id": self.customer.id, "order_type": kind, "vehicle_id": self.vehicle.id,
+                })
+                order = self._order(services=empty_service)
+                order.sale_order_id = parent
+                upsell = SaleOrder.create({
+                    "partner_id": self.customer.id, "related_sale_id": parent.id, "order_type": "intern",
+                    "vehicle_id": self.vehicle.id,
+                    "order_line": [Command.create({"product_id": self.service.id})],
+                })
+                getattr(upsell, "_sync_%s_upsell_to_work_order" % kind)()
+                self.assertIn(self.service, order.service_ids.product_id)
+                self.assertEqual(order.product_ids.product_id, self.film | self.liquid)
+                self.assertNotIn(reference_product, order.product_ids.product_id)
 
     def test_combined_views_compile(self):
         for model, view in [

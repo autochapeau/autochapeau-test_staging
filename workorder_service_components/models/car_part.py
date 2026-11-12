@@ -76,6 +76,9 @@ class ServicePart(models.Model):
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
+    # Every operational consumer (orders, appointments, upsells and QA) reads
+    # this relation. Ungrouped legacy rows remain in the reference table only.
+    bom_ids = fields.One2many(domain=[("service_part_id", "!=", False)])
     service_part_ids = fields.One2many("car.service.part", "service_id", string="Vehicle Parts", copy=True)
     ungrouped_component_ids = fields.One2many(
         "car.bom", "service_id", domain=[("service_part_id", "=", False)],
