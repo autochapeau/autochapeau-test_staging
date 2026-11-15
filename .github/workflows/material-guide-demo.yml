@@ -1,0 +1,32 @@
+name: Prepare TEST material guide examples
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/material-guide-demo.yml', '.github/verification/create_material_guide_demo.py']
+  workflow_dispatch:
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Create fictional TEST examples
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /home/admin/custom_addons
+          git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
+          CONTAINER=$(sudo docker ps --filter 'name=autochapeau_staging_odoo_odoo' --format '{{.ID}}' | head -1)
+          test -n "$CONTAINER"
+          git show FETCH_HEAD:.github/verification/create_material_guide_demo.py |
+            sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0
+          REMOTE
