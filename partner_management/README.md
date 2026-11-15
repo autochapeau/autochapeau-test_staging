@@ -28,4 +28,4 @@ GROUP BY mobile_normalized
 HAVING count(*) > 1;
 ```
 
-Regression tests: `--test-enable --test-tags partner_mobile_unique`.
+Nine regression tests: `--test-enable --test-tags partner_mobile_unique`.
