@@ -52,6 +52,11 @@ jobs:
             sudo docker ps --filter "name=$ODOO_CONTAINER_NAME" --format '{{.ID}}' | head -1
           )
           test -n "$ODOO_CONTAINER"
+          git show "$INCOMING_COMMIT:.github/verification/mobile_unique_preservation.py" |
+            sudo docker exec -i \
+              -e MOBILE_UPGRADE_PHASE=before \
+              -e MOBILE_UPGRADE_AUDIT_ID="$INCOMING_COMMIT" "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0
           git show "$INCOMING_COMMIT:.github/verification/commission_upgrade_preservation.py" |
             sudo docker exec -i \
               -e COMMISSION_UPGRADE_PHASE=before \
@@ -141,9 +146,20 @@ jobs:
             -e COMMISSION_UPGRADE_AUDIT_ID="$NEW_COMMIT" "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/commission_upgrade_preservation.py"
+          sudo docker exec -i \
+            -e MOBILE_UPGRADE_PHASE=after \
+            -e MOBILE_UPGRADE_AUDIT_ID="$NEW_COMMIT" "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/mobile_unique_preservation.py"
           sudo docker exec -i -e VIDEO_VERIFICATION_ROOT="$VERIFY_PATH" "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/run_regression.py"
+
+          if [ -f "$PROJECT_PATH/.github/verification/run_mobile_unique_tests.py" ]; then
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+              < "$PROJECT_PATH/.github/verification/run_mobile_unique_tests.py"
+          fi
 
           echo "Deployment completed successfully."
           REMOTE_SCRIPT

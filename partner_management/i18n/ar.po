@@ -1,0 +1,20 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: partner_management
+#: model:ir.model.constraint,message:partner_management.constraint_res_partner_partner_mobile_unique_key_uniq
+#: code:addons/partner_management/models/res_partner.py:0
+#, python-format
+msgid "This mobile number is already used by another contact."
+msgstr "رقم الجوال مستخدم بالفعل لدى جهة اتصال أخرى، ولا يمكن تكراره."
+
+#. module: partner_management
+#: code:addons/partner_management/models/res_partner.py:0
+#, python-format
+msgid "Database protection for new mobile numbers could not be enabled."
+msgstr "تعذر تفعيل حماية قاعدة البيانات من تكرار أرقام الجوال الجديدة."
