@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_service_material_guide" model="ir.actions.act_url">
+        <field name="name">دليل مكونات الخدمات — بالمصري</field>
+        <field name="url">/service-materials-guide</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_service_material_guide" name="دليل مكونات الخدمات" parent="work_orders.car_work_order_menu_root" action="action_service_material_guide" sequence="95" groups="base.group_user"/>
+</odoo>
