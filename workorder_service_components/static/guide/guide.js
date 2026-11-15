@@ -68,3 +68,17 @@
   document.querySelectorAll('.calc-inputs input').forEach((input) => input.addEventListener('input', calculate));
   calculate();
 })();
+
+// Jump to the matching explanation without forcing playback.
+document.querySelectorAll('[data-video-seek]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const video = document.querySelector('#video video');
+    const seconds = Number(button.dataset.videoSeek);
+    if (!video || !Number.isFinite(seconds)) return;
+    const seek = () => { video.currentTime = Math.min(seconds, video.duration || seconds); };
+    if (video.readyState) seek();
+    else video.addEventListener('loadedmetadata', seek, { once: true });
+    document.getElementById('video').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    video.focus({ preventScroll: true });
+  });
+});
