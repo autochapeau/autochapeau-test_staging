@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+    paths-ignore: ['.github/**']
 
 concurrency:
   group: odoo-test-deployment
