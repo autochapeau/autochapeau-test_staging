@@ -4,13 +4,13 @@ from odoo import Command
 assert env.cr.dbname == "autochapeau_prod_test", "Guide examples are TEST-only"
 qa = env(context=dict(env.context, tracking_disable=True, mail_create_nosubscribe=True, mail_notrack=True, no_reset_password=True))
 
-def ensure(key, model, values):
+def ensure(key, model, values, creator=None):
     xmlid = "workorder_service_components.guide_demo_" + key
     record = qa.ref(xmlid, raise_if_not_found=False)
     if record and record.exists():
         assert record._name == model
         return record
-    record = qa[model].create(values)
+    record = qa[model].with_user(creator or qa.uid).create(values)
     data = qa["ir.model.data"].search([("module", "=", "workorder_service_components"), ("name", "=", "guide_demo_" + key)])
     if data:
         data.write({"model": model, "res_id": record.id})
@@ -84,6 +84,20 @@ if issued.state == "progress" and not issued.materials_finished:
 liquid_order = order("order_liquid", paint)
 prepare(liquid_order, liquid)
 result = {"database":qa.cr.dbname,"service_template":template.id,"variants":{k:v.id for k,v in variants.items()},"film_template":film_a.product_tmpl_id.id,"film":film_a.id,"alternative_film":film_b.id,"liquid_template":liquid.product_tmpl_id.id,"liquid_service_template":paint.product_tmpl_id.id,"liquid_service":paint.id,"batch":batch.id,"liquid_batch":liquid_batch.id,"part_configuration":variants["Small"].service_part_ids[:1].id,"order_standard":standard.id,"order_warning":warning.id,"order_issued":issued.id,"order_liquid":liquid_order.id,"delivery":issued.material_picking_ids.id,"warehouse":warehouse.id}
+# Persist screenshot forms under the existing workshop manager's normal ACLs.
+# This does not change permissions or impersonate a browser session.
+manager = qa['res.users'].browse(212).exists()
+assert manager and manager.has_group('work_orders.group_workshop_manager')
+for key, source in [('screenshot_batch', batch), ('screenshot_liquid_batch', liquid_batch)]:
+    fields = ['material_category_id', 'product_id', 'quantity', 'product_uom_id', 'usage_mode', 'standard_length_in', 'standard_width_in']
+    lines = []
+    for line in source.line_ids:
+        vals = {f: line[f].id if line._fields[f].type == 'many2one' else line[f] for f in fields}
+        vals['allowed_brand_ids'] = [Command.set(line.allowed_brand_ids.ids)]
+        lines.append(Command.create(vals))
+    overrides = [Command.create({'service_id': row.service_id.id, 'quantity': row.quantity, 'product_uom_id': row.product_uom_id.id, 'standard_length_in': row.standard_length_in, 'standard_width_in': row.standard_width_in}) for row in source.variant_line_ids]
+    form = ensure(key, 'car.service.component.batch', {'product_tmpl_id': source.product_tmpl_id.id, 'part_ids': [Command.set(source.part_ids.ids)], 'service_ids': [Command.set(source.service_ids.ids)], 'line_ids': lines, 'variant_line_ids': overrides}, creator=manager.id)
+    result[key] = form.id
 qa["ir.config_parameter"].sudo().set_param("workorder_service_components.guide_demo_ids",json.dumps(result))
 qa.cr.commit()
 print("MATERIAL_GUIDE_DEMO="+json.dumps(result,sort_keys=True))
