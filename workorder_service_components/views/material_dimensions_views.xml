@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="material_brand_action" model="ir.actions.act_window">
+    <field name="name">Material Brands</field><field name="res_model">car.material.brand</field><field name="view_mode">tree,form</field>
+  </record>
+  <menuitem id="material_brand_menu" name="Material Brands" parent="work_orders.car_work_order_menu_configuration" action="material_brand_action" sequence="16" groups="work_orders.group_workshop_manager"/>
+  <record id="raw_material_template_dimensions" model="ir.ui.view">
+    <field name="name">product.template.material.dimensions</field><field name="model">product.template</field>
+    <field name="inherit_id" ref="product.product_template_form_view"/>
+    <field name="arch" type="xml">
+      <xpath expr="//page[@name='general_information']" position="inside">
+        <group string="Film / Raw Material" invisible="detailed_type == 'service' or product_variant_count > 1">
+          <field name="material_brand_id"/><field name="film_width_in"/><field name="roll_length_m"/>
+        </group>
+        <group string="Car Material Budget" invisible="detailed_type != 'service' or product_variant_count > 1">
+          <field name="material_total_length_in"/><field name="material_total_width_in"/><field name="material_tolerance_in"/>
+          <p class="text-muted">Total budgets compare the sum of cut lengths and widths for each service. Zero means no total limit. The default per-part allowance is 5 inches.</p>
+        </group>
+        <p class="text-muted" invisible="product_variant_count &lt;= 1">Set film dimensions, material brand and car budgets on each individual variant.</p>
+      </xpath>
+    </field>
+  </record>
+  <record id="raw_material_variant_dimensions" model="ir.ui.view">
+    <field name="name">product.product.material.dimensions</field><field name="model">product.product</field>
+    <field name="inherit_id" ref="product.product_normal_form_view"/>
+    <field name="arch" type="xml">
+      <xpath expr="//page[@name='general_information']" position="inside">
+        <group string="Film / Raw Material" invisible="detailed_type == 'service'">
+          <field name="material_brand_id"/><field name="film_width_in"/><field name="roll_length_m"/>
+        </group>
+        <group string="Car Material Budget" invisible="detailed_type != 'service'">
+          <field name="material_total_length_in"/><field name="material_total_width_in"/><field name="material_tolerance_in"/>
+          <p class="text-muted">Budgets compare the sum of all part lengths and the sum of all part widths for this service. Zero means no total limit. Each part warns above its standard plus the tolerance.</p>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>

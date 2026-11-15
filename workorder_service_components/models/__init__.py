@@ -6,3 +6,4 @@ from . import material_execution
 from . import material_category
 from . import component_batch
 from . import material_availability
+from . import material_dimensions

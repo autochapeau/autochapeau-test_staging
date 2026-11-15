@@ -492,7 +492,7 @@ class TestServiceMaterials(TransactionCase):
         template = self._batch_template()
         with Form(self.env["car.service.component.batch"].with_context(default_product_tmpl_id=template.id),
                   view="workorder_service_components.service_component_batch_form") as form:
-            form.part_id = self.right
+            form.part_ids.add(self.right)
             for service in template.product_variant_ids:
                 form.service_ids.add(service)
             with form.line_ids.new() as line:
@@ -802,3 +802,249 @@ class TestServiceMaterials(TransactionCase):
         }, origin=saved)
         self.assertEqual(line.branch_available_qty, 5)
         self.assertFalse(line.material_stock_shortage)  # 2 + the other part's 3.
+
+    def _film_recipe(self, category_only=False):
+        category = self._categorized_materials()
+        precise = self.env["uom.uom"].create({"name": "Precise film stock unit", "category_id": self.unit.category_id.id,
+            "uom_type": "smaller", "factor": 1, "rounding": 0.000001})
+        self.film.write({"uom_id": precise.id, "uom_po_id": precise.id, "film_width_in": 60, "roll_length_m": 15})
+        self.right_config.component_ids.unlink()
+        self.left_config.component_ids.unlink()
+        recipe = self.env["car.bom"].create({"service_part_id": self.right_config.id,
+            "material_category_id": category.id, "product_id": False if category_only else self.film.id,
+            "usage_mode": "roll", "standard_length_in": 15, "standard_width_in": 20, "quantity": 1})
+        return recipe
+
+    def test_video_category_only_snapshot_and_selection_before_finish(self):
+        recipe = self._film_recipe(category_only=True)
+        order = self._order()
+        self.assertEqual(len(order.product_ids), 1)
+        line = order.product_ids
+        self.assertEqual(line.source_component_id, recipe)
+        self.assertFalse(line.product_id)
+        self.assertEqual(line.actual_length_in, 15)
+        self.assertEqual(line.quantity, 0)
+        self._start(order)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        line.product_id = self.film
+        self.assertAlmostEqual(line.quantity, .01)
+        before = self._available(self.film)
+        order.action_finish_materials()
+        self.assertAlmostEqual(before - self._available(self.film), line.quantity, places=6)
+        self.assertEqual(line.material_move_id.state, "done")
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.actual_length_in = 25
+
+    def test_video_film_dimensions_snapshot_and_actual_stock(self):
+        recipe = self._film_recipe()
+        order = self._order()
+        line = order.product_ids
+        suggested = line.suggested_qty
+        self._start(order)
+        line.write({"actual_length_in": 20, "actual_width_in": 30})
+        self.assertAlmostEqual(line.quantity, .02)
+        self.assertEqual(line.suggested_qty, suggested)
+        recipe.standard_length_in = 12
+        self.film.film_width_in = 70
+        self.assertEqual(line.standard_length_in, 15)
+        self.assertEqual(line.film_width_in, 60)
+        before = self._available(self.film)
+        order.action_finish_materials()
+        self.assertAlmostEqual(before - self._available(self.film), line.quantity, places=6)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.quantity = 2
+
+    def test_video_tolerance_boundary_and_car_budget(self):
+        self._film_recipe()
+        self.service.write({"material_total_length_in": 19, "material_total_width_in": 30})
+        order = self._order()
+        line = order.product_ids
+        line.actual_length_in = 20
+        self.assertNotIn("standard plus", line.dimension_warning or "")
+        self.assertIn("car budget", line.dimension_warning)
+        line.actual_length_in = 20.01
+        self.assertIn("standard plus", line.dimension_warning)
+        self.assertAlmostEqual(order.material_used_length_m, 20.01 * .0254)
+        self.assertAlmostEqual(order.material_used_area_m2, 20.01 * 20 * .0254 ** 2)
+        self.service.material_total_length_in = 100
+        self.assertEqual(order.service_ids.material_total_length_in, 19)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            order.service_ids.material_total_length_in = 200
+
+    def test_video_brand_restrictions_enforced_on_server(self):
+        recipe = self._film_recipe(category_only=True)
+        brands = self.env["car.material.brand"].create([{"name": "Marvel test"}, {"name": "Miracle test"}])
+        self.film.material_brand_id = brands[0]
+        recipe.allowed_brand_ids = brands[0]
+        line = self._order().product_ids
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.material_brand_id = brands[1]
+        line.material_brand_id = brands[0]
+        line.product_id = self.film
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.product_id = self.liquid
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.allowed_brand_ids = brands
+
+    def test_video_roll_product_switch_updates_width_and_stock_quantity(self):
+        self._film_recipe()
+        replacement = self.env["product.product"].create({"name": "70 inch substitute", "detailed_type": "product",
+            "categ_id": self.film.categ_id.id, "uom_id": self.film.uom_id.id, "uom_po_id": self.film.uom_id.id,
+            "film_width_in": 70, "roll_length_m": 30})
+        order = self._order()
+        self._start(order)
+        line = order.product_ids
+        line.product_id = replacement
+        self.assertEqual(line.film_width_in, 70)
+        self.assertEqual(line.roll_length_m, 30)
+        self.assertAlmostEqual(line.quantity, .01)
+
+    def test_video_rejects_invalid_dimensions_and_coarse_roll_unit(self):
+        self._film_recipe()
+        line = self._order().product_ids
+        for values in ({"actual_length_in": -1}, {"actual_width_in": 61}):
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                line.write(values)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.write({"quantity": 10})
+        coarse = self.env["uom.uom"].create({"name": "Whole rolls only", "category_id": self.unit.category_id.id,
+            "uom_type": "smaller", "factor": 1, "rounding": 1})
+        bad = self.env["product.product"].create({"name": "Coarse unit film", "detailed_type": "product", "categ_id": self.film.categ_id.id,
+            "uom_id": coarse.id, "uom_po_id": coarse.id, "film_width_in": 60, "roll_length_m": 15})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.product_id = bad
+
+    def test_video_batch_multi_parts_and_size_overrides(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        variants = template.product_variant_ids
+        batch = self._batch(template, category)
+        batch.part_id = False
+        batch.part_ids = self.left | self.right
+        batch.variant_line_ids = [Command.create({"service_id": variants[0].id, "quantity": 7})]
+        batch.action_apply()
+        batch.action_apply()
+        self.assertEqual(len(template.service_part_ids), 4)
+        self.assertEqual(variants[0].bom_ids.mapped("quantity"), [7, 7])
+        self.assertEqual(variants[1].bom_ids.mapped("quantity"), [4, 4])
+
+    def test_video_whole_service_liquid_category_and_compatible_unit(self):
+        category = self._categorized_materials()
+        template = self._batch_template()
+        batch = self._batch(template, category)
+        batch.part_id = False
+        batch.line_ids.product_id = False
+        batch.action_apply()
+        self.assertFalse(template.service_part_ids.part_id)
+        self.assertEqual(len(template.service_part_ids), 2)
+        order = self._order(services=template.product_variant_ids[:1])
+        self.assertEqual(len(order.product_ids), 1)
+        line = order.product_ids
+        self.assertEqual(line.quantity, 4)
+        self.assertFalse(line.product_id)
+        self._start(order)
+        line.product_id = self.liquid
+        order.action_finish_materials()
+        self.assertEqual(self._available(self.liquid), 96)
+
+    def test_video_film_configuration_form_and_category_unit(self):
+        category = self._categorized_materials()
+        with Form(self.env["car.service.component.batch"].with_context(default_product_tmpl_id=self.service.product_tmpl_id.id),
+                  view="workorder_service_components.service_component_batch_form") as form:
+            form.service_ids.add(self.service)
+            form.part_ids.add(self.right)
+            form.part_ids.add(self.left)
+            with form.line_ids.new() as line:
+                line.material_category_id = category
+                line.usage_mode = "roll"
+                line.standard_length_in = 15
+                line.standard_width_in = 20
+        form.record.action_apply()
+        self.assertEqual(len(self.service.service_part_ids.component_ids.filtered(lambda row: not row.product_id)), 2)
+
+    def test_video_category_resync_preserves_selected_product(self):
+        self._film_recipe(category_only=True)
+        order = self._order()
+        line = order.product_ids
+        line.product_id = self.film
+        order._sync_part_materials()
+        order._sync_part_materials()
+        self.assertEqual(len(order.product_ids), 1)
+        self.assertEqual(line.product_id, self.film)
+
+    def test_video_category_appointment_does_not_create_empty_or_duplicate_rows(self):
+        self._film_recipe(category_only=True)
+        slot = self.env["car.appointment.slot"].create({"date": "2099-01-16", "start_hour": 9,
+            "duration": 1, "capacity": 5, "is_available": True})
+        appointment = self.env["car.appointment"].create({"appointment_slot_id": slot.id, "partner_id": self.customer.id,
+            "vehicle_id": self.vehicle.id, "branch_id": self.branch.id,
+            "service_ids": [Command.create({"product_id": self.service.id})]})
+        appointment.action_done()
+        order = appointment.car_work_order_id
+        self.assertEqual(len(order.product_ids), 1)
+        self.assertTrue(order.product_ids.source_component_id)
+        self.assertFalse(order.product_ids.product_id)
+
+    def test_video_actual_dimensions_can_be_saved_in_workorder_form(self):
+        self._film_recipe()
+        order = self._order()
+        self._start(order)
+        with Form(order, view="work_orders.car_work_order_view_form") as form:
+            with form.product_ids.edit(0) as line:
+                line.actual_length_in = 25
+                line.actual_width_in = 30
+                self.assertTrue(line.dimension_warning)
+        self.assertEqual(order.product_ids.actual_length_in, 25)
+        self.assertEqual(order.product_ids.quantity, .03)
+
+    def test_video_category_quantity_keeps_configured_millilitres(self):
+        category = self._categorized_materials()
+        litre = self.env.ref("uom.product_uom_litre")
+        ml = self.env["uom.uom"].create({"name": "Test millilitres", "category_id": litre.category_id.id,
+            "uom_type": "smaller", "factor": 1000, "rounding": .001})
+        self.liquid.write({"uom_id": litre.id, "uom_po_id": litre.id})
+        self.service.service_part_ids.component_ids.unlink()
+        self.env["car.bom"].create({"service_part_id": self.right_config.id, "material_category_id": category.id,
+            "quantity": 250, "product_uom_id": ml.id})
+        order = self._order()
+        self._start(order)
+        line = order.product_ids
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.product_id = self.film
+        line.product_id = self.liquid
+        self.assertEqual(line.used_uom_id, ml)
+        self.assertEqual(line.quantity, 250)
+        before = self._available(self.liquid)
+        order.action_finish_materials()
+        self.assertAlmostEqual(before - self._available(self.liquid), .25)
+        self.assertEqual(order.service_ids.qa_check_item_ids.product_id, self.liquid)
+
+    def test_video_concrete_film_appointment_adopts_dimensions(self):
+        self._film_recipe()
+        slot = self.env["car.appointment.slot"].create({"date": "2099-01-17", "start_hour": 9,
+            "duration": 1, "capacity": 5, "is_available": True})
+        appointment = self.env["car.appointment"].create({"appointment_slot_id": slot.id,
+            "partner_id": self.customer.id, "vehicle_id": self.vehicle.id, "branch_id": self.branch.id,
+            "service_ids": [Command.create({"product_id": self.service.id})]})
+        appointment.action_done()
+        order = appointment.car_work_order_id
+        self.assertEqual(len(order.product_ids), 1)
+        self.assertEqual(order.product_ids.usage_mode, "roll")
+        self.assertEqual(order.product_ids.actual_length_in, 15)
+        self.assertEqual(order.product_ids.quantity, .01)
+
+    def test_video_template_film_metadata_edit_and_variants_independent(self):
+        with Form(self.env["product.template"], view="product.product_template_only_form_view") as form:
+            form.name = "Raw film template test"
+            form.detailed_type = "product"
+            form.film_width_in = 60
+            form.roll_length_m = 15
+        self.assertEqual(form.record.product_variant_id.film_width_in, 60)
+        self.assertEqual(form.record.product_variant_id.roll_length_m, 15)
+        template = self._batch_template()
+        variants = template.product_variant_ids
+        variants[0].material_total_length_in = 50
+        variants[1].material_total_length_in = 100
+        self.assertEqual(variants[0].material_total_length_in, 50)
+        self.assertEqual(variants[1].material_total_length_in, 100)

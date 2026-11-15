@@ -29,7 +29,7 @@ class WorkOrderProduct(models.Model):
 
     @api.constrains("material_category_id", "product_id")
     def _check_material_category(self):
-        for line in self.filtered("material_category_id"):
+        for line in self.filtered(lambda row: row.material_category_id and row.product_id):
             if not self.env["product.product"].search_count([
                 ("id", "=", line.product_id.id),
                 ("categ_id", "child_of", line.material_category_id.id),
@@ -121,7 +121,7 @@ class WorkOrderProduct(models.Model):
                 raise ValidationError(_("Used quantities cannot be negative."))
             if line.lot_id and line.lot_id.product_id != line.product_id:
                 raise ValidationError(_("The selected lot/serial belongs to another product."))
-            if line.used_uom_id and line.used_uom_id.category_id != line.product_id.uom_id.category_id:
+            if line.product_id and line.used_uom_id and line.used_uom_id.category_id != line.product_id.uom_id.category_id:
                 raise ValidationError(_("The material unit must match the product's unit category."))
             if line.source_task_id and (
                 line.source_task_id.workorder_id != line.workorder_id
@@ -174,7 +174,7 @@ class WorkOrder(models.Model):
             available = order.product_ids.filtered(lambda line: line.service_id and not line.source_task_id)
             for task in order.service_ids:
                 existing = order.product_ids.filtered(lambda line: line.source_task_id == task)
-                for bom in task.product_id.bom_ids:
+                for bom in task.product_id.service_part_ids.component_ids:
                     if bom in existing.source_component_id:
                         continue
                     candidate = available.filtered(lambda line:
@@ -344,7 +344,10 @@ class WorkOrderService(models.Model):
     def _issue_materials(self):
         self.ensure_one()
         order = self.workorder_id
-        lines = order.product_ids.filtered(lambda line: line.source_task_id == self and line.quantity > 0)
+        task_lines = order.product_ids.filtered(lambda line: line.source_task_id == self)
+        if task_lines.filtered(lambda line: line.source_component_id and not line.product_id):
+            raise UserError(_("Select the actual material for every configured category before finishing."))
+        lines = task_lines.filtered(lambda line: line.quantity > 0)
         if not lines:
             self.with_context(material_issue_token=_ISSUE_TOKEN).materials_issued = True
             return

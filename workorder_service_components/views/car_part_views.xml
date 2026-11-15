@@ -38,10 +38,14 @@
                     <field name="component_ids">
                         <tree editable="bottom">
                             <field name="material_category_id" options="{'no_create': True}"/>
-                            <field name="product_id" required="1" domain="[('detailed_type', '=', 'product')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else [])" options="{'no_create': True}"/>
-                            <field name="quantity" string="Default Quantity"/>
+                            <field name="product_id" required="not material_category_id" domain="[('detailed_type', '=', 'product')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else [])" options="{'no_create': True}"/>
+                            <field name="allowed_brand_ids" widget="many2many_tags" optional="show"/>
+                            <field name="usage_mode"/>
+                            <field name="standard_length_in" optional="show" readonly="usage_mode != 'roll'"/>
+                            <field name="standard_width_in" optional="show" readonly="usage_mode != 'roll'"/>
+                            <field name="quantity" string="Default Quantity" readonly="usage_mode == 'roll'"/>
                             <field name="product_uom_category_id" column_invisible="1"/>
-                            <field name="product_uom_id" required="1" options="{'no_create': True}"/>
+                            <field name="product_uom_id" required="usage_mode == 'quantity'" options="{'no_create': True}"/>
                         </tree>
                     </field>
                 </sheet>

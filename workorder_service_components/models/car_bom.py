@@ -17,7 +17,7 @@ class CarBom(models.Model):
     product_uom_id = fields.Many2one(
         "uom.uom",
         string="UoM",
-        domain="[('category_id', '=', product_uom_category_id)]",
+        domain="[('category_id', '=', product_uom_category_id)] if product_uom_category_id else []",
     )
 
     @api.onchange("product_id")
