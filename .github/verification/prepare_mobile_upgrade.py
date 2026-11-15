@@ -1,8 +1,9 @@
 """Add the nullable key before any registry reads newly deployed source."""
 import psycopg2
+import sys
 from odoo.tools import config
 
-config.parse_config([])
+config.parse_config(sys.argv[1:])
 assert config["db_name"] == "autochapeau_prod_test"
 options = {key: config["db_" + key] for key in ("host", "port", "user", "password") if config["db_" + key]}
 with psycopg2.connect(dbname=config["db_name"], **options) as connection:

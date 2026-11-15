@@ -1,11 +1,12 @@
 """Recover module upgrades if a previous run pulled source then stopped early."""
 import ast
+import sys
 from pathlib import Path
 
 import psycopg2
 from odoo.tools import config
 
-config.parse_config([])
+config.parse_config(sys.argv[1:])
 database = config["db_name"]
 assert database == "autochapeau_prod_test"
 options = {key: config["db_" + key] for key in ("host", "port", "user", "password") if config["db_" + key]}
