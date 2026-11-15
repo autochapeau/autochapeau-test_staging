@@ -52,6 +52,9 @@ jobs:
             sudo docker ps --filter "name=$ODOO_CONTAINER_NAME" --format '{{.ID}}' | head -1
           )
           test -n "$ODOO_CONTAINER"
+          git show "$INCOMING_COMMIT:.github/verification/prepare_mobile_upgrade.py" |
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              python3 - -d "$ODOO_DATABASE"
           git show "$INCOMING_COMMIT:.github/verification/mobile_unique_preservation.py" |
             sudo docker exec -i \
               -e MOBILE_UPGRADE_PHASE=before \
@@ -82,6 +85,10 @@ jobs:
             done |
             paste -sd, -
           )
+          PENDING_MODULES=$(sudo docker exec -i "$ODOO_CONTAINER" \
+            python3 - -d "$ODOO_DATABASE" \
+            < "$PROJECT_PATH/.github/verification/pending_mobile_release.py")
+          MODULES=$(printf '%s\n' "$MODULES" "$PENDING_MODULES" | tr ',' '\n' | sed '/^$/d' | sort -u | paste -sd, -)
 
           if [ -z "$MODULES" ]; then
             MODULES="$REQUIRED_FEATURE_MODULES"

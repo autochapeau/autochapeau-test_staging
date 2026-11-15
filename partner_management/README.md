@@ -15,6 +15,9 @@ its SQL uniqueness also protects concurrent writes. Existing rows retain NULL
 keys, so upgrades never rewrite, merge or delete legacy contacts. API callers
 cannot disable the protection by setting the internal key.
 
+The TEST deployment prepares the nullable column before scripts that load the
+new registry, and retries module versions left pending by interrupted releases.
+
 Review existing duplicate groups when needed:
 
 ```sql
