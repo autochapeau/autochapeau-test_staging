@@ -43,8 +43,10 @@ jobs:
           import json
           env.cr.execute("SELECT count(*), coalesce(sum(n), 0) FROM (SELECT count(*) n FROM res_partner WHERE mobile_normalized IS NOT NULL GROUP BY mobile_normalized HAVING count(*) > 1) duplicates")
           groups, contacts = env.cr.fetchone()
+          env.cr.execute("SELECT count(*) FILTER (WHERE NOT active), count(*) FILTER (WHERE parent_id IS NOT NULL), count(*) FILTER (WHERE mobile_normalized !~ '^\\+[0-9]{9,15}$') FROM res_partner WHERE mobile_normalized IN (SELECT mobile_normalized FROM res_partner WHERE mobile_normalized IS NOT NULL GROUP BY mobile_normalized HAVING count(*) > 1)")
+          archived, children, invalid_format = env.cr.fetchone()
           module = env['ir.module.module'].search([('name', '=', 'partner_management')], limit=1)
-          print('MOBILE_UNIQUENESS_AUDIT=' + json.dumps({'database': env.cr.dbname, 'version': module.latest_version, 'duplicate_groups': groups, 'contacts_in_duplicate_groups': int(contacts)}))
+          print('MOBILE_UNIQUENESS_AUDIT=' + json.dumps({'database': env.cr.dbname, 'version': module.latest_version, 'duplicate_groups': groups, 'contacts_in_duplicate_groups': int(contacts), 'archived_contacts': archived, 'child_contacts': children, 'invalid_format_contacts': invalid_format}))
           env.cr.rollback()
           PY
           REMOTE
