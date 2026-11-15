@@ -1,0 +1,47 @@
+name: Check mobile uniqueness
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [test, production]
+        default: test
+        required: true
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Audit current database without changing records
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash -s -- "$TARGET" <<'REMOTE'
+          set -euo pipefail
+          if [ "$1" = test ]; then
+            SERVICE=autochapeau_staging_odoo_odoo
+            DATABASE=autochapeau_prod_test
+          else
+            SERVICE=autochapeau_erp_odoo
+            DATABASE=autochapeau
+          fi
+          CONTAINER=$(sudo -n docker ps --filter "label=com.docker.swarm.service.name=$SERVICE" --format '{{.ID}}' | head -1)
+          test -n "$CONTAINER"
+          sudo -n docker exec -i "$CONTAINER" odoo shell -d "$DATABASE" --no-http --max-cron-threads=0 <<'PY'
+          import json
+          env.cr.execute("SELECT count(*), coalesce(sum(n), 0) FROM (SELECT count(*) n FROM res_partner WHERE mobile_normalized IS NOT NULL GROUP BY mobile_normalized HAVING count(*) > 1) duplicates")
+          groups, contacts = env.cr.fetchone()
+          module = env['ir.module.module'].search([('name', '=', 'partner_management')], limit=1)
+          print('MOBILE_UNIQUENESS_AUDIT=' + json.dumps({'database': env.cr.dbname, 'version': module.latest_version, 'duplicate_groups': groups, 'contacts_in_duplicate_groups': int(contacts)}))
+          env.cr.rollback()
+          PY
+          REMOTE
