@@ -47,7 +47,7 @@ sources = {
     "partner_management": ["test_contact_references", "test_team_analytic"],
     "sale_split_payment": ["test_collection_fees", "test_cash_custody", "test_payment_attachment"],
     "account_deferred_revenue": ["test_service_advance"],
-    "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers"],
+    "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers", "test_rule_setup"],
     "workorder_service_components": ["test_service_materials"],
     "order_maintenance": ["test_maintenance_parts"],
 }

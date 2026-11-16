@@ -143,7 +143,7 @@ class Rule(models.Model):
 
     def _category_keys(self):
         self.ensure_one()
-        if self.tier_ids:
+        if self.calculation_method == 'tiers':
             return {tier._category_key() for tier in self.tier_ids}
         return {(self.kind, self.category_id.id if self.kind == 'product' else self.service_category_id.id)}
 
@@ -157,16 +157,20 @@ class Rule(models.Model):
         return personal or rules.filtered(lambda rule: rule.scope == 'team' and rule.team_id == team)
 
     @api.constrains('active', 'user_id', 'user_ids', 'scope', 'team_id', 'company_id', 'kind',
-                    'category_id', 'service_category_id', 'rate', 'date_from', 'date_to', 'tier_ids')
+                    'category_id', 'service_category_id', 'rate', 'date_from', 'date_to', 'tier_ids', 'calculation_method')
     def _check_rule(self):
         for rule in self:
+            if rule.calculation_method == 'tiers' and not rule.tier_ids:
+                raise ValidationError(_('Add at least one achievement tier, or select Fixed percentage.'))
+            if rule.calculation_method == 'fixed' and rule.tier_ids:
+                raise ValidationError(_('Remove the achievement tiers explicitly before switching to Fixed percentage.'))
             if rule.scope == 'people' and not rule._scope_users():
                 raise ValidationError(_('Select at least one salesperson.'))
             if rule.scope == 'team' and not rule.team_id:
                 raise ValidationError(_('Select a sales team.'))
             if not 0 <= rule.rate <= 100 or (rule.date_to and rule.date_to < rule.date_from):
                 raise ValidationError(_('Use a rate between 0 and 100 and a valid date range.'))
-            if not rule.tier_ids and ((rule.kind == 'product' and (not rule.category_id or rule.service_category_id)) or (rule.kind == 'service' and (not rule.service_category_id or rule.category_id))):
+            if rule.calculation_method == 'fixed' and ((rule.kind == 'product' and (not rule.category_id or rule.service_category_id)) or (rule.kind == 'service' and (not rule.service_category_id or rule.category_id))):
                 raise ValidationError(_('Select only the category matching the rule type.'))
             if any(not category_id for kind, category_id in rule._category_keys()):
                 raise ValidationError(_('Select a product or service category on every achievement tier.'))

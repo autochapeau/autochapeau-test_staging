@@ -12,7 +12,27 @@ class Target(models.Model):
     period_type = fields.Selection([("month", "Monthly"), ("quarter", "Quarterly"),
         ("half", "Half-yearly"), ("year", "Yearly")], required=True, default="month")
     date_end = fields.Date(compute="_compute_date_end", store=True)
-    member_target_ids = fields.One2many("sales.commission.target.member", "target_id", copy=False)
+    member_target_ids = fields.One2many("sales.commission.target.member", "target_id", copy=True)
+    notes = fields.Text(string="Notes")
+
+    def copy(self, default=None):
+        self.ensure_one()
+        default = dict(default or {})
+        if 'month' not in default:
+            lengths = {'month': 1, 'quarter': 3, 'half': 6, 'year': 12}
+            period = default.get('period_type', self.period_type)
+            length = lengths[period]
+            start = self.month.replace(day=1, month=((self.month.month - 1) // length) * length + 1)
+            company = default.get('company_id', self.company_id.id)
+            team = default.get('team_id', self.team_id.id)
+            while True:
+                start += relativedelta(months=length)
+                end = start + relativedelta(months=length, days=-1)
+                if not self.sudo().search_count([('company_id', '=', company), ('team_id', '=', team),
+                        ('month', '<=', end), ('date_end', '>=', start)]):
+                    break
+            default['month'] = start
+        return super().copy(default)
 
     @api.depends("month", "period_type")
     def _compute_date_end(self):
@@ -138,6 +158,34 @@ class Rule(models.Model):
     _inherit = "sales.commission.rule"
 
     tier_ids = fields.One2many("sales.commission.tier", "rule_id", copy=True)
+    calculation_method = fields.Selection([('tiers', 'Target achievement tiers'),
+        ('fixed', 'Fixed percentage')], string='Calculation method', required=True, default='tiers',
+        help='Choose explicitly between target achievement tiers and one fixed category/rate.')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        values = []
+        for vals in vals_list:
+            vals = dict(vals)
+            # Existing imports/integrations that submit a fixed category retain
+            # their original meaning. The form explicitly sends its chosen mode.
+            if 'calculation_method' not in vals:
+                has_tiers = any(c[0] in (0, 4) or (c[0] == 6 and c[2]) for c in vals.get('tier_ids', []))
+                if has_tiers:
+                    vals['calculation_method'] = 'tiers'
+                elif vals.get('category_id') or vals.get('service_category_id'):
+                    vals['calculation_method'] = 'fixed'
+            values.append(vals)
+        return super().create(values)
+
+    def write(self, vals):
+        vals = dict(vals)
+        if 'calculation_method' not in vals and any(
+                c[0] in (0, 4) or (c[0] == 6 and c[2]) for c in vals.get('tier_ids', [])):
+            # Backward-compatible imports that add tiers already mean tiered rates.
+            vals['calculation_method'] = 'tiers'
+        return super().write(vals)
+
     apply_discount_adjustment = fields.Boolean(string="Apply Customer Discount Adjustment",
         help="0% discount increases commission by 20%; 1–10% leaves it unchanged; 10.01–20% reduces it by 25%. Other discounts require review.")
     personal_target = fields.Monetary(compute="_compute_personal_target", currency_field="currency_id")
@@ -162,7 +210,9 @@ class Rule(models.Model):
             return False, 0, 0, _("The invoice line needs one identifiable salesperson.")
         rate = self.rate
         achievement, personal_target = 0, 0
-        if self.tier_ids:
+        if self.calculation_method == 'tiers':
+            if not self.tier_ids:
+                return False, 0, 0, _("Add achievement tiers before calculating this rule.")
             shares = self.env["sales.commission.target.member"].sudo().search([
                 ("user_id", "=", user.id), ("team_id", "=", team.id), ("company_id", "=", self.company_id.id),
                 ("target_id.month", "<=", date), ("target_id.date_end", ">=", date)])
