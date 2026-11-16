@@ -1,0 +1,42 @@
+name: Prepare fictional website acceptance data on TEST
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/verification/prepare_website_qa.py, .github/workflows/website-qa.yml]
+permissions:
+  contents: read
+concurrency:
+  group: website-qa-fixture
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install encrypted result transport
+        run: python3 -m pip install cryptography==46.0.3 PyNaCl==1.6.2
+      - name: Prepare TEST fixture and return encrypted credentials
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' < .github/verification/prepare_website_qa.py > /tmp/website-qa-private.txt
+          python3 - <<'PY'
+          import base64,importlib.util,os,pathlib
+          spec=importlib.util.spec_from_file_location('bundle','.github/verification/website_bundle.py')
+          bundle=importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
+          lines=pathlib.Path('/tmp/website-qa-private.txt').read_text().splitlines()
+          data=next(line.split('=',1)[1] for line in lines if line.startswith('WEBSITE_QA_RESULT='))
+          public=b'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID0qbEt/j4lNMJNd6CNlFp9fQkZz7++125+byUgfSSp0'
+          sealed=base64.b64encode(bundle.encrypt(data.encode(),public)).decode()
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as output:
+              output.write('### TEST acceptance fixture\nCredentials encrypted for the existing workspace SSH key\n\n```text\nWEBSITE_QA_SEALED='+sealed+'\n```\n')
+          pathlib.Path('/tmp/website-qa-private.txt').unlink()
+          PY
