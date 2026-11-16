@@ -156,6 +156,44 @@ class TestWebsiteRelease(TransactionCase):
         source._apply_reviews([{**review, "starRating": "FOUR"}])
         self.assertFalse(rows.active)
 
+    def test_google_import_fetches_all_pages_with_authorized_account(self):
+        source = self.env["portal.google.review.source"].create({"name": "Website QA Google pages",
+            "location_name": "accounts/123/locations/456", "client_id": "qa-client",
+            "client_secret": "qa-secret", "refresh_token": "qa-refresh"})
+        from odoo.addons.portal_content.models import google_reviews
+        token = Mock()
+        token.json.return_value = {"access_token": "qa-token"}
+        first, second = Mock(), Mock()
+        first.json.return_value = {"reviews": [{"reviewId": "first"}], "nextPageToken": "next"}
+        second.json.return_value = {"reviews": [{"reviewId": "second"}]}
+        with patch.object(google_reviews.requests, "post", return_value=token) as oauth, \
+                patch.object(google_reviews.requests, "get", side_effect=[first, second]) as fetch:
+            self.assertEqual([row["reviewId"] for row in source._fetch_reviews()], ["first", "second"])
+        self.assertEqual(oauth.call_args.args[0], "https://oauth2.googleapis.com/token")
+        self.assertEqual(fetch.call_args_list[1].kwargs["params"]["pageToken"], "next")
+        self.assertEqual(fetch.call_args.kwargs["headers"], {"Authorization": "Bearer qa-token"})
+
+    def test_review_feed_keeps_only_configured_latest_five_star_reviews(self):
+        source = self.env["portal.google.review.source"].create({"name": "Website QA Google feed",
+            "location_name": "accounts/123/locations/789", "enabled": True, "display_limit": 3})
+        source._apply_reviews([{"reviewId": str(day), "starRating": "FIVE" if day < 7 else "FOUR",
+            "createTime": "2026-01-%02dT12:00:00Z" % day,
+            "reviewer": {"displayName": "Website QA Reviewer %s" % day}} for day in range(1, 8)])
+        status, rows = self.call(portal_contents.PortalContentsAPI(), "v1_get_testimonies")
+        self.assertEqual(status, 200)
+        self.assertEqual([row["name"] for row in rows], ["Website QA Reviewer 6", "Website QA Reviewer 5", "Website QA Reviewer 4"])
+
+    def test_branch_schedule_is_returned_per_branch_with_closed_days(self):
+        branch = self.env["portal.branch"].create({"name": "Website QA opening hours",
+            "schedule_ids": [Command.create({"day": "sunday", "hour_from": 10.5, "hour_to": 22}),
+                             Command.create({"day": "friday", "closed": True})]})
+        status, rows = self.call(portal_contents.PortalContentsAPI(), "v1_get_branches")
+        self.assertEqual(status, 200)
+        schedule = next(row for row in rows if row["id"] == branch.id)["working_schedule"]
+        self.assertEqual(schedule, [
+            {"day": "sunday", "hour_from": "10:30", "hour_to": "22:00", "closed": False},
+            {"day": "friday", "hour_from": False, "hour_to": False, "closed": True}])
+
     def test_maintenance_is_scoped_to_order_owner_and_uses_issued_parts(self):
         sale, order = self.issued_order()
         customer_env = self.env(user=self.owner.id)
