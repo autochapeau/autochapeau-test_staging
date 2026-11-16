@@ -609,6 +609,8 @@ class SaleOrderLine(models.Model):
 
     @api.constrains("product_uom_qty", "product_id")
     def _check_single_quantity(self):
+        # A service is performed once per car, but retail products can be bought
+        # in multiple units even when the website cart has a selected vehicle.
         for line in self:
             if line.display_type or not line.product_id:
                 continue
@@ -618,8 +620,4 @@ class SaleOrderLine(models.Model):
             ):
                 raise ValidationError(_(
                     "Service products cannot have a quantity greater than 1."
-                ))
-            if line.order_id.vehicle_id and line.product_uom_qty > 1:
-                raise ValidationError(_(
-                    "Only one unit per line is allowed on a car sale order."
                 ))

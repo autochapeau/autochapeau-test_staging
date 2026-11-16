@@ -13,7 +13,7 @@ from odoo import Command
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
-from odoo.addons.portal_api.controllers import binary, common, maintenance, portal_contents, product, search, vehicle
+from odoo.addons.portal_api.controllers import binary, common, maintenance, portal_contents, product, search, vehicle, sale_order
 
 
 @tagged("post_install", "-at_install", "website_release")
@@ -69,6 +69,43 @@ class TestWebsiteRelease(TransactionCase):
         order.action_start_materials()
         order.action_finish_materials()
         return sale, order
+
+    def test_vehicle_cart_accepts_repeated_retail_product_and_preserves_totals(self):
+        """Exercise the cart writer/reader, not only the ORM quantity constraint."""
+        item = self.env["product.product"].create({
+            "name": "Website QA Retail Quantity", "detailed_type": "consu",
+            "list_price": 25, "taxes_id": [Command.clear()],
+        })
+        fake = SimpleNamespace(env=self.env(user=self.owner))
+        controller = sale_order.SaleOrderAPI()
+        payload = {"cart_id": "website-qa-repeat-product", "vehicle_id": self.vehicle.id,
+                   "branch_id": self.branch.id, "products": [{"id": item.id, "qty": 1}]}
+        with patch.object(sale_order, "request", fake):
+            cart = controller._sync_draft_cart(payload)
+            original_id = cart.id
+            payload["products"][0]["qty"] = 2
+            cart = controller._sync_draft_cart(payload)
+            self.assertEqual(cart.id, original_id)
+            self.assertEqual(len(cart.order_line), 1)
+            self.assertEqual(cart.order_line.product_uom_qty, 2)
+            self.assertAlmostEqual(cart.amount_total, 50)
+            saved = controller._serialize_cart(controller._find_partner_draft_cart(self.owner.partner_id))
+            self.assertEqual(saved["products"][0]["qty"], 2)
+            self.assertAlmostEqual(saved["amount_total"], 50)
+            payload["products"][0]["qty"] = 3
+            cart = controller._sync_draft_cart(payload)
+            self.assertEqual(len(cart.order_line), 1)
+            self.assertAlmostEqual(cart.amount_total, 75)
+            payload["products"][0]["qty"] = 1
+            cart = controller._sync_draft_cart(payload)
+            self.assertAlmostEqual(cart.amount_total, 25)
+
+    def test_vehicle_service_quantity_limit_is_preserved(self):
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.env["sale.order"].create({"partner_id": self.owner.partner_id.id,
+                "vehicle_id": self.vehicle.id, "order_type": "intern",
+                "branch_id": self.branch.id, "warehouse_id": self.warehouse.id,
+                "order_line": [Command.create({"product_id": self.service.id, "product_uom_qty": 2})]})
 
     def test_optional_banner_title_and_localized_image(self):
         banner = self.env["portal.banner"].create({"page_name": "website-qa", "image_ar": self.image,
