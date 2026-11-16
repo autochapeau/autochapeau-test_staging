@@ -58,3 +58,10 @@ for request in env["maintenance.claim"].sudo().search([
 ]):
     request.write({"sale_order_id": False})
 env.cr.commit()
+
+# Independent TEST-only workshop operations tutorial fixture.
+from pathlib import Path
+from odoo.modules.module import get_module_path
+operations_fixture = Path(get_module_path('workorder_service_components')).parent / '.github/verification/prepare_operations_demo.py'
+if operations_fixture.is_file():
+    exec(compile(operations_fixture.read_text(encoding='utf-8'), str(operations_fixture), 'exec'), {'env': env})
