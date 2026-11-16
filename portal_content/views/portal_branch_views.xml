@@ -41,6 +41,19 @@
                             />
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Working Schedule">
+                            <field name="schedule_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" />
+                                    <field name="day" />
+                                    <field name="hour_from" widget="float_time" />
+                                    <field name="hour_to" widget="float_time" />
+                                    <field name="closed" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

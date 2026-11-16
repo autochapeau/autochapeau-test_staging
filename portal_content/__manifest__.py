@@ -1,6 +1,6 @@
 {
     "name": "Portal Content",
-    "version": "17.0.1.0.12",
+    "version": "17.0.1.0.13",
     "author": "Wellknot",
     "depends": ["product"],
     "data": [

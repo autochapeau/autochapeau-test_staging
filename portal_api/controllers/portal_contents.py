@@ -4,6 +4,16 @@ from odoo.http import request
 from .common import format_search_read_result, get_binary_url, make_response, with_lang
 
 
+def _format_hour(value):
+    value = value or 0.0
+    hours = int(value)
+    minutes = int(round((value - hours) * 60))
+    if minutes == 60:
+        hours += 1
+        minutes = 0
+    return "%02d:%02d" % (hours % 24, minutes)
+
+
 class PortalContentsAPI(http.Controller):
     @http.route("/v1/portal/partners", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
     @with_lang
@@ -105,8 +115,27 @@ class PortalContentsAPI(http.Controller):
     def v1_get_branches(self):
         try:
             fields_name = ["id", "name", "address", "map_url", "image_1920"]
-            records = request.env["portal.branch"].sudo().search_read([], fields_name)
-            result = format_search_read_result(records, fields_name, [], model_name="portal.branch")
+            branches = request.env["portal.branch"].sudo().search([])
+            records = [
+                {
+                    "id": branch.id,
+                    "name": branch.name,
+                    "address": branch.address or False,
+                    "map_url": branch.map_url or False,
+                    "image_1920": branch.image_1920,
+                    "working_schedule": [
+                        {
+                            "day": line.day,
+                            "hour_from": False if line.closed else _format_hour(line.hour_from),
+                            "hour_to": False if line.closed else _format_hour(line.hour_to),
+                            "closed": bool(line.closed),
+                        }
+                        for line in branch.schedule_ids
+                    ],
+                }
+                for branch in branches
+            ]
+            result = format_search_read_result(records, fields_name + ["working_schedule"], [], model_name="portal.branch")
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
