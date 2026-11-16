@@ -291,3 +291,36 @@ class TestMaintenanceParts(TransactionCase):
         self.assertEqual(len(repair.order_line.tint_detail_ids), 1)
         self.assertEqual(repair.order_line.tint_detail_ids.glass_type_id, glass)
 
+    def test_quality_user_reads_original_service_and_confirms(self):
+        sale, order = self._source()
+        claim = self._claim(self._wizard(sale, order))
+        user = new_test_user(self.env(context=dict(self.env.context, no_reset_password=True)), login="maintenance_quality", groups="work_orders.group_quality_officer")
+        self.env["hr.employee"].create({"name": "Maintenance quality employee", "user_id": user.id, "branch_id": self.branch.id})
+        request = claim.with_user(user)
+        request.source_workorder_id.read(["name"])
+        request.source_task_id.read(["display_name"])
+        request.write({"fault_type": "customer", "quality_reason": "Quality role approval"})
+        request.action_confirm_cause()
+        self.assertEqual(request.state, "confirmed")
+
+    def test_quality_technician_confirmation_uses_original_staff(self):
+        self._configure_accounts()
+        sale, order = self._source()
+        claim = self._claim(self._wizard(sale, order))
+        user = new_test_user(self.env(context=dict(self.env.context, no_reset_password=True)), login="maintenance_quality_tech", groups="work_orders.group_quality_officer")
+        self.env["hr.employee"].create({"name": "Maintenance quality reviewer", "user_id": user.id, "branch_id": self.branch.id})
+        request = claim.with_user(user)
+        self.assertEqual(request._suggested_employee(), self.staff)
+        request.write({"fault_type": "technician", "quality_reason": "Quality technician approval", "employee_id": self.staff.id,
+                       "technician_cost": 60, "company_cost": 30})
+        request.action_confirm_cause()
+        self.assertEqual(request.state, "confirmed")
+        self.assertEqual(request.sudo().move_id.state, "posted")
+
+    def test_wizard_defaults_never_link_original_as_maintenance_order(self):
+        sale, order = self._source()
+        wizard = self._wizard(sale, order).with_context(default_sale_order_id=sale.id)
+        claim = self._claim(wizard)
+        self.assertFalse(claim.sale_order_id)
+        self.assertFalse(claim.appointment_id)
+        self.assertFalse(claim.move_id)

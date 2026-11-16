@@ -204,7 +204,7 @@ class MaintenanceClaim(models.Model):
         services = self.source_task_id or self.origin_sale_id.appointment_ids.mapped(
             "car_work_order_id.service_ids"
         ).filtered(lambda service: service.product_id == self.service_product_id)
-        staff = services.mapped("staff_ids").filtered("is_technician")
+        staff = services.sudo().mapped("staff_ids").filtered("is_technician")
         if self.branch_id:
             branched = staff.filtered(lambda employee: employee.branch_id == self.branch_id)
             if branched:
@@ -410,7 +410,7 @@ class MaintenanceClaim(models.Model):
 
     def _get_technician_partner(self):
         self.ensure_one()
-        employee = self.employee_id
+        employee = self.employee_id.sudo()
         if not employee:
             raise UserError(_("Select a technician before posting accounting."))
         partner = employee.work_contact_id or employee.user_id.partner_id

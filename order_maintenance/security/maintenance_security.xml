@@ -58,4 +58,13 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="maintenance_source_service_quality_read" model="ir.rule">
+        <field name="name">Quality read issued original services in their branches</field>
+        <field name="model_id" ref="work_orders.model_car_workorder_service"/>
+        <field name="groups" eval="[(4, ref('work_orders.group_quality_officer'))]"/>
+        <field name="domain_force">[('workorder_id.company_id', 'in', company_ids), ('materials_issued', '=', True), ('workorder_id.branch_id', 'in', user.sudo().employee_ids.branch_id.ids)]</field>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

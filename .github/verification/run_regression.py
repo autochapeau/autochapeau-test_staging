@@ -86,5 +86,5 @@ finally:
 summary = {"database": env.cr.dbname, "tests": result.testsRun,
     "failures": result.failures_count, "errors": result.errors_count, "skipped": result.skipped}
 print("VIDEO_REQUIREMENTS_REGRESSION=" + json.dumps(summary, sort_keys=True))
-assert result.testsRun >= 299, summary
+assert result.testsRun >= 302, summary
 assert result.failures_count == 0 and result.errors_count == 0 and result.skipped == 0, summary

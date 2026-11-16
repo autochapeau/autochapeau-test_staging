@@ -49,3 +49,12 @@ else:
 print("MAINTENANCE_TRAINING_FIXTURE=" + json.dumps({"sale_id": sale.id, "sale_name": sale.name,
     "workorder_id": workorder.id, "workorder_name": workorder.name, "service_id": sale.order_line.product_id.id,
     "parts": workorder.product_ids.part_id.ids, "actual_material_rows": workorder.product_ids.ids}))
+
+# Older wizard contexts could default the original sale into the repair link.
+# Correct only this explicitly named fictional fixture's unapproved requests.
+for request in env["maintenance.claim"].sudo().search([
+    ("origin_sale_id", "=", sale.id), ("state", "in", ["quality", "cancelled"]),
+    ("sale_order_id", "=", sale.id),
+]):
+    request.write({"sale_order_id": False})
+env.cr.commit()

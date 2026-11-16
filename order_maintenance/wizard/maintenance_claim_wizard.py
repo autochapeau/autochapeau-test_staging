@@ -141,6 +141,9 @@ class MaintenanceClaimWizard(models.TransientModel):
             "problem_location": (self.problem_location or ", ".join(self.selected_part_ids.mapped("name"))).strip(),
             "part_ids": part_commands,
             "source_task_id": self.source_task_id.id,
+            "sale_order_id": False,
+            "appointment_id": False,
+            "move_id": False,
         })
         return {
             "type": "ir.actions.act_window",
