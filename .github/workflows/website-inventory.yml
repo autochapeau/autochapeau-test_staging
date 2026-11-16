@@ -23,6 +23,7 @@ jobs:
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           echo 'Deployment SSH public-key fingerprint'
           ssh-keygen -lf ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE' | tee /tmp/website-inventory.txt
           set -euo pipefail
           echo 'TEST services'
@@ -51,7 +52,8 @@ jobs:
           echo 'TEST frontend nginx routing'
           CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_website_web --format '{{.ID}}' | head -1)
           if [ -n "$CONTAINER" ]; then
-            sudo docker exec "$CONTAINER" cat /etc/nginx/conf.d/default.conf
+            sudo docker inspect "$CONTAINER" --format 'Entrypoint={{json .Config.Entrypoint}} Cmd={{json .Config.Cmd}} Workdir={{.Config.WorkingDir}} Ports={{json .Config.ExposedPorts}}'
+            sudo docker exec "$CONTAINER" sh -c 'pwd; ls -la /app 2>/dev/null || true; cat /etc/nginx/conf.d/default.conf 2>/dev/null || true'
           fi
           REMOTE
           {
