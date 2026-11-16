@@ -24,3 +24,4 @@ from . import mylist_loyalty
 from . import tabby
 from . import sms
 from . import transfer_balance
+from . import maintenance

@@ -18,3 +18,5 @@ from . import portal_home_slider
 from . import portal_terms_conditions
 from . import portal_return_change_policy
 from . import portal_theme
+from . import product_category
+from . import google_reviews

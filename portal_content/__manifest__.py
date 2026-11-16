@@ -1,6 +1,6 @@
 {
     "name": "Portal Content",
-    "version": "17.0.1.0.13",
+    "version": "17.0.2.0.0",
     "author": "Wellknot",
     "depends": ["product"],
     "data": [
@@ -8,9 +8,11 @@
         "security/ir.model.access.csv",
         "views/menu.xml",
         "views/product_product_views.xml",
+        "views/product_category_views.xml",
         "views/portal_partner_views.xml",
         "views/portal_loyalty_program_views.xml",
         "views/portal_testimony_views.xml",
+        "views/google_reviews_views.xml",
         "views/portal_statistic_views.xml",
         "views/portal_news_views.xml",
         "views/portal_aboutus_views.xml",

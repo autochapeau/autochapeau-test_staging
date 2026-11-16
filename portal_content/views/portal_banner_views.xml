@@ -25,6 +25,8 @@
                             <field name="page_name" />
                             <field name="first_title" />
                             <field name="second_title" />
+                            <field name="text_align" />
+                            <field name="text_position" />
                             <field name="url" widget="CopyClipboardChar" />
                         </group>
                         <group>
@@ -33,6 +35,8 @@
                                 widget="image"
                                 options='{"zoom": true, "preview_image": "image_128"}'
                             />
+                            <field name="image_ar" widget="image" />
+                            <field name="image_en" widget="image" />
                         </group>
                     </group>
                 </sheet>

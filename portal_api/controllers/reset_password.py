@@ -43,9 +43,9 @@ class ResetPassword(http.Controller):
                 return make_json_response(401, {"message": message, "time_left": time_left, "phone": user.phone})
 
             # Save OTP and current time
-            user.sudo().write({"login_sms_date": datetime.now(), "last_otp": otp})
             time_left = int((now + timedelta(minutes=2) - now).total_seconds())
-            send_sms(login, send_sms(user.phone, f"Your OTP code is: {otp}"))
+            send_sms(user.phone, f"Your OTP code is: {otp}")
+            user.sudo().write({"login_sms_date": datetime.now(), "last_otp": otp, "otp_attempts": 0})
             return make_json_response(
                 200,
                 {
@@ -80,11 +80,17 @@ class ResetPassword(http.Controller):
             if not user:
                 return make_json_response(404, {"message": "المستخدم غير موجود."})
 
-            if user.last_otp != otp:
+            if not user.login_sms_date or user.login_sms_date < datetime.now() - timedelta(minutes=2):
+                return make_json_response(401, {"message": "رمز التحقق انتهت صلاحيته. اطلب رمزاً جديداً."})
+            if user.otp_attempts >= 5:
+                return make_json_response(429, {"message": "تجاوزت عدد المحاولات. اطلب رمزاً جديداً."})
+            if user.last_otp != str(otp):
+                user.otp_attempts += 1
                 return make_json_response(401, {"message": "رمز التحقق غير صالح."})
             expiration = now(days=+1)
             user.partner_id.signup_prepare(signup_type="reset", expiration=expiration)
             signup_token = user.partner_id.signup_token
+            user.write({"last_otp": False, "otp_attempts": 0})
 
             return make_json_response(
                 200, {"token": signup_token, "message": "رمز التحقق صالح. يمكنك الآن إعادة تعيين كلمة المرور."}

@@ -7,6 +7,8 @@ from odoo.tools.image import image_guess_size_from_field_name
 
 _logger = logging.getLogger(__name__)
 api_public_fields = {
+    "product.category": ["portal_image"],
+    "fleet.vehicle.model.brand": ["image_128"],
     "product.product": ["image_1920"],
     "product.template": ["image_1920"],
     "ir.attachment": ["datas", "raw"],
@@ -15,16 +17,23 @@ api_public_fields = {
     "portal.news": ["image_1920"],
     "portal.branch": ["image_1920"],
     "portal.offer": ["image_1920"],
-    "portal.aboutus": ["image_1920"],
+    "portal.aboutus": ["image_1920", "secondary_image"],
     "portal.testimony": ["image_1920"],
     "portal.loyalty.program": ["image_1920"],
     "portal.partner": ["image_1920"],
-    "portal.banner": ["image_1920"],
+    "portal.banner": ["image_1920", "image_ar", "image_en"],
     "portal.home.section": ["image_1920"],
     "portal.home.care.item": ["image_1920"],
     "portal.home.loyalty.image": ["image_1920"],
-    "portal.home.slider": ["image_1920"],
+    "portal.home.slider": ["image_1920", "image_ar", "image_en"],
 }
+
+
+def _attachment_is_public(attachment):
+    return bool(attachment.public or request.env["product.product"].sudo().search_count([
+        ("is_published", "=", True), "|", ("image_ids", "in", attachment.ids),
+        ("video_ids", "in", attachment.ids),
+    ]))
 
 
 class Binary(http.Controller):
@@ -122,8 +131,8 @@ class Binary(http.Controller):
         if not attachment or not (attachment.raw or attachment.datas):
             raise request.not_found()
 
-        if not attachment.public:
-            attachment.write({"public": True})
+        if not _attachment_is_public(attachment):
+            raise request.not_found()
 
         try:
             stream = request.env["ir.binary"].sudo()._get_stream_from(
@@ -180,6 +189,8 @@ class Binary(http.Controller):
             )
             if not attachment:
                 raise UserError("Attachment not found")
+            if not _attachment_is_public(attachment):
+                raise UserError("Attachment is not published")
             if not (attachment.raw or attachment.datas):
                 raise UserError("Attachment has no binary content")
             return IrBinary._get_image_stream_from(

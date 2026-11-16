@@ -20,6 +20,16 @@ class PortalBanner(models.Model):
         ],
     )
     page_name = fields.Char()
-    first_title = fields.Char(required=True, translate=True)
+    first_title = fields.Char(translate=True)
     second_title = fields.Char(translate=True)
     url = fields.Char()
+    image_ar = fields.Image(string="Arabic Image", max_width=1920, max_height=1920)
+    image_en = fields.Image(string="English Image", max_width=1920, max_height=1920)
+    text_align = fields.Selection(
+        [("left", "Left"), ("center", "Center"), ("right", "Right")],
+        default="center", required=True,
+    )
+    text_position = fields.Selection(
+        [("top", "Top"), ("middle", "Middle"), ("bottom", "Bottom")],
+        default="middle", required=True,
+    )

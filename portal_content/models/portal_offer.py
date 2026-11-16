@@ -12,6 +12,11 @@ class PortalOffer(models.Model):
     name = fields.Char(string="Title", required=True, translate=True)
     summary = fields.Text(translate=True)
     details = fields.Html(translate=True)
+    product_id = fields.Many2one(
+        "product.product", string="Product / Service to Purchase", ondelete="restrict",
+        domain=[("sale_ok", "=", True)],
+        help="The customer purchases this item using its current catalog price and options.",
+    )
     is_main = fields.Boolean(
         string="Main Offer",
         default=False,

@@ -1,0 +1,47 @@
+name: Deploy private website build to TEST
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/website-release/manifest.json]
+permissions:
+  contents: read
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build transport dependencies
+        run: python3 -m pip install cryptography==46.0.3 PyNaCl==1.6.2
+      - name: Verify encrypted build transport
+        run: python3 -m unittest discover -s .github/verification -p test_website_bundle.py -v
+      - name: Deploy TEST website preserving its Odoo proxy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh release
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          python3 .github/verification/website_bundle.py decrypt --input .github/website-release/build.sealed --output release/website.tar.gz
+          cp .github/website-release/manifest.json release/
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('release')
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert manifest['target'] == 'web-test.autochapeau.com'
+          digest=hashlib.sha256((root/'website.tar.gz').read_bytes()).hexdigest()
+          assert digest == manifest['archive_sha256']
+          (root/'archive.sha256').write_text(digest+'  website.tar.gz\n')
+          PY
+          cp .github/verification/deploy_website_test.sh release/
+          REMOTE_DIR="/tmp/website-test-release-$GITHUB_RUN_ID"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$REMOTE_DIR'"
+          scp -P "$SSH_PORT" release/* "$SSH_USER@$SSH_HOST:$REMOTE_DIR/"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash '$REMOTE_DIR/deploy_website_test.sh' '$REMOTE_DIR'"

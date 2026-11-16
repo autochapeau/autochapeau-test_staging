@@ -1,6 +1,6 @@
 {
     "name": "Portal API",
-    "version": "17.0.1.0.31",
+    "version": "17.0.2.0.0",
     "author": "Wellknot",
     "depends": [
         "cars_management",
@@ -13,6 +13,8 @@
         "gb_window_tinting",
         "sale_split_payment",
         "portal_content",
+        "work_orders",
+        "order_maintenance",
     ],
     "data": [
         "data/portal_api_data.xml",

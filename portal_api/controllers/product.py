@@ -41,9 +41,6 @@ def _serialize_video_attachments(attachments):
     attachments = attachments.exists() if attachments else attachments
     if not attachments:
         return []
-    private = attachments.filtered(lambda a: not a.public)
-    if private:
-        private.write({"public": True})
     return [
         {
             "id": attachment.id,
@@ -52,7 +49,7 @@ def _serialize_video_attachments(attachments):
             "url": get_attachment_url(attachment.id),
         }
         for attachment in attachments
-        if attachment.raw or attachment.datas
+        if attachment.file_size > 0
     ]
 
 
@@ -61,6 +58,11 @@ def _videos_from_products(products):
     if not products:
         return []
     return _serialize_video_attachments(products.mapped("video_ids"))
+
+
+def _images_from_products(products):
+    return [{"id": image.id, "datas": get_binary_url("ir.attachment", image.id, "raw")}
+            for image in products.mapped("image_ids").exists() if (image.mimetype or "").startswith("image/")]
 
 
 SORT_VALUES = ("price_asc", "price_desc", "name_asc", "best_sellers")
@@ -330,7 +332,7 @@ def _serialize_tree_product(product):
     }
 
 
-def _build_categories_tree(category_type=None):
+def _build_categories_tree(category_type=None, include_products=True):
     """Build category tree with published products under each category."""
     product_domain = [("is_published", "=", True)]
     if category_type == "service":
@@ -338,7 +340,7 @@ def _build_categories_tree(category_type=None):
     elif category_type == "other":
         product_domain.append(("detailed_type", "!=", "service"))
 
-    products = request.env["product.product"].sudo().search(product_domain)
+    products = request.env["product.product"].sudo().with_context(bin_size=True).search(product_domain)
     if not products:
         return []
 
@@ -346,7 +348,7 @@ def _build_categories_tree(category_type=None):
     for product in products:
         products_by_categ.setdefault(product.categ_id.id, []).append(product)
 
-    Category = request.env["product.category"].sudo()
+    Category = request.env["product.category"].sudo().with_context(bin_size=True)
     categ_ids = set(products_by_categ.keys())
     pending = Category.browse(list(categ_ids))
     while pending:
@@ -363,11 +365,13 @@ def _build_categories_tree(category_type=None):
             "id": categ.id,
             "name": categ.name,
             "category_type": categ.category_type or False,
+            "image_url": get_binary_url("product.category", categ.id, "portal_image") if categ.portal_image else False,
             "parent_id": categ.parent_id.id if categ.parent_id else False,
             "products": [
                 _serialize_tree_product(product)
                 for product in products_by_categ.get(categ.id, [])
-            ],
+            ] if include_products else [],
+            "product_count": len(products_by_categ.get(categ.id, [])),
             "children": [],
         }
 
@@ -387,7 +391,7 @@ def _build_categories_tree(category_type=None):
                 node["products"], key=lambda item: (item["name"] or "").lower()
             )
             # Drop empty branches (no products and no children)
-            if not node["products"] and not node["children"]:
+            if not node["product_count"] and not node["children"]:
                 continue
             if (
                 category_type
@@ -490,7 +494,8 @@ class ProductAPI(http.Controller):
                     422,
                     {"message": "category_type must be 'service' or 'other'"},
                 )
-            return make_response(200, _build_categories_tree(category_type))
+            include_products = request.httprequest.args.get("summary") != "1"
+            return make_response(200, _build_categories_tree(category_type, include_products=include_products))
         except Exception as e:
             return make_response(422, {"message": str(e)})
 
@@ -558,7 +563,7 @@ class ProductAPI(http.Controller):
                   ("is_published", "=", True)]
         domain = _append_categ_domain(domain, _get_categ_ids(params))
         page, limit, offset = _parse_pagination(params)
-        product_env = request.env["product.product"].sudo()
+        product_env = request.env["product.product"].sudo().with_context(bin_size=True)
         if sort:
             products = _sort_products(product_env.search(domain), sort)
             total = len(products)
@@ -590,8 +595,8 @@ class ProductAPI(http.Controller):
             "image_ids",
             "video_ids",
         ]
-        product = request.env["product.product"].sudo(
-        ).search_read([("id", "=", service_id)], fields)
+        product = request.env["product.product"].sudo().with_context(bin_size=True).search_read(
+            [("id", "=", service_id), ("is_published", "=", True)], fields)
         if not product:
             return make_response(404)
         result = format_search_read_result(
@@ -606,9 +611,6 @@ class ProductAPI(http.Controller):
         if image_ids:
             images = request.env["ir.attachment"].sudo().browse(image_ids).exists()
             # Ensure attachments are publicly streamable for website <img>
-            private_images = images.filtered(lambda a: not a.public)
-            if private_images:
-                private_images.write({"public": True})
             # Keep key "datas" for the website; serve via /portal/image/.../raw
             result["image_ids"] = [
                 {
@@ -616,7 +618,7 @@ class ProductAPI(http.Controller):
                     "datas": get_binary_url("ir.attachment", attachment.id, "raw"),
                 }
                 for attachment in images
-                if attachment.raw or attachment.datas
+                if attachment.file_size > 0
             ]
         else:
             result["image_ids"] = []
@@ -690,7 +692,7 @@ class ProductAPI(http.Controller):
             ("product_variant_ids.is_published", "=", True),
         ]
         template_domain = _append_categ_domain(template_domain, categ_ids)
-        templates = request.env["product.template"].sudo().search(template_domain)
+        templates = request.env["product.template"].sudo().with_context(bin_size=True).search(template_domain)
         brand_sizes = None if vehicle else _sizes_for_brand(brand_id)
         matched_templates = request.env["product.template"].sudo()
         for template in templates:
@@ -787,7 +789,7 @@ class ProductAPI(http.Controller):
     @with_lang
     def v1_service_product_variants(self, service_id):
         """Return the service  with its attributes and variants for a car"""
-        template = request.env["product.template"].sudo().browse(
+        template = request.env["product.template"].sudo().with_context(bin_size=True).browse(
             service_id).exists()
         if not template:
             return make_response(200, [])
@@ -819,6 +821,7 @@ class ProductAPI(http.Controller):
                 "product.template", template.id, "image_1920") if template.image_1920 else False,
             # Videos are stored on product.product; expose union + per-variant
             "video_ids": _videos_from_products(variants),
+            "image_ids": _images_from_products(variants),
             "variant_attributes": variant_attributes,
             "variants": [{
                 "id": v.id,
@@ -835,6 +838,7 @@ class ProductAPI(http.Controller):
                 "total_sales_count": v.total_sales_count,
                 "is_published": v.is_published,
                 "video_ids": _videos_from_products(v),
+                "image_ids": _images_from_products(v),
             } for v in variants],
         }
         data.update(_window_tinting_payload_from_template(template))

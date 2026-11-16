@@ -21,9 +21,9 @@ class VehicleAPI(http.Controller):
     @http.route("/v1/brands", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
     def v1_get_brands(self):
         try:
-            fields_name = ["id", "name"]
+            fields_name = ["id", "name", "image_128"]
             brands = request.env["fleet.vehicle.model.brand"].sudo().search_read([], fields_name)
-            result = format_search_read_result(brands, fields_name, [])
+            result = format_search_read_result(brands, fields_name, [], model_name="fleet.vehicle.model.brand")
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})

@@ -20,7 +20,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_partners(self):
         try:
             fields_name = ["id", "name", "summary", "image_1920"]
-            records = request.env["portal.partner"].sudo().search_read([], fields_name)
+            records = request.env["portal.partner"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [], model_name="portal.partner")
             return make_response(200, result)
         except Exception as e:
@@ -33,7 +33,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_loyalty_program(self):
         try:
             fields_name = ["id", "name", "summary", "details", "image_1920"]
-            records = request.env["portal.loyalty.program"].sudo().search_read([], fields_name)
+            records = request.env["portal.loyalty.program"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [], model_name="portal.loyalty.program")
             return make_response(200, result)
         except Exception as e:
@@ -43,8 +43,11 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_testimonies(self):
         try:
-            fields_name = ["id", "name", "summary", "date", "image_1920"]
-            records = request.env["portal.testimony"].sudo().search_read([], fields_name)
+            fields_name = ["id", "name", "summary", "date", "image_1920", "rating", "review_url", "profile_image_url"]
+            sources = request.env["portal.google.review.source"].sudo().with_context(bin_size=True).search([("enabled", "=", True)])
+            domain = [("google_source_id", "in", sources.ids), ("rating", "=", 5)] if sources else [("google_source_id", "=", False)]
+            limit = max(sources.mapped("display_limit")) if sources else 10
+            records = request.env["portal.testimony"].sudo().with_context(bin_size=True).search_read(domain, fields_name, limit=limit, order="review_time desc, date desc, id desc")
             result = format_search_read_result(records, fields_name, [], model_name="portal.testimony")
             return make_response(200, result)
         except Exception as e:
@@ -54,8 +57,13 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_statistics(self):
         try:
-            fields_name = ["id", "name", "value"]
-            records = request.env["portal.statistic"].sudo().search_read([], fields_name)
+            fields_name = ["id", "name", "value", "metric", "code"]
+            counters = request.env["portal.statistic"].sudo().with_context(bin_size=True).search([])
+            legacy_codes = {"Satisfaction Rate": "satisfaction", "Number of cars": "cars", "Number of clients": "customers"}
+            records = [{"id": counter.id, "name": counter.name, "value": counter._website_value(),
+                        "metric": counter.metric,
+                        "code": counter.metric if counter.metric != "manual" else legacy_codes.get(counter.with_context(lang="en_US").name, "manual")}
+                       for counter in counters]
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -66,10 +74,10 @@ class PortalContentsAPI(http.Controller):
     def v1_get_news(self):
         try:
             fields_name = ["id", "name", "summary", "details", "date", "image_1920", "tag_ids"]
-            records = request.env["portal.news"].sudo().search_read([], fields_name)
+            records = request.env["portal.news"].sudo().with_context(bin_size=True).search_read([], fields_name)
             tag_fields_name = ["id", "name"]
             for record in records:
-                tags = request.env["portal.news.tag"].sudo().browse(record.pop("tag_ids"))
+                tags = request.env["portal.news.tag"].sudo().with_context(bin_size=True).browse(record.pop("tag_ids"))
                 tag_data = [{field: getattr(tag, field) for field in tag_fields_name} for tag in tags]
                 record["tag_ids"] = tag_data
             result = format_search_read_result(records, fields_name, [], model_name="portal.news")
@@ -81,8 +89,8 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_aboutus(self):
         try:
-            fields_name = ["id", "name", "summary", "details", "image_1920"]
-            records = request.env["portal.aboutus"].sudo().search_read([], fields_name)
+            fields_name = ["id", "name", "summary", "details", "image_1920", "secondary_image"]
+            records = request.env["portal.aboutus"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [], model_name="portal.aboutus")
             return make_response(200, result)
         except Exception as e:
@@ -93,7 +101,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_faq(self):
         try:
             fields_name = ["id", "question", "answer"]
-            records = request.env["portal.faq"].sudo().search_read([], fields_name)
+            records = request.env["portal.faq"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -104,8 +112,23 @@ class PortalContentsAPI(http.Controller):
     def v1_get_offers(self):
         try:
             fields_name = ["id", "name", "summary", "details", "image_1920", "is_main"]
-            records = request.env["portal.offer"].sudo().search_read([], fields_name)
-            result = format_search_read_result(records, fields_name, [], model_name="portal.offer")
+            offers = request.env["portal.offer"].sudo().with_context(bin_size=True).search([])
+            records = offers.read(fields_name)
+            by_id = {offer.id: offer for offer in offers}
+            for record in records:
+                product = by_id[record["id"]].product_id
+                published = product and product.active and product.sale_ok and product.is_published
+                is_service = product.detailed_type == "service" if product else False
+                record.update({
+                    "product_id": product.id if published else False,
+                    "catalog_id": (product.product_tmpl_id.id if is_service else product.id) if published else False,
+                    "catalog_type": "service" if is_service else "product",
+                    "purchasable": bool(published),
+                })
+            result = format_search_read_result(
+                records, fields_name + ["product_id", "catalog_id", "catalog_type", "purchasable"],
+                [], model_name="portal.offer",
+            )
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})
@@ -115,7 +138,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_branches(self):
         try:
             fields_name = ["id", "name", "address", "map_url", "image_1920"]
-            branches = request.env["portal.branch"].sudo().search([])
+            branches = request.env["portal.branch"].sudo().with_context(bin_size=True).search([])
             records = [
                 {
                     "id": branch.id,
@@ -145,7 +168,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_warranty(self):
         try:
             fields_name = ["id", "name", "details"]
-            records = request.env["portal.warranty"].sudo().search_read([], fields_name)
+            records = request.env["portal.warranty"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -156,7 +179,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_privacy_policy(self):
         try:
             fields_name = ["id", "name", "summary", "details"]
-            records = request.env["portal.privacy.policy"].sudo().search_read([], fields_name)
+            records = request.env["portal.privacy.policy"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -167,7 +190,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_return_change_policy(self):
         try:
             fields_name = ["id", "name", "summary", "details"]
-            records = request.env["portal.return.change.policy"].sudo().search_read([], fields_name)
+            records = request.env["portal.return.change.policy"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -180,7 +203,7 @@ class PortalContentsAPI(http.Controller):
     def v1_get_terms_conditions(self):
         try:
             fields_name = ["id", "name", "summary", "details"]
-            records = request.env["portal.terms.conditions"].sudo().search_read([], fields_name)
+            records = request.env["portal.terms.conditions"].sudo().with_context(bin_size=True).search_read([], fields_name)
             result = format_search_read_result(records, fields_name, [])
             return make_response(200, result)
         except Exception as e:
@@ -191,10 +214,15 @@ class PortalContentsAPI(http.Controller):
     def v1_get_banners(self):
         try:
             page = (request.httprequest.args.get("page") or "").strip()
-            banner_model = request.env["portal.banner"].sudo()
+            banner_model = request.env["portal.banner"].sudo().with_context(bin_size=True)
             domain = [("page_name", "=", page)] if page else []
-            fields_name = ["id", "page_name", "first_title", "second_title", "url", "image_1920"]
+            fields_name = ["id", "page_name", "first_title", "second_title", "url", "image_1920", "text_align", "text_position"]
             records = banner_model.search_read(domain, fields_name)
+            language_image = "image_ar" if request.env.lang.startswith("ar") else "image_en"
+            for record in records:
+                banner = banner_model.browse(record["id"])
+                if banner[language_image]:
+                    record["image_1920"] = get_binary_url("portal.banner", banner.id, language_image)
             result = format_search_read_result(
                 records, fields_name, [], model_name="portal.banner"
             )
@@ -209,7 +237,7 @@ class PortalContentsAPI(http.Controller):
             fields_name = ["id", "name", "color", "date_start", "date_end", "is_current"]
             records = (
                 request.env["portal.theme"]
-                .sudo()
+                .sudo().with_context(bin_size=True)
                 .search_read(
                     [("active", "=", True), ("is_current", "=", True)],
                     fields_name,
@@ -225,7 +253,7 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_home_section(self):
         try:
-            section = request.env["portal.home.section"].sudo().search([], limit=1)
+            section = request.env["portal.home.section"].sudo().with_context(bin_size=True).search([], limit=1)
             if not section:
                 return make_response(200, {})
             thumbnail_url = False
@@ -247,7 +275,7 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_care_section(self):
         try:
-            section = request.env["portal.home.care"].sudo().search([], limit=1)
+            section = request.env["portal.home.care"].sudo().with_context(bin_size=True).search([], limit=1)
             if not section:
                 return make_response(200, {})
             items = []
@@ -277,7 +305,7 @@ class PortalContentsAPI(http.Controller):
     @with_lang
     def v1_get_loyalty_section(self):
         try:
-            section = request.env["portal.home.loyalty"].sudo().search([], limit=1)
+            section = request.env["portal.home.loyalty"].sudo().with_context(bin_size=True).search([], limit=1)
             if not section:
                 return make_response(200, {})
             images = []
@@ -301,18 +329,25 @@ class PortalContentsAPI(http.Controller):
             return make_response(422, {"message": str(e)})
 
     @http.route("/v1/portal/home-slider", type="http", auth="none", csrf=False, methods=["GET", "OPTIONS"], cors="*")
+    @with_lang
     def v1_get_home_slider(self):
         try:
-            slides = request.env["portal.home.slider"].sudo().search([])
+            slides = request.env["portal.home.slider"].sudo().with_context(bin_size=True).search([])
             result = []
             for slide in slides:
-                if not slide.image_1920:
+                language_image = "image_ar" if request.env.lang.startswith("ar") else "image_en"
+                image_field = language_image if slide[language_image] else "image_1920"
+                if not slide[image_field]:
                     continue
                 result.append(
                     {
                         "image_url": get_binary_url(
-                            "portal.home.slider", slide.id, "image_1920"
+                            "portal.home.slider", slide.id, image_field
                         ),
+                        "first_title": slide.first_title or False,
+                        "second_title": slide.second_title or False,
+                        "url": slide.url or False,
+                        "overlay_opacity": slide.overlay_opacity,
                     }
                 )
             return make_response(200, result)

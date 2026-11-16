@@ -1,6 +1,7 @@
 import json
-import math
-import random
+import secrets
+import time
+import hmac
 from datetime import datetime, timedelta
 
 import pytz
@@ -14,11 +15,22 @@ from .sms import send_sms
 
 def generateOTP():
     """Generate One time password"""
-    digits = "0123456789"
-    OTP = ""
-    for _i in range(4):
-        OTP += digits[math.floor(random.random() * 10)]
-    return OTP
+    return "".join(secrets.choice("0123456789") for _ in range(4))
+
+
+def _send_registration_otp(mobile, code):
+    parameters = request.env["ir.config_parameter"].sudo()
+    key = f"register_{mobile}_otp"
+    expires = float(parameters.get_param(key + "_expires", "0") or 0)
+    remaining = max(0, int(expires - time.time()))
+    if remaining:
+        return make_json_response(429, {"time_left": remaining, "message": "انتظر قبل طلب رمز جديد."})
+    otp = generateOTP()
+    send_sms(f"+{str(code).lstrip('+')}{mobile}", f"رمز التحقق الخاص بك هو: {otp}")
+    parameters.set_param(key, otp)
+    parameters.set_param(key + "_expires", str(time.time() + 120))
+    parameters.set_param(key + "_attempts", "0")
+    return make_json_response(200, {"time_left": 120, "message": "تم إرسال رمز التحقق إلى هاتفك."})
 
 
 class SignupApi(http.Controller):
@@ -41,20 +53,7 @@ class SignupApi(http.Controller):
                     409, {
                         "message": "تم التسجيل مسبقاً برقم الجوال المدخل. يرجى استخدام رقم جوال آخر."}
                 )
-            otp = generateOTP()
-            now = datetime.now()
-
-            sms_message = f"رمز التحقق الخاص بك هو: {otp}"
-            send_sms(full_number, sms_message)
-            time_left = int((now + timedelta(minutes=2) - now).total_seconds())
-            # Store OTP for unregistered users
-            request.env["ir.config_parameter"].sudo().set_param(
-                f"register_{mobile}_otp", otp)
-
-            return make_json_response(
-                200, {"time_left": time_left,
-                      "message": "تم إرسال رمز التحقق إلى هاتفك."}
-            )
+            return _send_registration_otp(mobile, code)
 
         except Exception as e:
             return make_json_response(500, {"message": str(e)})
@@ -71,13 +70,20 @@ class SignupApi(http.Controller):
         otp = data.get("otp")
         icp = request.env["ir.config_parameter"].sudo()
         otp_stored = icp.get_param(f"register_{login}_otp")
-        allow_test_otp = icp.get_param("portal_api.allow_test_otp") == "1"
+        allow_test_otp = (request.env.cr.dbname == "autochapeau_prod_test"
+                          and icp.get_param("portal_api.allow_test_otp") == "1")
         country = request.env["res.country"].sudo().search(
             [("phone_code", "=", data.get("code"))], limit=1)
         try:
-            otp_ok = (otp_stored and otp_stored == otp) or (
+            key = f"register_{login}_otp"
+            attempts = int(icp.get_param(key + "_attempts", "0") or 0)
+            expires = float(icp.get_param(key + "_expires", "0") or 0)
+            otp_ok = (otp_stored and expires > time.time() and attempts < 5
+                      and hmac.compare_digest(str(otp_stored), str(otp))) or (
                 allow_test_otp and str(otp).strip() == "5062"
             )
+            if not otp_ok:
+                icp.set_param(key + "_attempts", str(attempts + 1))
             if login and otp and otp_ok:
                 companies = request.env["res.company"].sudo().search([])
                 portal_group = request.env.ref(
@@ -182,14 +188,16 @@ class SignupApi(http.Controller):
                 deadline = datetime.now() - timedelta(minutes=2)
                 user = request.env["res.users"].sudo().search(
                     [("login", "=", data.get("mobile"))], limit=1)
+                if not user:
+                    return _send_registration_otp(data["mobile"], data.get("code") or "966")
                 timezone = pytz.timezone(user.tz or "UTC")
                 if not user.login_sms_date or user.login_sms_date < deadline:
                     now = datetime.now(timezone)
-                    user.sudo().write(
-                        {"login_sms_date": datetime.now(), "last_otp": new_otp})
                     message_template = "رمز التحقق الجديد الخاص بك هو: {}"
                     send_sms(data.get("mobile"),
                              message_template.format(new_otp))
+                    user.sudo().write(
+                        {"login_sms_date": datetime.now(), "last_otp": new_otp, "otp_attempts": 0})
                     time_left = int(
                         (now + timedelta(minutes=2) - now).total_seconds())
                     return make_json_response(

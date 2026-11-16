@@ -1,0 +1,33 @@
+<odoo>
+    <record id="google_review_source_tree" model="ir.ui.view">
+        <field name="name">portal.google.review.source.tree</field>
+        <field name="model">portal.google.review.source</field>
+        <field name="arch" type="xml"><tree><field name="name"/><field name="location_name"/><field name="enabled"/><field name="last_sync"/><field name="last_error"/></tree></field>
+    </record>
+    <record id="google_review_source_form" model="ir.ui.view">
+        <field name="name">portal.google.review.source.form</field>
+        <field name="model">portal.google.review.source</field>
+        <field name="arch" type="xml">
+            <form><header><button name="action_sync" type="object" string="Sync Reviews" class="oe_highlight"/></header>
+                <sheet><group><field name="name"/><field name="enabled"/><field name="active"/><field name="location_name"/>
+                    <field name="maps_url" widget="url"/><field name="display_limit"/>
+                </group><group string="Authorized Google OAuth Account" groups="base.group_system">
+                    <field name="client_id"/><field name="client_secret" password="True"/><field name="refresh_token" password="True"/>
+                </group><group><field name="last_sync"/><field name="last_error"/></group></sheet>
+            </form>
+        </field>
+    </record>
+    <record id="google_review_source_action" model="ir.actions.act_window">
+        <field name="name">Google Reviews</field><field name="res_model">portal.google.review.source</field><field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="google_review_source_menu" name="Google Reviews" parent="portal_content_menu_root" action="google_review_source_action" groups="base.group_system" sequence="30"/>
+    <data noupdate="1">
+        <record id="cron_sync_google_reviews" model="ir.cron">
+            <field name="name">Website: Synchronize Google Reviews</field>
+            <field name="model_id" ref="model_portal_google_review_source"/>
+            <field name="state">code</field><field name="code">model._cron_sync()</field>
+            <field name="interval_number">6</field><field name="interval_type">hours</field>
+            <field name="numbercall">-1</field><field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

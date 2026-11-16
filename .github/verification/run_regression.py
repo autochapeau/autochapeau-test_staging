@@ -50,6 +50,7 @@ sources = {
     "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers", "test_rule_setup"],
     "workorder_service_components": ["test_service_materials"],
     "order_maintenance": ["test_maintenance_parts"],
+    "portal_api": ["test_website_release"],
 }
 for addon, names in sources.items():
     name = "odoo.addons." + addon + ".tests"
@@ -69,7 +70,7 @@ for addon, names in sources.items():
         spec.loader.exec_module(module)
         setattr(package, leaf, module)
 
-tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission,/workorder_service_components,/order_maintenance"
+tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission,/workorder_service_components,/order_maintenance,website_release"
 suite = loader.make_suite(list(sources), position="post_install")
 original_connect = socket.socket.connect
 
