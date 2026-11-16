@@ -76,6 +76,14 @@ class TestWebsiteRelease(TransactionCase):
             "name": "Website QA Retail Quantity", "detailed_type": "consu",
             "list_price": 25, "taxes_id": [Command.clear()],
         })
+        # Do not inherit the TEST company's existing global pricelist rules.
+        pricelist = self.env["product.pricelist"].create({
+            "name": "Website QA Quantity Pricing", "currency_id": self.env.company.currency_id.id,
+            "item_ids": [Command.create({"applied_on": "0_product_variant",
+                "product_id": item.id, "compute_price": "fixed", "fixed_price": 25})],
+        })
+        self.owner.partner_id.with_company(self.env.company).property_product_pricelist = pricelist
+        item.lst_price_discount = 0
         fake = SimpleNamespace(env=self.env(user=self.owner))
         controller = sale_order.SaleOrderAPI()
         payload = {"cart_id": "website-qa-repeat-product", "vehicle_id": self.vehicle.id,
@@ -88,6 +96,7 @@ class TestWebsiteRelease(TransactionCase):
             self.assertEqual(cart.id, original_id)
             self.assertEqual(len(cart.order_line), 1)
             self.assertEqual(cart.order_line.product_uom_qty, 2)
+            self.assertAlmostEqual(cart.order_line.price_unit, 25)
             self.assertAlmostEqual(cart.amount_total, 50)
             saved = controller._serialize_cart(controller._find_partner_draft_cart(self.owner.partner_id))
             self.assertEqual(saved["products"][0]["qty"], 2)
