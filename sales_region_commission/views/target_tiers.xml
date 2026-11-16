@@ -69,7 +69,7 @@
             <div class="alert alert-info">Set a calendar period, then distribute the total to the current team members and managers. Shares can be adjusted below and must add up to the team total before tiered commissions can be calculated.</div>
             <field name="member_target_ids"><tree editable="bottom"><field name="company_id" column_invisible="True"/><field name="user_id"/>
                 <field name="currency_id" column_invisible="True"/><field name="amount" sum="Individual targets"/></tree></field>
-            <group string="Target notes"><field name="notes" nolabel="1" placeholder="Explain the target, allocation or any agreed exceptions..."/></group>
+            <group string="Target notes"><field name="notes" nolabel="1" colspan="2" class="w-100" placeholder="Explain the target, allocation or any agreed exceptions..."/></group>
         </sheet></form></field>
     </record>
     <record id="entry_form_target_snapshot" model="ir.ui.view">
