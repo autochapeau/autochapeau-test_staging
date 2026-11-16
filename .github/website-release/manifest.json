@@ -1,0 +1,6 @@
+{
+  "source_commit": "7fc07eea7f1b4fd7bbb4bb693fb7fe6535667157",
+  "target": "web-test.autochapeau.com",
+  "database": "autochapeau_prod_test",
+  "archive_sha256": "063e642cf10d85aa003d7736f69c97cd9a7041b8da47f6bca324eb1b7691c179"
+}
