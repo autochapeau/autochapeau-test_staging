@@ -1,0 +1,38 @@
+name: Diagnose TEST SMS without sending messages
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/verification/diagnose_sms.py, .github/workflows/sms-diagnostic.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install encrypted result transport
+        run: python3 -m pip install cryptography==46.0.3 PyNaCl==1.6.2
+      - name: Read TEST SMS diagnostics and encrypt the result
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' < .github/verification/diagnose_sms.py > /tmp/sms-private.txt
+          python3 - <<'PY'
+          import base64,importlib.util,pathlib,os
+          spec=importlib.util.spec_from_file_location('bundle','.github/verification/website_bundle.py')
+          bundle=importlib.util.module_from_spec(spec); spec.loader.exec_module(bundle)
+          lines=pathlib.Path('/tmp/sms-private.txt').read_text().splitlines()
+          data=next(line.split('=',1)[1] for line in lines if line.startswith('SMS_DIAGNOSTIC_PRIVATE='))
+          public=b'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID0qbEt/j4lNMJNd6CNlFp9fQkZz7++125+byUgfSSp0'
+          sealed=base64.b64encode(bundle.encrypt(data.encode(),public)).decode()
+          print('SMS_DIAGNOSTIC_SEALED='+sealed)
+          pathlib.Path('/tmp/sms-private.txt').unlink()
+          PY
