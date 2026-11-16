@@ -11,7 +11,8 @@ permissions:
   actions: read
 concurrency:
   group: website-test-verification
-  cancel-in-progress: false
+  # A newer verification supersedes an obsolete commit waiting for deployment.
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
