@@ -1,0 +1,28 @@
+name: Configure TEST website counters and QA offer
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/verification/configure_website_test.py, .github/workflows/website-configure-test.yml]
+permissions:
+  contents: read
+concurrency:
+  group: website-content-configuration
+  cancel-in-progress: false
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize TEST content settings
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' < .github/verification/configure_website_test.py
