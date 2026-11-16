@@ -68,7 +68,8 @@ def send_sms(phone, message=None):
         result = response.status_code == 200 and _infinito_response_accepted(response)
     except requests.RequestException as error:
         # URLs contain credentials and OTP text, so never log the request URL.
-        _logger.warning("SMS provider request failed (%s)", type(error).__name__)
+        status = getattr(getattr(error, "response", None), "status_code", None)
+        _logger.warning("SMS provider request failed (%s, HTTP %s)", type(error).__name__, status)
         raise UserError(_("The SMS service is unavailable. Please try again later.")) from None
     if not result:
         _logger.warning("SMS provider rejected a send request")

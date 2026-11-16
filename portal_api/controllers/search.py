@@ -92,7 +92,7 @@ class PortalSearch(http.Controller):
                     search_domain = expression.AND(
                         [expression.OR([[(field, "ilike", name)] for field in text_fields]), search_domain])
                 records = request.env[model_name].sudo(
-                ).search_read(search_domain, fields_name)
+                ).with_context(bin_size=True).search_read(search_domain, fields_name)
                 result = format_search_read_result(
                     records, fields_name, [], model_name=model_name)
                 if key == "services":

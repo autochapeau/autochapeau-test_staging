@@ -50,6 +50,8 @@ class TestWebsiteRelease(TransactionCase):
             for module in (common, maintenance, portal_contents, product, binary, search, vehicle):
                 stack.enter_context(patch.object(module, "request", fake_request))
             response = function(controller, **kwargs)
+            if isinstance(response, dict):
+                return response.get("code", 200), response
             return response.status_code, json.loads(response.get_data())
 
     def issued_order(self):
@@ -58,7 +60,7 @@ class TestWebsiteRelease(TransactionCase):
             "warehouse_id": self.warehouse.id,
             "order_line": [Command.create({"product_id": self.service.id, "price_unit": 500})]})
         sale.state = "sale"
-        order = self.env["car.work.order"].create({"partner_id": self.owner.partner_id.id,
+        order = self.env["car.work.order"].with_context(contract_upsell_sync=True).create({"partner_id": self.owner.partner_id.id,
             "vehicle_id": self.vehicle.id, "branch_id": self.branch.id,
             "sale_order_id": sale.id, "service_ids": [Command.create({"product_id": self.service.id,
                 "staff_ids": [Command.set(self.staff.ids)]})]})
