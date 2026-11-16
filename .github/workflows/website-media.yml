@@ -1,0 +1,35 @@
+name: Prepare TEST gallery acceptance fixture
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/verification/prepare_website_media.py, .github/verification/fixtures/website-gallery/**, .github/workflows/website-media.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare isolated TEST media
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ROOT="/tmp/website-media-$GITHUB_RUN_ID"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$ROOT'"
+          scp -P "$SSH_PORT" .github/verification/fixtures/website-gallery/* .github/verification/prepare_website_media.py "$SSH_USER@$SSH_HOST:$ROOT/"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash -s '$ROOT'" <<'REMOTE'
+          set -euo pipefail
+          ROOT="$1"
+          CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
+          test -n "$CONTAINER"
+          sudo docker cp "$ROOT" "$CONTAINER:$ROOT"
+          sudo docker exec -i -e WEBSITE_QA_MEDIA_ROOT="$ROOT" "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0 < "$ROOT/prepare_website_media.py"
+          REMOTE
