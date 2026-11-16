@@ -29,6 +29,8 @@ jobs:
           echo 'TEST services'
           ODOO_CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
           test -n "$ODOO_CONTAINER"
+          echo 'Sanitized SMS transport diagnostics'
+          sudo docker logs --since 30m "$ODOO_CONTAINER" 2>&1 | python3 -c 'import re,sys; [print(m.group(0)) for line in sys.stdin if (m := re.search(r"SMS provider request failed \([A-Za-z]+(?:, HTTP (?:[0-9]{3}|None))?\)", line))]'
           sudo docker exec -i "$ODOO_CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0 <<'PY'
           import json
           assert env.cr.dbname == 'autochapeau_prod_test'
