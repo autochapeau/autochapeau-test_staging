@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="maintenance_guide_action" model="ir.actions.act_url">
+        <field name="name">دليل الصيانة</field>
+        <field name="url">/maintenance-guide</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="maintenance_guide_menu" name="دليل الصيانة"
+              parent="work_orders.car_work_order_menu_root"
+              action="maintenance_guide_action" sequence="90"
+              groups="work_orders.group_quality_officer,work_orders.group_workshop_manager,sales_team.group_sale_salesman"/>
+</odoo>
