@@ -57,7 +57,8 @@ def send_sms(phone, message=None):
         "clientid": infinito_client_id,
         "clientpassword": infinito_client_password,
         "from": "AutoChapeau",
-        "to": phone,
+        # ValueFirst expects country-code-prefixed digits without punctuation.
+        "to": phone.lstrip("+"),
         "text": formatted_message,
     }
     result = False

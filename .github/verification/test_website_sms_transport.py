@@ -47,7 +47,7 @@ class SmsTransportTests(unittest.TestCase):
     def test_form_success_returns_true(self):
         with patch.object(sms.requests, "get", return_value=self.response()) as send:
             self.assertIs(sms.send_sms("0555000011", "Test OTP"), True)
-            self.assertEqual(send.call_args.kwargs["params"]["to"], "+966555000011")
+            self.assertEqual(send.call_args.kwargs["params"]["to"], "966555000011")
             self.assertEqual(send.call_args.kwargs["timeout"], 15)
             self.assertIs(send.call_args.kwargs["allow_redirects"], False)
 
