@@ -7,6 +7,11 @@ from odoo.http import request
 from .common import authorization_required, make_response, with_lang
 
 
+def _utc_timestamp(value):
+    # Odoo stores naive UTC datetimes; browsers need an explicit timezone.
+    return value.isoformat(timespec="seconds") + "Z" if value else False
+
+
 def _owned_order(order_id):
     # Never look up a claim or service from a client-supplied ID before ownership.
     return request.env["sale.order"].sudo().search([
@@ -84,7 +89,7 @@ class WebsiteMaintenance(http.Controller):
                         "service_line_id": line.id, "source_task_id": task.id,
                         "name": line.product_id.display_name, "warranty": line.product_id.warranty or False,
                         "work_order": task.workorder_id.name,
-                        "completed_at": str(task.date_end) if task.date_end else False,
+                        "completed_at": _utc_timestamp(task.date_end),
                         "parts": [{"id": part.id, "name": part.name} for part in parts],
                     })
         history = request.env["maintenance.claim"].sudo().search([("origin_sale_id", "=", order.id)])
@@ -92,7 +97,7 @@ class WebsiteMaintenance(http.Controller):
             "order": order.name, "vehicle": order.vehicle_id.display_name, "services": services,
             "history": [{"id": claim.id, "name": claim.name, "state": claim.state,
                          "service": claim.service_product_id.display_name,
-                         "description": claim.problem_location, "date": str(claim.create_date),
-                         "appointment": str(claim.appointment_id.start_date) if claim.appointment_id and claim.appointment_id.start_date else False}
+                         "description": claim.problem_location, "date": _utc_timestamp(claim.create_date),
+                         "appointment": _utc_timestamp(claim.appointment_id.start_date) if claim.appointment_id else False}
                         for claim in history],
         })

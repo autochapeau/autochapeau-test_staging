@@ -200,6 +200,7 @@ class TestWebsiteRelease(TransactionCase):
         status, data = self.call(maintenance.WebsiteMaintenance(), "maintenance", env=customer_env, order_id=sale.id)
         self.assertEqual(status, 200)
         self.assertEqual(data["services"][0]["parts"][0]["id"], self.part.id)
+        self.assertTrue(data["services"][0]["completed_at"].endswith("Z"))
         status, _ = self.call(maintenance.WebsiteMaintenance(), "maintenance", env=self.env(user=self.other.id), order_id=sale.id)
         self.assertEqual(status, 404)
         values = {"service_line_id": sale.order_line.id, "source_task_id": order.service_ids.id,
@@ -212,6 +213,8 @@ class TestWebsiteRelease(TransactionCase):
         self.assertEqual(claim.website_request_user_id, self.owner)
         self.assertEqual(claim.state, "quality")
         self.assertFalse(claim.move_id)
+        _, current = self.call(maintenance.WebsiteMaintenance(), "maintenance", env=customer_env, order_id=sale.id)
+        self.assertTrue(current["history"][0]["date"].endswith("Z"))
         status, _ = self.call(maintenance.WebsiteMaintenance(), "maintenance", env=customer_env,
             method="POST", order_id=sale.id, body=values)
         self.assertEqual(status, 409)
