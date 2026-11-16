@@ -31,8 +31,9 @@ values = attribute.value_ids.filtered(lambda value: value.name in ['Small', 'Med
 assert len(values) == 4
 service = fixture('service', 'product.template', {'name': 'DEMO Operations | Window Tinting', 'detailed_type': 'service', 'list_price': 0,
     'attribute_line_ids': [Command.create({'attribute_id': attribute.id, 'value_ids': [Command.set(values.ids)]})]})
-slot = op['car.appointment.slot'].search([('company_id', '=', warehouse.company_id.id)], limit=1)
-assert slot
+slot = fixture('slot', 'car.appointment.slot', {'company_id': warehouse.company_id.id,
+    'date': fields.Date.add(fields.Date.today(), days=1), 'start_hour': 6.125,
+    'duration': .25, 'capacity': 1, 'department_ids': [Command.set(branch.ids)]})
 # This is an explicitly completed fictional reception prerequisite. The video
 # records adding the service, confirming and starting the actual new work order.
 checkin = fixture('checkin', 'car.checkin', {'partner_id': customer.id, 'vehicle_id': vehicle.id,
