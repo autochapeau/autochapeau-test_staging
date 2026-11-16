@@ -168,5 +168,11 @@ jobs:
               < "$PROJECT_PATH/.github/verification/run_mobile_unique_tests.py"
           fi
 
+          if [ -f "$PROJECT_PATH/.github/verification/prepare_maintenance_demo.py" ]; then
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+              < "$PROJECT_PATH/.github/verification/prepare_maintenance_demo.py"
+          fi
+
           echo "Deployment completed successfully."
           REMOTE_SCRIPT

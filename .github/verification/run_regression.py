@@ -49,6 +49,7 @@ sources = {
     "account_deferred_revenue": ["test_service_advance"],
     "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers"],
     "workorder_service_components": ["test_service_materials"],
+    "order_maintenance": ["test_maintenance_parts"],
 }
 for addon, names in sources.items():
     name = "odoo.addons." + addon + ".tests"
@@ -60,7 +61,7 @@ for addon, names in sources.items():
     for leaf in names:
         full_name = name + "." + leaf
         source = path / (leaf + ".py")
-        if leaf == "test_payment_attachment" or addon == "workorder_service_components":
+        if leaf == "test_payment_attachment" or addon in ("workorder_service_components", "order_maintenance"):
             source = Path(get_module_path(addon)) / "tests" / (leaf + ".py")
         spec = importlib.util.spec_from_file_location(full_name, source)
         module = importlib.util.module_from_spec(spec)
@@ -68,7 +69,7 @@ for addon, names in sources.items():
         spec.loader.exec_module(module)
         setattr(package, leaf, module)
 
-tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission,/workorder_service_components"
+tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission,/workorder_service_components,/order_maintenance"
 suite = loader.make_suite(list(sources), position="post_install")
 original_connect = socket.socket.connect
 
@@ -85,5 +86,5 @@ finally:
 summary = {"database": env.cr.dbname, "tests": result.testsRun,
     "failures": result.failures_count, "errors": result.errors_count, "skipped": result.skipped}
 print("VIDEO_REQUIREMENTS_REGRESSION=" + json.dumps(summary, sort_keys=True))
-assert result.testsRun >= 244, summary
+assert result.testsRun >= 299, summary
 assert result.failures_count == 0 and result.errors_count == 0 and result.skipped == 0, summary

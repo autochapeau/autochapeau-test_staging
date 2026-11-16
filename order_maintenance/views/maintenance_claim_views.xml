@@ -10,6 +10,7 @@
                 <field name="partner_id"/>
                 <field name="vehicle_id"/>
                 <field name="service_product_id"/>
+                            <field name="source_workorder_id"/>
                 <filter name="waiting_quality" string="Waiting for Quality" domain="[('state', '=', 'quality')]"/>
                 <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
                 <filter name="customer_fault" string="Customer Fault" domain="[('fault_type', '=', 'customer')]"/>
@@ -34,6 +35,7 @@
                 <field name="partner_id"/>
                 <field name="vehicle_id"/>
                 <field name="service_product_id"/>
+                            <field name="source_workorder_id"/>
                 <field name="fault_type"/>
                 <field name="state"/>
                 <field name="sale_order_id"/>
@@ -110,6 +112,7 @@
                         <group>
                             <field name="origin_sale_id"/>
                             <field name="service_product_id"/>
+                            <field name="source_workorder_id"/>
                             <field name="partner_id"/>
                             <field name="vehicle_id"/>
                             <field name="branch_id"/>
@@ -142,13 +145,17 @@
                     <notebook>
                         <page string="Parts" name="parts">
                             <field name="part_ids" readonly="state != 'quality'">
-                                <tree editable="bottom">
-                                    <field name="include" string="Maintenance"/>
+                                <tree editable="bottom" create="0" delete="0">
+                                    <field name="source_material_id" column_invisible="True"/>
+                                    <field name="vehicle_part_id"/>
+                                    <field name="include" string="Maintenance" readonly="source_material_id != False"/>
                                     <field name="glass_type_id" column_invisible="not parent.is_window_tinting"/>
                                     <field name="tint_percentage_id" column_invisible="not parent.is_window_tinting"/>
-                                    <field name="product_id" column_invisible="parent.is_window_tinting"/>
-                                    <field name="quantity" column_invisible="parent.is_window_tinting"/>
-                                    <field name="unit_cost"/>
+                                    <field readonly="source_material_id != False" name="product_id"/>
+                                    <field readonly="source_material_id != False" name="quantity"/>
+                                    <field readonly="source_material_id != False" name="unit_cost"/>
+                                    <field name="material_uom_id"/>
+                                    <field name="source_move_id" optional="hide" groups="stock.group_stock_user"/>
                                 </tree>
                             </field>
                         </page>
@@ -177,4 +184,14 @@
         sequence="25"
         groups="work_orders.group_quality_officer,work_orders.group_workshop_manager,sales_team.group_sale_salesman"
     />
+    <record id="maintenance_car_part_glass_mapping" model="ir.ui.view">
+        <field name="name">car.part.maintenance.glass</field>
+        <field name="model">car.part</field>
+        <field name="inherit_id" ref="workorder_service_components.car_part_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="maintenance_glass_type_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
 </odoo>

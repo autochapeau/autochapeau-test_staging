@@ -1,7 +1,7 @@
 {
     "name": "Order Maintenance",
     "summary": "Return maintenance from a sale order, with quality deciding who pays",
-    "version": "17.0.1.1.1",
+    "version": "17.0.2.0.0",
     "author": "Wellknot",
     "category": "Services",
     "depends": [
@@ -10,6 +10,8 @@
         "hr_branch_department",
         "account",
         "gb_window_tinting",
+        "workorder_service_components",
+        "stock_account",
     ],
     "data": [
         "security/ir.model.access.csv",

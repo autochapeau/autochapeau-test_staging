@@ -162,6 +162,9 @@ class WorkOrder(models.Model):
             self.filtered(lambda order: order.state == "new")._sync_part_materials()
         return result
 
+    def _get_service_material_components(self, task):
+        return task.product_id.service_part_ids.component_ids
+
     def _sync_part_materials(self):
         """Snapshot materials and adopt existing appointment/upsell BOM lines.
 
@@ -174,7 +177,7 @@ class WorkOrder(models.Model):
             available = order.product_ids.filtered(lambda line: line.service_id and not line.source_task_id)
             for task in order.service_ids:
                 existing = order.product_ids.filtered(lambda line: line.source_task_id == task)
-                for bom in task.product_id.service_part_ids.component_ids:
+                for bom in order._get_service_material_components(task):
                     if bom in existing.source_component_id:
                         continue
                     candidate = available.filtered(lambda line:

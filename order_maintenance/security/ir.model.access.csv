@@ -18,3 +18,5 @@ access_car_appointment_product_maintenance_quality,car.appointment.product maint
 access_car_appointment_slot_maintenance_quality,car.appointment.slot maintenance quality,appointment_management.model_car_appointment_slot,work_orders.group_quality_officer,1,0,0,0
 access_window_tint_glass_type_quality,window.tint.glass.type quality,gb_window_tinting.model_window_tint_glass_type,work_orders.group_quality_officer,1,0,0,0
 access_window_tint_percentage_quality,window.tint.percentage quality,gb_window_tinting.model_window_tint_percentage,work_orders.group_quality_officer,1,0,0,0
+access_source_task_sales,Issued source services sales,work_orders.model_car_workorder_service,sales_team.group_sale_salesman,1,0,0,0
+access_source_workorder_sales,Original work orders sales,work_orders.model_car_work_order,sales_team.group_sale_salesman,1,0,0,0

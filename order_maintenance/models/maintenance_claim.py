@@ -4,6 +4,9 @@ from odoo.fields import Command
 from odoo.tools.float_utils import float_compare, float_is_zero
 
 
+_SOURCE_TOKEN = object()
+
+
 _QUALITY_FIELDS = frozenset({
     "fault_type",
     "quality_reason",
@@ -85,6 +88,9 @@ class MaintenanceClaim(models.Model):
         "res.currency",
         related="company_id.currency_id",
     )
+    source_task_id = fields.Many2one("car.workorder.service", string="Original Work Order Service", readonly=True, ondelete="restrict", copy=False)
+    source_workorder_id = fields.Many2one(related="source_task_id.workorder_id", string="Original Work Order")
+
     problem_location = fields.Text(string="Problem Location", required=True)
 
     fault_type = fields.Selection(
@@ -161,6 +167,8 @@ class MaintenanceClaim(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if self.env.context.get("maintenance_source_token") is not _SOURCE_TOKEN:
+            raise UserError(_("Create maintenance requests from the original order and select its issued parts."))
         for vals in vals_list:
             if not vals.get("name") or vals.get("name") == "New":
                 vals["name"] = (
@@ -169,6 +177,8 @@ class MaintenanceClaim(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        if {"source_task_id", "origin_sale_id", "origin_sale_line_id"} & vals.keys():
+            raise UserError(_("The original order and work order service cannot be changed."))
         if not self.env.su and (_QUALITY_FIELDS & set(vals)):
             if not self.env.user.has_group("work_orders.group_quality_officer"):
                 raise UserError(_("Only quality can set the maintenance cause."))
@@ -191,7 +201,7 @@ class MaintenanceClaim(models.Model):
 
     def _suggested_employee(self):
         self.ensure_one()
-        services = self.origin_sale_id.appointment_ids.mapped(
+        services = self.source_task_id or self.origin_sale_id.appointment_ids.mapped(
             "car_work_order_id.service_ids"
         ).filtered(lambda service: service.product_id == self.service_product_id)
         staff = services.mapped("staff_ids").filtered("is_technician")
@@ -250,7 +260,7 @@ class MaintenanceClaim(models.Model):
             raise UserError(_("Select who caused the problem."))
         if not (self.quality_reason or "").strip():
             raise UserError(_("Enter the quality notes."))
-        if self.is_window_tinting:
+        if self.is_window_tinting and not self.source_task_id:
             selected_glass = self.part_ids.filtered(
                 lambda part: part.include and part.glass_type_id and part.tint_percentage_id
             )
@@ -324,6 +334,7 @@ class MaintenanceClaim(models.Model):
             "origin": origin.name,
             "client_order_ref": self.name,
             "maintenance_claim_id": self.id,
+            "related_sale_id": origin.id,
         }
         if origin.branch_id:
             vals["branch_id"] = origin.branch_id.id
@@ -369,7 +380,8 @@ class MaintenanceClaim(models.Model):
                     "tint_percentage_id": part.tint_percentage_id.id,
                     "note": part.origin_tint_detail_id.note or False,
                 })
-                for part in selected
+                for part in selected.sorted("id")
+                if part == selected.filtered(lambda item: item.origin_tint_detail_id == part.origin_tint_detail_id)[:1]
             ],
         })
 
@@ -475,6 +487,8 @@ class MaintenanceClaim(models.Model):
         """Quality decision: charge the right party, then open a maintenance order and its appointment."""
         self.ensure_one()
         self._check_quality_user()
+        self.env.cr.execute("SELECT id FROM maintenance_claim WHERE id = %s FOR UPDATE", (self.id,))
+        self.invalidate_recordset()
         if self.state != "quality":
             raise UserError(_("This maintenance request is already processed."))
         self._validate_cause()
@@ -553,7 +567,11 @@ class MaintenanceClaimPart(models.Model):
         ondelete="cascade",
         index=True,
     )
-    product_id = fields.Many2one("product.product", string="Part", required=True)
+    source_material_id = fields.Many2one("car.workorder.product", string="Original Material", readonly=True, ondelete="restrict", copy=False)
+    vehicle_part_id = fields.Many2one(related="source_material_id.part_id", string="Vehicle Part")
+    material_uom_id = fields.Many2one(related="product_id.uom_id", string="Unit")
+    source_move_id = fields.Many2one(related="source_material_id.material_move_id", string="Original Delivery Move")
+    product_id = fields.Many2one("product.product", string="Material", required=True)
     quantity = fields.Float(required=True, default=1.0)
     unit_cost = fields.Float(string="Unit Cost", digits="Product Price")
     include = fields.Boolean(string="Charge", default=False)
@@ -566,7 +584,15 @@ class MaintenanceClaimPart(models.Model):
         ondelete="set null",
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if self.env.context.get("maintenance_source_token") is not _SOURCE_TOKEN:
+            raise UserError(_("Materials are generated from the selected original work order parts."))
+        return super().create(vals_list)
+
     def write(self, vals):
+        if self.filtered("source_material_id"):
+            raise UserError(_("Actual issued materials and their valuation are read-only. Create a new request to change the selected parts."))
         if any(part.claim_id.state != "quality" for part in self):
             raise UserError(_("You cannot change parts after the request is confirmed."))
         if not self.env.su and not self.env.user.has_group("work_orders.group_quality_officer"):
@@ -574,6 +600,8 @@ class MaintenanceClaimPart(models.Model):
         return super().write(vals)
 
     def unlink(self):
+        if self.filtered("source_material_id"):
+            raise UserError(_("Actual issued materials cannot be removed from a request."))
         if not self.env.su and not self.env.user.has_group("work_orders.group_quality_officer"):
             if any(part.claim_id.state != "quality" for part in self):
                 raise UserError(_("You cannot remove parts after the request is confirmed."))
