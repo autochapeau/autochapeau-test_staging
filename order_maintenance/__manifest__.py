@@ -1,7 +1,7 @@
 {
     "name": "Order Maintenance",
     "summary": "Return maintenance from a sale order, with quality deciding who pays",
-    "version": "17.0.2.0.1",
+    "version": "17.0.2.0.2",
     "author": "Wellknot",
     "category": "Services",
     "depends": [
