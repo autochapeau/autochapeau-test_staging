@@ -27,6 +27,22 @@ jobs:
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE' | tee /tmp/website-inventory.txt
           set -euo pipefail
           echo 'TEST services'
+          ODOO_CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
+          test -n "$ODOO_CONTAINER"
+          sudo docker exec -i "$ODOO_CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0 <<'PY'
+          import json
+          assert env.cr.dbname == 'autochapeau_prod_test'
+          parameters = env['ir.config_parameter'].sudo()
+          print('WEBSITE_CONFIG_AUDIT ' + json.dumps({
+              'sms_client_configured': bool(parameters.get_param('infinito_client_id')),
+              'sms_password_configured': bool(parameters.get_param('infinito_client_password')),
+              'google_setting_count': parameters.search_count(['|', ('key', 'ilike', 'google'), ('key', 'ilike', 'business_profile')]),
+              'statistics': env['portal.statistic'].with_context(lang='en_US').search([]).read(['name', 'value']),
+              'offers': env['portal.offer'].with_context(lang='en_US').search([]).read(['name', 'is_main']),
+              'branch_schedule_count': env['portal.branch.schedule'].search_count([]),
+          }, ensure_ascii=False))
+          env.cr.rollback()
+          PY
           sudo docker service ls --format '{{.Name}} {{.Image}} {{.Ports}}'
           sudo docker service ls -q | while read -r id; do
             sudo docker service inspect "$id" | python3 -c '
