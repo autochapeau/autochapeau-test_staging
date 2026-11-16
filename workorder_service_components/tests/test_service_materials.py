@@ -999,6 +999,14 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(order.product_ids.quantity, .03)
 
     def test_video_select_category_only_film_in_progress_form(self):
+        # The web client shares the nested architecture between both occurrences
+        # of product_ids, including the one hidden after confirmation.
+        arch = self.env.ref('workorder_service_components.car_work_order_form_service_components').arch_db
+        from lxml import etree
+        root = etree.fromstring(arch.encode())
+        for name in ('material_category_id', 'suggested_qty', 'used_uom_id'):
+            for field in root.xpath(".//field[@name='product_ids']/tree/field[@name='%s']" % name):
+                self.assertNotEqual(field.get('force_save'), '1')
         recipe = self._film_recipe(category_only=True)
         brand = self.env['car.material.brand'].create({'name': 'Operator form film brand'})
         self.film.material_brand_id = brand
