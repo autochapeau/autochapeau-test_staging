@@ -1,0 +1,73 @@
+name: Configure verified SMS credentials on TEST only
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/workflows/sms-configure-test.yml]
+permissions:
+  contents: read
+concurrency:
+  group: test-sms-configuration
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install encrypted transport
+        run: python3 -m pip install cryptography==46.0.3 PyNaCl==1.6.2
+      - name: Configure TEST SMS and disable fixed test OTP bypass
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SEALED_CREDENTIALS: UNudu7K4LORp/gTebwdLyHT2Sqqc3ZJPq29dketYG2VpaFmyFnju8tEH0V3W41Ct5IKKh0FHaOdyWY2Hq6iKA4AFkIIuVITCVAwr+x0tB9MTLYLstCoICamotK+NXIjuV6SmlGQojG3E/PWmxz1ZIiZfKqrb+Bnb7QJQ13uP2vIKxJxvsB0=
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          python3 - <<'PY'
+          import os,base64,pathlib,json
+          from cryptography.hazmat.primitives.serialization import load_ssh_private_key,Encoding,PrivateFormat,NoEncryption
+          from nacl.signing import SigningKey
+          from nacl.public import SealedBox
+          private=load_ssh_private_key(pathlib.Path.home().joinpath('.ssh/id_ed25519').read_bytes(),password=None)
+          key=SigningKey(private.private_bytes(Encoding.Raw,PrivateFormat.Raw,NoEncryption())).to_curve25519_private_key()
+          data=SealedBox(key).decrypt(base64.b64decode(os.environ['SEALED_CREDENTIALS']))
+          values=json.loads(data)
+          assert values['client'] and values['password']
+          pathlib.Path('/tmp/sms-input.json').write_bytes(data+b'\n')
+          PY
+          {
+          cat /tmp/sms-input.json
+          cat <<'PY'
+          import json,os,requests
+          assert env.cr.dbname=='autochapeau_prod_test'
+          values=json.loads(os.environ['SMS_PROBE_JSON'])
+          response=requests.get('https://api.goinfinito.me/unified/v2/send',params={'clientid':values['client'],'clientpassword':values['password']},timeout=20,allow_redirects=False)
+          assert response.status_code==200 and response.text.strip()=='Invalid Payload Request','Provider authentication probe did not pass'
+          parameters=env['ir.config_parameter'].sudo()
+          keys=('infinito_client_id','infinito_client_password','portal_api.allow_test_otp')
+          previous={key:parameters.get_param(key) for key in keys}
+          parameters.set_param('infinito_client_id',values['client'])
+          parameters.set_param('infinito_client_password',values['password'])
+          parameters.set_param('portal_api.allow_test_otp','0')
+          env.cr.commit()
+          result={'source':'test','database':env.cr.dbname,'sms_send_attempted':False,'erp_settings_changed':True,'fixed_otp_bypass_enabled':False,'previous_configuration':previous}
+          print('TEST_SMS_CONFIGURATION_PRIVATE='+json.dumps(result))
+          PY
+          } | ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'set -eu; IFS= read -r SMS_PROBE_JSON; CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; test "$(sudo docker inspect "$CONTAINER" --format "{{index .Config.Labels \"com.docker.swarm.service.name\"}}")" = autochapeau_staging_odoo_odoo; sudo docker exec -i -e SMS_PROBE_JSON="$SMS_PROBE_JSON" "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' > /tmp/sms-response-private.txt
+          python3 - <<'PY'
+          import base64,pathlib
+          from cryptography.hazmat.primitives.serialization import load_ssh_public_key,Encoding,PublicFormat
+          from nacl.signing import VerifyKey
+          from nacl.public import SealedBox
+          public=load_ssh_public_key(b'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID0qbEt/j4lNMJNd6CNlFp9fQkZz7++125+byUgfSSp0')
+          key=VerifyKey(public.public_bytes(Encoding.Raw,PublicFormat.Raw)).to_curve25519_public_key()
+          path=pathlib.Path('/tmp/sms-response-private.txt')
+          result=next(line.split('=',1)[1] for line in path.read_text().splitlines() if line.startswith('TEST_SMS_CONFIGURATION_PRIVATE='))
+          print('TEST_SMS_CONFIGURATION_SEALED='+'.'.join(base64.b64encode(SealedBox(key).encrypt(result.encode())).decode()))
+          path.unlink(); pathlib.Path('/tmp/sms-input.json').unlink()
+          PY
