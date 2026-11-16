@@ -45,7 +45,7 @@
             <field name="materials_issued" column_invisible="1"/>
             <field name="service_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
             <field name="part_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
-            <field name="material_category_id" readonly="1" force_save="1"/>
+            <field name="material_category_id" readonly="1"/>
             <field name="tag_id" readonly="parent.state != 'new' or material_category_id" optional="hide" options="{'no_create': True}"/>
             <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="materials_issued or not material_category_id or parent.state not in ('confirmed', 'progress')" options="{'no_create': True}"/>
             <field name="usage_mode" readonly="1" optional="show"/>
@@ -58,7 +58,7 @@
             <field name="film_width_in" readonly="1" optional="show"/>
             <field name="roll_length_m" readonly="1" optional="hide"/>
             <field name="dimension_warning" readonly="1" optional="show"/>
-            <field name="suggested_qty" readonly="1" force_save="1"/>
+            <field name="suggested_qty" readonly="1"/>
             <field name="quantity" string="Used Quantity" readonly="usage_mode == 'roll' or materials_issued or (parent.state != 'new' and (not source_task_id or parent.state != 'progress'))"/>
             <field name="branch_available_qty" readonly="1"/>
             <field name="availability_warehouse_id" readonly="1" optional="hide" options="{'no_open': True}"/>
@@ -66,7 +66,7 @@
             <field name="company_id" column_invisible="1"/>
             <field name="lot_id" optional="hide" readonly="materials_issued" options="{'no_create': True}"/>
             <field name="product_uom_category_id" column_invisible="1"/>
-            <field name="used_uom_id" readonly="parent.state != 'new'" force_save="1" options="{'no_create': True}"/>
+            <field name="used_uom_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
           </tree>
         </field>
       </xpath>

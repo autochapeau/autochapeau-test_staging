@@ -998,6 +998,31 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(order.product_ids.actual_length_in, 25)
         self.assertEqual(order.product_ids.quantity, .03)
 
+    def test_video_select_category_only_film_in_progress_form(self):
+        recipe = self._film_recipe(category_only=True)
+        brand = self.env['car.material.brand'].create({'name': 'Operator form film brand'})
+        self.film.material_brand_id = brand
+        recipe.allowed_brand_ids = brand
+        order = self._order()
+        self._start(order)
+        with Form(order, view='work_orders.car_work_order_view_form') as form:
+            with form.product_ids.edit(0) as line:
+                line.material_brand_id = brand
+                line.product_id = self.film
+        line = order.product_ids
+        self.assertEqual(line.product_id, self.film)
+        self.assertEqual(line.material_category_id, recipe.material_category_id)
+        self.assertEqual(line.used_uom_id, self.film.uom_id)
+        self.assertAlmostEqual(line.quantity, .01)
+        self.assertAlmostEqual(line.suggested_qty, .01)
+        with Form(order, view='work_orders.car_work_order_view_form') as form:
+            with form.product_ids.edit(0) as edit:
+                edit.actual_length_in = 21
+        self.assertEqual(line.actual_length_in, 21)
+        self.assertTrue(line.dimension_warning)
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.material_category_id = self.env['product.category'].create({'name': 'Forbidden category change'})
+
     def test_video_category_quantity_keeps_configured_millilitres(self):
         category = self._categorized_materials()
         litre = self.env.ref("uom.product_uom_litre")
