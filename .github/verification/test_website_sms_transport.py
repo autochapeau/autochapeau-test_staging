@@ -57,6 +57,26 @@ class SmsTransportTests(unittest.TestCase):
         with patch.object(sms.requests, "get", return_value=response):
             self.assertTrue(sms.send_sms("0555000011", "Test OTP"))
 
+    def test_json_acknowledgement_success_and_recipient_failure(self):
+        response = Mock(status_code=200)
+        payload = {"status": "Success", "statuscode": 200, "statustext": "OK",
+                   "messageack": {"guids": [{"guid": "qa-message"}]}}
+        response.json.return_value = payload
+        self.assertTrue(sms._infinito_response_accepted(response))
+        payload["messageack"]["guids"][0]["errors"] = [{"errorcode": 28682}]
+        self.assertFalse(sms._infinito_response_accepted(response))
+
+    def test_conflicting_failure_code_never_reports_success(self):
+        self.assertFalse(sms._infinito_response_accepted(
+            self.response("statuscode=57091&statustext=Success")))
+
+    def test_forbidden_is_distinguished_from_wrong_credentials_without_body_logging(self):
+        self.assertEqual(sms._infinito_failure_category(Mock(status_code=409, text="Forbidden")), "api_access_denied")
+        self.assertEqual(sms._infinito_failure_category(Mock(status_code=401, text="private-response")), "authentication_rejected")
+        response = Mock(status_code=200, text="")
+        response.json.return_value = {"statuscode": 57090, "statustext": "private-response"}
+        self.assertEqual(sms._infinito_failure_category(response), "credit_expired")
+
     def test_provider_rejection_is_not_reported_as_success(self):
         with patch.object(sms.requests, "get", return_value=self.response("statustext=Rejected")):
             with self.assertRaises(exceptions_stub.UserError):

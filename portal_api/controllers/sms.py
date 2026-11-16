@@ -27,18 +27,54 @@ def normalize_phone(phone, country_code="966"):
     return value
 
 
-def _infinito_response_accepted(response):
-    """Provider acceptance does not prove delivery to the recipient's handset."""
+def _infinito_payload(response):
     try:
         payload = response.json()
     except ValueError:
         payload = parse_qs(response.text)
-    if not isinstance(payload, dict):
+    return payload if isinstance(payload, dict) else {}
+
+
+def _scalar(value):
+    return value[0] if isinstance(value, list) and value else value
+
+
+def _infinito_response_accepted(response):
+    """Accept both documented response formats, never per-recipient errors."""
+    if response.status_code != 200:
         return False
-    status = payload.get("statustext")
-    if isinstance(status, list):
-        status = status[0] if status else ""
-    return str(status or "").strip().lower() == "success"
+    payload = _infinito_payload(response)
+    status = str(_scalar(payload.get("statustext")) or "").strip().lower()
+    code = str(_scalar(payload.get("statuscode")) or "0")
+    acknowledgements = payload.get("messageack") or {}
+    if not isinstance(acknowledgements, dict):
+        return False
+    guids = acknowledgements.get("guids") or []
+    if not isinstance(guids, list) or any(not isinstance(row, dict) or row.get("errors") for row in guids):
+        return False
+    if status == "success" and code in ("0", "200"):
+        return True
+    return bool(str(payload.get("status") or "").lower() == "success"
+                and code == "200" and status == "ok" and guids
+                and all(row.get("guid") for row in guids))
+
+
+def _infinito_failure_category(response):
+    """Only return fixed diagnostic labels; response bodies may contain secrets."""
+    if response is None:
+        return "network"
+    if response.status_code == 403 or response.text.strip().lower() == "forbidden":
+        return "api_access_denied"
+    if response.status_code == 401:
+        return "authentication_rejected"
+    if response.status_code == 429:
+        return "rate_limited"
+    code = str(_scalar(_infinito_payload(response).get("statuscode")) or "")
+    return {"52992": "authentication_rejected", "52996": "token_rejected",
+            "57089": "contract_expired", "57090": "credit_expired",
+            "57091": "account_disabled", "57092": "account_expired",
+            "57093": "token_disabled", "28680": "sender_rejected",
+            "28682": "recipient_rejected"}.get(code, "provider_rejected")
 
 
 def send_sms(phone, message=None):
@@ -70,9 +106,12 @@ def send_sms(phone, message=None):
     except requests.RequestException as error:
         # URLs contain credentials and OTP text, so never log the request URL.
         status = getattr(getattr(error, "response", None), "status_code", None)
-        _logger.warning("SMS provider request failed (%s, HTTP %s)", type(error).__name__, status)
+        _logger.warning("SMS provider request failed (%s, HTTP %s, reason=%s)",
+                        type(error).__name__, status,
+                        _infinito_failure_category(getattr(error, "response", None)))
         raise UserError(_("The SMS service is unavailable. Please try again later.")) from None
     if not result:
-        _logger.warning("SMS provider rejected a send request")
+        _logger.warning("SMS provider rejected a send request (reason=%s)",
+                        _infinito_failure_category(response))
         raise UserError(_("The SMS provider did not accept the message. Please contact support."))
     return True
