@@ -1,0 +1,53 @@
+name: Inspect TEST website hosting
+on:
+  push:
+    branches: [codex/website-test-release]
+    paths: [.github/workflows/website-inventory.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read TEST host routing and frontend services
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE' | tee /tmp/website-inventory.txt
+          set -euo pipefail
+          echo 'TEST services'
+          sudo docker service ls --format '{{.Name}} {{.Image}} {{.Ports}}'
+          sudo docker service ls -q | while read -r id; do
+            sudo docker service inspect "$id" | python3 -c '
+          import json,sys
+          data=json.load(sys.stdin)[0]; spec=data["Spec"]; container=spec["TaskTemplate"].get("ContainerSpec",{})
+          labels=dict(spec.get("Labels",{})); labels.update(container.get("Labels",{}))
+          routes={k:v for k,v in labels.items() if ".routers." in k and k.endswith(".rule")}
+          public_env=[s for s in container.get("Env",[]) if s.split("=",1)[0] in ("BASE_URL","DB_NAME")]
+          if routes or public_env or any(s in spec["Name"].lower() for s in ("website","front","nginx","web")):
+              print(json.dumps({"service":spec["Name"],"image":container.get("Image"),"routes":routes,"website_environment":public_env,"mounts":[{"type":m.get("Type"),"source":m.get("Source"),"target":m.get("Target")} for m in container.get("Mounts",[])]}))'
+          done
+          echo 'Frontend checkout locations'
+          find /home/admin -maxdepth 4 -type d -name .git 2>/dev/null | while read -r path; do
+            directory="${path%/.git}"
+            if [ -f "$directory/package.json" ]; then
+              printf 'checkout=%s branch=' "$directory"
+              git -C "$directory" branch --show-current
+              git -C "$directory" rev-parse HEAD
+            fi
+          done
+          REMOTE
+          {
+            echo '### TEST website hosting inventory'
+            echo '```text'
+            cat /tmp/website-inventory.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
