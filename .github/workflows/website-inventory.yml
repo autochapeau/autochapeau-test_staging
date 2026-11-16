@@ -21,6 +21,8 @@ jobs:
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          echo 'Deployment SSH public-key fingerprint'
+          ssh-keygen -lf ~/.ssh/id_ed25519
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE' | tee /tmp/website-inventory.txt
           set -euo pipefail
           echo 'TEST services'
@@ -36,7 +38,7 @@ jobs:
               print(json.dumps({"service":spec["Name"],"image":container.get("Image"),"routes":routes,"website_environment":public_env,"mounts":[{"type":m.get("Type"),"source":m.get("Source"),"target":m.get("Target")} for m in container.get("Mounts",[])]}))'
           done
           echo 'Frontend checkout locations'
-          find /home/admin -maxdepth 4 -type d -name .git 2>/dev/null | while read -r path; do
+          sudo find /home/admin /opt -maxdepth 4 -type d -name .git 2>/dev/null | while read -r path; do
             directory="${path%/.git}"
             if [ -f "$directory/package.json" ]; then
               printf 'checkout=%s branch=' "$directory"
@@ -44,6 +46,13 @@ jobs:
               git -C "$directory" rev-parse HEAD
             fi
           done
+          echo 'Frontend source files'
+          sudo find /home/admin /opt -maxdepth 4 -type f -name package.json 2>/dev/null || true
+          echo 'TEST frontend nginx routing'
+          CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_website_web --format '{{.ID}}' | head -1)
+          if [ -n "$CONTAINER" ]; then
+            sudo docker exec "$CONTAINER" cat /etc/nginx/conf.d/default.conf
+          fi
           REMOTE
           {
             echo '### TEST website hosting inventory'
