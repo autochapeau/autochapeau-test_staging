@@ -14,47 +14,46 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    # _sql_constraints = [
-    #     (
-    #         "partner_mobile_normalized_uniq",
-    #         "unique(mobile_normalized)",
-    #         "This mobile number is already used by another contact.",
-    #     ),
-    #     (
-    #         "partner_email_normalized_uniq",
-    #         "unique(email)",
-    #         "This email is already used by another contact.",
-    #     ),
-    #     (
-    #         "partner_phone_uniq",
-    #         "unique(phone)",
-    #         "This phone is already used by another contact.",
-    #     ),
-    # ]
+    _sql_constraints = [
+        (
+            "partner_mobile_unique_key_uniq",
+            "unique(mobile_unique_key)",
+            "This mobile number is already used by another contact.",
+        ),
+    ]
 
+    def init(self):
+        super().init()
+        # Existing rows keep a NULL key so historical duplicates survive.
+        # Every new or changed mobile gets a key, including on API imports.
+        self._ensure_mobile_unique_constraint()
 
-    # @api.constrains("mobile", "phone")
-    # def _check_unique_mobile_phone(self):
-    #     Partner = self.sudo()
-    #     for partner in self:
-    #         if partner.mobile_normalized:
-    #             duplicate = Partner.search([
-    #                 ("id", "!=", partner.id),
-    #                 ("mobile_normalized", "=", partner.mobile_normalized),
-    #             ], limit=1)
-    #             if duplicate:
-    #                 raise ValidationError(_(
-    #                     "This mobile number is already used by %s."
-    #                 ) % duplicate.display_name)
-    #         if partner.phone:
-    #             duplicate = Partner.search([
-    #                 ("id", "!=", partner.id),
-    #                 ("phone", "=", partner.phone),
-    #             ], limit=1)
-    #             if duplicate:
-    #                 raise ValidationError(_(
-    #                     "This phone is already used by %s."
-    #                 ) % duplicate.display_name)
+    def _ensure_mobile_unique_constraint(self):
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_constraint
+             WHERE conrelid = 'res_partner'::regclass
+               AND conname = 'res_partner_partner_mobile_unique_key_uniq'
+               AND contype = 'u'
+        """)
+        if not self.env.cr.fetchone():
+            raise ValidationError(_(
+                "Database protection for new mobile numbers could not be enabled."
+            ))
+
+    @api.constrains("mobile", "mobile_unique_key")
+    def _check_unique_mobile(self):
+        # Check archived contacts and contacts hidden by record rules too.
+        # Keep the message generic so it does not disclose hidden contacts.
+        Partner = self.sudo().with_context(active_test=False)
+        for partner in self:
+            normalized = partner._normalize_mobile(partner.mobile)
+            if partner.mobile_unique_key and normalized and Partner.search_count([
+                ("id", "!=", partner.id),
+                ("mobile_normalized", "=", normalized),
+            ], limit=1):
+                raise ValidationError(_(
+                    "This mobile number is already used by another contact."
+                ))
 
     # ── Contact type ──────────────────────────────────────────────────
     contact_partner_type = fields.Selection(
@@ -105,6 +104,12 @@ class ResPartner(models.Model):
         compute="_compute_mobile_normalized",
         store=True,
         index=True,
+    )
+    mobile_unique_key = fields.Char(
+        readonly=True,
+        copy=False,
+        index=True,
+        help="Concurrency protection for new or changed mobiles. Legacy contacts keep an empty key.",
     )
     email_normalized_unique = fields.Char(
         compute="_compute_email_normalized_unique",
@@ -528,6 +533,8 @@ class ResPartner(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # Callers cannot opt out of uniqueness with an explicit empty key.
+            vals.pop("mobile_unique_key", None)
             self._sync_city_from_city_id(vals)
             self._assign_partner_sequence(vals)
             contact_type = vals.get("contact_partner_type") or self.env.context.get(
@@ -556,10 +563,18 @@ class ResPartner(models.Model):
                     vals.setdefault("mobile_verified", False)
             if "mobile_otp_input" in vals:
                 vals["mobile_otp_input"] = False
-        return super().create(vals_list)
+        partners = super().create(vals_list)
+        # Use the resulting mobile so default_mobile and inherited defaults
+        # receive exactly the same validation as explicitly supplied values.
+        for partner in partners:
+            normalized = partner._normalize_mobile(partner.mobile)
+            if normalized:
+                super(ResPartner, partner).write({"mobile_unique_key": normalized})
+        return partners
 
     def write(self, vals):
         vals = dict(vals)
+        vals.pop("mobile_unique_key", None)
         self._sync_city_from_city_id(vals)
         otp_input = vals.get("mobile_otp_input")
         otp_provided = self._otp_input_provided(otp_input)
@@ -599,6 +614,14 @@ class ResPartner(models.Model):
 
         if "mobile_otp_input" in vals:
             vals["mobile_otp_input"] = False
+        if "mobile" in vals:
+            normalized = self._normalize_mobile(vals["mobile"])
+            for partner in self:
+                partner_vals = dict(vals)
+                if normalized != partner._normalize_mobile(partner.mobile):
+                    partner_vals["mobile_unique_key"] = normalized or False
+                super(ResPartner, partner).write(partner_vals)
+            return True
         return super().write(vals)
 
     def action_open_send_otp_wizard(self):

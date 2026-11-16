@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths-ignore: ['.github/**']
+
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -18,7 +23,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
         run: |
-          set -e
+          set -euo pipefail
 
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
@@ -27,20 +32,41 @@ jobs:
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE_SCRIPT'
-          set -e
+          set -euo pipefail
 
           PROJECT_PATH="/home/admin/custom_addons"
           # The database exposed by erp-test.autochapeau.com/database/selector.
           ODOO_DATABASE="autochapeau_prod_test"
           ODOO_SERVICE="autochapeau_staging_odoo_odoo"
           ODOO_CONTAINER_NAME="autochapeau_staging_odoo_odoo"
-          REQUIRED_FEATURE_MODULES="account_asset_management,appointment_management,partner_management,sale_split_payment,account_deferred_revenue,sales_region_commission,account_move_print,commission"
+          REQUIRED_FEATURE_MODULES="account_asset_management,appointment_management,partner_management,sale_split_payment,account_deferred_revenue,sales_region_commission,account_move_print,commission,workorder_service_components"
 
           cd "$PROJECT_PATH"
 
           OLD_COMMIT=$(git rev-parse HEAD)
 
-          git pull --ff-only https://github.com/autochapeau/autochapeau-test_staging.git main
+          # Run the new audit against the OLD source/ORM before replacing it.
+          git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
+          INCOMING_COMMIT=$(git rev-parse FETCH_HEAD)
+          ODOO_CONTAINER=$(
+            sudo docker ps --filter "name=$ODOO_CONTAINER_NAME" --format '{{.ID}}' | head -1
+          )
+          test -n "$ODOO_CONTAINER"
+          git show "$INCOMING_COMMIT:.github/verification/prepare_mobile_upgrade.py" |
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              python3 - -d "$ODOO_DATABASE"
+          git show "$INCOMING_COMMIT:.github/verification/mobile_unique_preservation.py" |
+            sudo docker exec -i \
+              -e MOBILE_UPGRADE_PHASE=before \
+              -e MOBILE_UPGRADE_AUDIT_ID="$INCOMING_COMMIT" "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0
+          git show "$INCOMING_COMMIT:.github/verification/commission_upgrade_preservation.py" |
+            sudo docker exec -i \
+              -e COMMISSION_UPGRADE_PHASE=before \
+              -e COMMISSION_UPGRADE_AUDIT_ID="$INCOMING_COMMIT" "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0
+
+          git merge --ff-only "$INCOMING_COMMIT"
 
           NEW_COMMIT=$(git rev-parse HEAD)
 
@@ -59,6 +85,10 @@ jobs:
             done |
             paste -sd, -
           )
+          PENDING_MODULES=$(sudo docker exec -i "$ODOO_CONTAINER" \
+            python3 - -d "$ODOO_DATABASE" \
+            < "$PROJECT_PATH/.github/verification/pending_mobile_release.py")
+          MODULES=$(printf '%s\n' "$MODULES" "$PENDING_MODULES" | tr ',' '\n' | sed '/^$/d' | sort -u | paste -sd, -)
 
           if [ -z "$MODULES" ]; then
             MODULES="$REQUIRED_FEATURE_MODULES"
@@ -118,9 +148,31 @@ jobs:
           sudo docker exec -i "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/verify_staging.py"
+          sudo docker exec -i \
+            -e COMMISSION_UPGRADE_PHASE=after \
+            -e COMMISSION_UPGRADE_AUDIT_ID="$NEW_COMMIT" "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/commission_upgrade_preservation.py"
+          sudo docker exec -i \
+            -e MOBILE_UPGRADE_PHASE=after \
+            -e MOBILE_UPGRADE_AUDIT_ID="$NEW_COMMIT" "$ODOO_CONTAINER" \
+            odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+            < "$PROJECT_PATH/.github/verification/mobile_unique_preservation.py"
           sudo docker exec -i -e VIDEO_VERIFICATION_ROOT="$VERIFY_PATH" "$ODOO_CONTAINER" \
             odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
             < "$PROJECT_PATH/.github/verification/run_regression.py"
+
+          if [ -f "$PROJECT_PATH/.github/verification/run_mobile_unique_tests.py" ]; then
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+              < "$PROJECT_PATH/.github/verification/run_mobile_unique_tests.py"
+          fi
+
+          if [ -f "$PROJECT_PATH/.github/verification/prepare_maintenance_demo.py" ]; then
+            sudo docker exec -i "$ODOO_CONTAINER" \
+              odoo shell -d "$ODOO_DATABASE" --no-http --max-cron-threads=0 \
+              < "$PROJECT_PATH/.github/verification/prepare_maintenance_demo.py"
+          fi
 
           echo "Deployment completed successfully."
           REMOTE_SCRIPT

@@ -1,4 +1,6 @@
-from odoo import Command
+from unittest.mock import patch
+
+from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import Form, tagged
 from .test_commission import TestCommissionStudio
@@ -6,6 +8,143 @@ from .test_commission import TestCommissionStudio
 
 @tagged("post_install", "-at_install", "target_tiers")
 class TestTargetTiers(TestCommissionStudio):
+    def _archive_rates(self):
+        self.env['sales.commission.rule'].search([]).active = False
+
+    def _shared_rule(self, **values):
+        vals = {'name': 'Shared category tiers', 'user_ids': [Command.set((self.alice | self.bob).ids)],
+                'date_from': '2026-11-01', 'tier_ids': [Command.create({
+                    'kind': 'product', 'category_id': self.category.id,
+                    'achievement_from': 0, 'rate': 4})]}
+        vals.update(values)
+        return self.env['sales.commission.rule'].create(vals)
+
+    def test_shared_rule_uses_each_invoice_salespersons_target(self):
+        self._archive_rates()
+        rule = self._shared_rule(tier_ids=[Command.create({'kind': 'product', 'category_id': self.category.id,
+            'achievement_from': 0, 'achievement_to': 99.99, 'rate': 2}),
+            Command.create({'kind': 'product', 'category_id': self.category.id,
+            'achievement_from': 100, 'rate': 4})])
+        for team, user, amount in ((self.branch, self.alice, 1000), (self.other, self.bob, 2000)):
+            self.env['sales.commission.target'].create({'team_id': team.id, 'month': '2026-11-01',
+                'amount': amount, 'member_target_ids': [Command.create({'user_id': user.id, 'amount': amount})]})
+        with patch.object(fields.Date, 'context_today', return_value=fields.Date.to_date('2026-11-09')):
+            self.assertEqual(rule.personal_target, 3000)
+            self.assertEqual(rule.with_user(self.alice).personal_target, 1000)
+            self.assertEqual(rule.with_user(self.bob).personal_target, 2000)
+        for user, target, rate in ((self.alice, 1000, 4), (self.bob, 2000, 2)):
+            move = self.invoice(user=user, price=1000)
+            move.action_post()
+            entry = self.entries(move)
+            self.assertEqual(entry.rule_id, rule)
+            self.assertEqual(entry.personal_target, target)
+            self.assertEqual(entry.rate, rate)
+            self.assertEqual(entry.status, 'earned')
+
+    def test_team_default_and_personal_override(self):
+        self._archive_rates()
+        rule = self._shared_rule(scope='team', team_id=self.branch.id, user_ids=[Command.clear()],
+            tier_ids=[Command.clear()], category_id=self.category.id, rate=3)
+        move = self.invoice()
+        move.action_post()
+        self.assertEqual(self.entries(move).rule_id, rule)
+        other = self.invoice(user=self.bob)
+        other.action_post()
+        self.assertEqual(self.entries(other).status, 'review')
+        personal = rule.copy({'name': 'Personal exception', 'scope': 'people', 'team_id': False,
+                              'user_ids': [Command.set(self.alice.ids)], 'rate': 8})
+        move = self.invoice()
+        move.action_post()
+        self.assertEqual(self.entries(move).rule_id, personal)
+        self.assertEqual(self.entries(move).rate, 8)
+
+    def test_product_and_service_tiers_share_achievement_bounds(self):
+        self._archive_rates()
+        rule = self._shared_rule()
+        rule.tier_ids = [Command.create({'kind': 'service', 'service_category_id': self.service_category.id,
+            'achievement_from': 0, 'rate': 7})]
+        target = self.target()
+        target.action_distribute_members()
+        for product, rate in ((self.product, 4), (self.service, 7)):
+            move = self.invoice(product=product)
+            move.action_post()
+            self.assertEqual(self.entries(move).rate, rate)
+            self.assertEqual(self.entries(move).rule_id, rule)
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            rule.tier_ids = [Command.create({'kind': 'service', 'service_category_id': self.service_category.id,
+                'achievement_from': 50, 'rate': 9})]
+
+    def test_overlapping_shared_rules_and_direct_tier_edits_rejected(self):
+        self._archive_rates()
+        rule = self._shared_rule()
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            rule.copy({'user_ids': [Command.set(self.bob.ids)]})
+        category = self.env['product.category'].create({'name': 'Other shared category'})
+        other = rule.copy({'tier_ids': [Command.clear(), Command.create({'kind': 'product',
+            'category_id': category.id, 'achievement_from': 0, 'rate': 3})]})
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            other.tier_ids.category_id = self.category
+
+    def test_shared_rule_visibility_and_scope_validation(self):
+        self._archive_rates()
+        rule = self._shared_rule(user_ids=[Command.set(self.alice.ids)])
+        self.assertEqual(rule.with_user(self.alice).read(['name'])[0]['name'], rule.name)
+        self.assertEqual(rule.tier_ids.with_user(self.alice).read(['rate'])[0]['rate'], 4)
+        with self.assertRaises(AccessError):
+            rule.with_user(self.bob).read(['name'])
+        with self.assertRaises(AccessError):
+            rule.tier_ids.with_user(self.bob).read(['rate'])
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            rule.user_ids = [Command.clear()]
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            rule.write({'scope': 'team', 'team_id': False})
+        rule.write({'scope': 'team', 'team_id': self.branch.id, 'user_ids': [Command.clear()]})
+        self.assertTrue(rule.with_user(self.alice).read(['name']))
+        with self.assertRaises(AccessError):
+            rule.with_user(self.bob).read(['name'])
+
+    def test_create_shared_category_tiers_in_form(self):
+        self._archive_rates()
+        with Form(self.env['sales.commission.rule']) as form:
+            form.name = 'Shared tiers from form'
+            form.user_ids.add(self.alice)
+            form.user_ids.add(self.bob)
+            with form.tier_ids.new() as tier:
+                tier.kind = 'product'
+                tier.category_id = self.category
+                tier.achievement_from = 0
+                tier.rate = 4
+            with form.tier_ids.new() as tier:
+                tier.kind = 'service'
+                tier.service_category_id = self.service_category
+                tier.achievement_from = 0
+                tier.rate = 7
+        self.assertEqual(len(form.record.tier_ids), 2)
+        self.assertEqual(form.record._scope_users(), self.alice | self.bob)
+
+    def test_upgrade_migrates_legacy_selectors_and_preserves_snapshots(self):
+        move = self.invoice(price=100)
+        move.action_post()
+        entry = self.entries(move)
+        before = (entry.rule_id.id, entry.rate, entry.amount)
+        self.tiers()
+        self.env.flush_all()
+        self.cr.execute('DELETE FROM sales_commission_rule_user_rel WHERE rule_id=%s', [self.rule.id])
+        self.cr.execute('UPDATE sales_commission_rule SET user_id=%s WHERE id=%s', [self.alice.id, self.rule.id])
+        self.rule.init()
+        self.env['sales.commission.tier'].init()
+        self.env.invalidate_all()
+        self.assertEqual(self.rule.user_ids, self.alice)
+        self.assertFalse(self.rule.user_id)
+        self.assertEqual(self.rule.tier_ids.mapped('kind'), ['product', 'product'])
+        self.assertEqual(self.rule.tier_ids.category_id, self.category)
+        self.assertEqual((entry.rule_id.id, entry.rate, entry.amount), before)
+        self.rule.init()
+        self.env['sales.commission.tier'].init()
+        self.env.invalidate_all()
+        self.assertEqual(self.rule.user_ids, self.alice)
+        self.assertEqual((entry.rule_id.id, entry.rate, entry.amount), before)
+
     def test_rule_kind_switch_can_be_saved_from_form(self):
         category = self.env["commission.category"].create({"name": "QA kind switch service"})
         with Form(self.rule) as form:

@@ -34,7 +34,7 @@ class CarBom(models.Model):
 
     @api.constrains("material_category_id", "product_id")
     def _check_material_category(self):
-        for line in self.filtered("material_category_id"):
+        for line in self.filtered(lambda row: row.material_category_id and row.product_id):
             if not self.env["product.product"].search_count([
                 ("id", "=", line.product_id.id),
                 ("categ_id", "child_of", line.material_category_id.id),

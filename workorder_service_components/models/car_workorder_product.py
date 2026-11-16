@@ -157,6 +157,7 @@ class CarWorkOrderProduct(models.Model):
                 component = Bom.search([
                     ("service_id", "=", service.id),
                     ("product_id", "=", product.id),
+                    ("service_part_id", "!=", False),
                 ], limit=1)
             if component and "suggested_qty" not in vals:
                 vals["suggested_qty"] = component.quantity

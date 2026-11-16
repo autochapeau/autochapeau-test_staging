@@ -6,3 +6,6 @@ service_part_manager,Service parts manager,model_car_service_part,work_orders.gr
 car_bom_material_manager,Service material configuration manager,work_orders.model_car_bom,work_orders.group_workshop_manager,1,1,1,1
 service_component_batch_manager,Configure variant materials,model_car_service_component_batch,work_orders.group_workshop_manager,1,1,1,1
 service_component_batch_line_manager,Configure variant material lines,model_car_service_component_batch_line,work_orders.group_workshop_manager,1,1,1,1
+material_brand_read,Material brands read,model_car_material_brand,base.group_user,1,0,0,0
+material_brand_manager,Material brands manager,model_car_material_brand,work_orders.group_workshop_manager,1,1,1,0
+service_component_variant_manager,Configure size overrides,model_car_service_component_batch_variant,work_orders.group_workshop_manager,1,1,1,1

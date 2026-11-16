@@ -1,7 +1,7 @@
 {
     "name": "Order Maintenance",
     "summary": "Return maintenance from a sale order, with quality deciding who pays",
-    "version": "17.0.1.1.0",
+    "version": "17.0.2.0.2",
     "author": "Wellknot",
     "category": "Services",
     "depends": [
@@ -10,6 +10,8 @@
         "hr_branch_department",
         "account",
         "gb_window_tinting",
+        "workorder_service_components",
+        "stock_account",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -18,6 +20,7 @@
         "wizard/maintenance_claim_wizard_views.xml",
         "views/maintenance_claim_views.xml",
         "views/sale_order_views.xml",
+        "views/guide_views.xml",
     ],
     "installable": True,
     "application": False,

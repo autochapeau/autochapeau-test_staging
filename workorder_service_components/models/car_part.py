@@ -19,7 +19,7 @@ class ServicePart(models.Model):
     _order = "sequence, id"
 
     sequence = fields.Integer(default=10)
-    part_id = fields.Many2one("car.part", required=True, ondelete="restrict")
+    part_id = fields.Many2one("car.part", ondelete="restrict", help="Leave empty for whole-service materials such as paint.")
     service_id = fields.Many2one(
         "product.product", string="Service", required=True, ondelete="cascade",
         domain="[('detailed_type', '=', 'service')]", index=True,
@@ -39,6 +39,11 @@ class ServicePart(models.Model):
     def _compute_component_count(self):
         for record in self:
             record.component_count = len(record.component_ids)
+
+    @api.depends("part_id.name")
+    def _compute_display_name(self):
+        for record in self:
+            record.display_name = record.part_id.display_name or _("Whole Service / No Specific Part")
 
     @api.model
     def default_get(self, fields_list):
@@ -76,6 +81,9 @@ class ServicePart(models.Model):
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
+    # Every operational consumer (orders, appointments, upsells and QA) reads
+    # this relation. Ungrouped legacy rows remain in the reference table only.
+    bom_ids = fields.One2many(domain=[("service_part_id", "!=", False), ("product_id", "!=", False)])
     service_part_ids = fields.One2many("car.service.part", "service_id", string="Vehicle Parts", copy=True)
     ungrouped_component_ids = fields.One2many(
         "car.bom", "service_id", domain=[("service_part_id", "=", False)],
@@ -100,7 +108,7 @@ class CarBom(models.Model):
         "car.service.part", string="Service Part", ondelete="cascade", index=True,
     )
     part_id = fields.Many2one(related="service_part_id.part_id", store=True, string="Vehicle Part")
-    product_id = fields.Many2one(domain="[('detailed_type', '=', 'product')]")
+    product_id = fields.Many2one(required=False, domain="[('detailed_type', '=', 'product')]")
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -123,9 +131,11 @@ class CarBom(models.Model):
         for line in self.filtered("service_part_id"):
             if line.service_id != line.service_part_id.service_id:
                 raise ValidationError(_("The material must belong to the vehicle part's service."))
+            if not line.product_id and line.material_category_id:
+                continue
             if line.product_id.detailed_type != "product":
                 raise ValidationError(_("Service materials must be storable products."))
-            if line.quantity <= 0:
+            if line.quantity <= 0 and line.usage_mode != "roll":
                 raise ValidationError(_("The default material quantity must be greater than zero."))
             if not line.product_uom_id or line.product_uom_id.category_id != line.product_id.uom_id.category_id:
                 raise ValidationError(_("The material unit must match the product's unit category."))

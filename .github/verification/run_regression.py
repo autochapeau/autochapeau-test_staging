@@ -11,16 +11,45 @@ import socket
 import sys
 import types
 
+from lxml import etree
+
 from odoo import tools
 from odoo.tests import loader
+from odoo.modules.module import get_module_path
 
 root = Path(os.environ["VIDEO_VERIFICATION_ROOT"]).resolve()
+component_module = env["ir.module.module"].search([("name", "=", "workorder_service_components")])
+assert component_module.state == "installed" and component_module.latest_version == "17.0.4.0.1"
+for model, names in {
+    "car.bom": {"usage_mode", "standard_length_in", "standard_width_in", "allowed_brand_ids"},
+    "car.workorder.product": {"actual_length_in", "actual_width_in", "film_width_in", "material_brand_id", "dimension_warning"},
+    "car.workorder.service": {"material_total_length_in", "material_total_width_in", "material_budget_warning"},
+    "car.service.component.batch": {"part_ids", "variant_line_ids"},
+}.items():
+    assert names <= set(env[model]._fields), (model, names)
+    env[model].sudo().search([], limit=1).read(list(names))
+for model, view in (
+    ("product.product", "product.product_normal_form_view"),
+    ("product.template", "product.product_template_only_form_view"),
+):
+    arch = etree.fromstring(env[model].get_view(env.ref(view).id, "form")["arch"])
+    tables = arch.xpath("//field[@name='ungrouped_component_ids']")
+    assert tables and all(table.get("readonly") == "1" for table in tables), model
+services = env["product.product"].with_context(active_test=False).search([("detailed_type", "=", "service")])
+assert not services.bom_ids.filtered(lambda bom: not bom.service_part_id)
+print("SERVICE_COMPONENTS_REFERENCE_SMOKE=" + json.dumps({
+    "version": component_module.latest_version, "readonly_tables": True,
+    "services_checked": len(services), "operational_components": len(services.bom_ids),
+    "reference_components": env["car.bom"].search_count([("service_part_id", "=", False)]),
+}, sort_keys=True))
 sources = {
     "account_asset_management": ["test_draft_schedule"],
     "partner_management": ["test_contact_references", "test_team_analytic"],
-    "sale_split_payment": ["test_collection_fees", "test_cash_custody"],
+    "sale_split_payment": ["test_collection_fees", "test_cash_custody", "test_payment_attachment"],
     "account_deferred_revenue": ["test_service_advance"],
-    "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers"],
+    "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers", "test_rule_setup"],
+    "workorder_service_components": ["test_service_materials"],
+    "order_maintenance": ["test_maintenance_parts"],
 }
 for addon, names in sources.items():
     name = "odoo.addons." + addon + ".tests"
@@ -31,13 +60,16 @@ for addon, names in sources.items():
     sys.modules[name] = package
     for leaf in names:
         full_name = name + "." + leaf
-        spec = importlib.util.spec_from_file_location(full_name, path / (leaf + ".py"))
+        source = path / (leaf + ".py")
+        if leaf == "test_payment_attachment" or addon in ("workorder_service_components", "order_maintenance"):
+            source = Path(get_module_path(addon)) / "tests" / (leaf + ".py")
+        spec = importlib.util.spec_from_file_location(full_name, source)
         module = importlib.util.module_from_spec(spec)
         sys.modules[full_name] = module
         spec.loader.exec_module(module)
         setattr(package, leaf, module)
 
-tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,cash_custody_flow,service_advance_flow,/sales_region_commission"
+tools.config["test_tags"] = "asset_draft_schedule,contact_reference_types,team_analytic_sales,collection_fees_proof,payment_attachment,cash_custody_flow,service_advance_flow,/sales_region_commission,/workorder_service_components,/order_maintenance"
 suite = loader.make_suite(list(sources), position="post_install")
 original_connect = socket.socket.connect
 
@@ -54,5 +86,5 @@ finally:
 summary = {"database": env.cr.dbname, "tests": result.testsRun,
     "failures": result.failures_count, "errors": result.errors_count, "skipped": result.skipped}
 print("VIDEO_REQUIREMENTS_REGRESSION=" + json.dumps(summary, sort_keys=True))
-assert result.testsRun >= 190, summary
+assert result.testsRun >= 302, summary
 assert result.failures_count == 0 and result.errors_count == 0 and result.skipped == 0, summary

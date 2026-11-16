@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import _, api, Command, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -54,6 +54,7 @@ class SaleMultiSplitPaymentWizard(models.TransientModel):
     )
     journal_id = fields.Many2one(
         "account.journal",
+        readonly=True,
         domain="[('type', 'in', ('cash', 'bank')), ('company_id', '=', company_id)]",
         check_company=True,
     )
@@ -204,6 +205,7 @@ class SaleMultiSplitPaymentWizard(models.TransientModel):
                     "amount": allocation_amount,
                     "journal_id": journal.id,
                     "provider_reference": self.provider_reference,
+                    "transfer_proof_ids": [Command.set(self.transfer_proof_ids.ids)],
                 }
             )
             amount_left -= allocation_amount
@@ -225,6 +227,8 @@ class SaleMultiSplitPaymentWizard(models.TransientModel):
                 "journal_id": journal.id,
                 "payment_method_line_id": method_line.id,
                 "ref": " / ".join(reference_bits),
+                # Posting validates the receipt on the accounting payment itself.
+                "transfer_proof_ids": [Command.set(self.transfer_proof_ids.ids)],
             }
         )
         account_payment.sudo().action_post()

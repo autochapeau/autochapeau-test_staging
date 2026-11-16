@@ -5,6 +5,10 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 class AccountJournal(models.Model):
     _inherit = "account.journal"
 
+    require_payment_attachment = fields.Boolean(
+        string="Require Payment Attachment",
+        help="Require an uploaded payment attachment before collecting or posting a payment in this journal.",
+    )
     collection_fee_enabled = fields.Boolean(string="Deduct Collection Fees")
     collection_fee_percent = fields.Float(string="Collection Fee %", digits=(16, 4))
     collection_fee_tax_percent = fields.Float(string="Tax on Fee %", digits=(16, 4), default=15)
@@ -51,16 +55,16 @@ class AccountPayment(models.Model):
     collection_fee_tax_amount = fields.Monetary(compute="_compute_collection_amounts")
     collection_net_amount = fields.Monetary(compute="_compute_collection_amounts", string="Net Bank/Cash Amount")
     transfer_proof_ids = fields.Many2many("ir.attachment", "payment_transfer_proof_rel", "payment_id", "attachment_id",
-                                        string="Transfer Proof", copy=True)
+                                        string="Payment Attachment", copy=True)
     transfer_proof_required = fields.Boolean(compute="_compute_transfer_proof_required")
 
     _collection_snapshot_fields = {"collection_fee_percent", "collection_fee_tax_percent",
                                    "collection_fee_account_id", "collection_fee_tax_account_id"}
 
-    @api.depends("journal_id.type")
+    @api.depends("journal_id.require_payment_attachment")
     def _compute_transfer_proof_required(self):
         for payment in self:
-            payment.transfer_proof_required = payment.journal_id.type == "bank"
+            payment.transfer_proof_required = payment.journal_id.require_payment_attachment
 
     @api.depends("amount", "currency_id", "collection_fee_percent", "collection_fee_tax_percent")
     def _compute_collection_amounts(self):
@@ -123,7 +127,7 @@ class AccountPayment(models.Model):
                 "&", ("res_model", "=", "account.move"), ("res_id", "=", payment.move_id.id),
             ])
             if not proofs:
-                raise UserError(_("Upload transfer proof before confirming a bank payment."))
+                raise UserError(_("Upload a payment attachment before confirming payment in journal '%s'.") % payment.journal_id.display_name)
             proofs.check("read")
 
     def _lock_collection_proofs(self):
@@ -309,19 +313,16 @@ class Attachment(models.Model):
 
     def _check_posted_transfer_proof(self):
         payments = self.env["account.payment"].sudo().search([
-            ("journal_id.type", "=", "bank"),
             ("transfer_proof_ids", "in", self.ids),
         ])
         for attachment in self:
             if attachment.res_model == "account.payment":
-                payments |= self.env["account.payment"].sudo().browse(attachment.res_id).exists().filtered(
-                    lambda pay: pay.journal_id.type == "bank")
+                payments |= self.env["account.payment"].sudo().browse(attachment.res_id).exists()
             elif attachment.res_model == "account.move":
-                payments |= self.env["account.move"].sudo().browse(attachment.res_id).exists().payment_id.filtered(
-                    lambda pay: pay.journal_id.type == "bank")
+                payments |= self.env["account.move"].sudo().browse(attachment.res_id).exists().payment_id
         payments._lock_collection_proofs()
         if payments.filtered(lambda pay: pay.state == "posted"):
-            raise UserError(_("Proof for a posted bank payment cannot be removed or replaced. Reset the payment to draft first."))
+            raise UserError(_("Proof for a posted payment cannot be removed or replaced. Reset the payment to draft first."))
 
     def unlink(self):
         self._check_posted_transfer_proof()

@@ -9,8 +9,15 @@
                     <field name="sale_order_id"/>
                     <field name="available_line_ids" invisible="1"/>
                     <field name="service_line_id" options="{'no_create': True}"/>
-                    <field name="problem_location"/>
+                    <field name="available_task_ids" invisible="1"/>
+                    <field name="available_part_ids" invisible="1"/>
+                    <field name="source_task_id" options="{'no_create': True}"/>
+                    <field name="selected_part_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="problem_location" placeholder="Optional additional details"/>
                 </group>
+                <div class="alert alert-info" invisible="available_task_ids">
+                    No issued work order service is available. Finish the original service and its material delivery before requesting maintenance.
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Send to Quality" class="btn-primary"/>
                     <button string="Cancel" special="cancel"/>

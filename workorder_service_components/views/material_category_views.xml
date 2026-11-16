@@ -17,17 +17,33 @@
             <form string="Configure Variant Materials">
                 <group>
                     <field name="product_tmpl_id" readonly="1"/>
-                    <field name="part_id"/>
+                    <field name="part_id" invisible="1"/>
+                    <field name="part_ids" widget="many2many_tags"/>
                     <field name="service_ids" widget="many2many_tags" domain="[('product_tmpl_id', '=', product_tmpl_id), ('detailed_type', '=', 'service')]" options="{'no_create': True}"/>
                 </group>
-                <p class="text-muted">Apply these materials to every selected variant. Existing materials on the same vehicle part are updated by product; other materials are kept. Existing work orders keep their saved materials.</p>
+                <p class="text-muted">Leave vehicle parts empty for materials used by the whole service.</p>
+                <p class="text-muted">Apply to the selected parts and variants. Size overrides below apply to all materials for that variant. For different materials or measurements per part, open the saved part configuration. Existing orders retain their saved configuration.</p>
                 <field name="line_ids">
                     <tree editable="bottom">
                         <field name="material_category_id" options="{'no_create': True}"/>
                         <field name="product_id" domain="[('detailed_type', '=', 'product'), ('categ_id', 'child_of', material_category_id)]" options="{'no_create': True}"/>
-                        <field name="quantity"/>
+                        <field name="allowed_brand_ids" widget="many2many_tags" optional="show"/>
+                        <field name="usage_mode"/>
+                        <field name="standard_length_in" readonly="usage_mode != 'roll'"/>
+                        <field name="standard_width_in" readonly="usage_mode != 'roll'"/>
+                        <field name="quantity" readonly="usage_mode == 'roll'"/>
                         <field name="product_uom_category_id" column_invisible="1"/>
-                        <field name="product_uom_id" domain="[('category_id', '=', product_uom_category_id)]" options="{'no_create': True}"/>
+                        <field name="product_uom_id" domain="[('category_id', '=', product_uom_category_id)] if product_uom_category_id else []" options="{'no_create': True}"/>
+                    </tree>
+                </field>
+                <separator string="Optional Size Overrides"/>
+                <field name="variant_line_ids">
+                    <tree editable="bottom">
+                        <field name="service_id" domain="[('id', 'in', parent.service_ids)]" options="{'no_create': True}"/>
+                        <field name="quantity"/>
+                        <field name="product_uom_id"/>
+                        <field name="standard_length_in"/>
+                        <field name="standard_width_in"/>
                     </tree>
                 </field>
                 <footer>
@@ -42,5 +58,6 @@
         <field name="res_model">car.service.component.batch</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
     </record>
 </odoo>

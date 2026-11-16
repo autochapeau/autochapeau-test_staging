@@ -1,9 +1,20 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
+
+    @api.constrains("related_sale_id", "maintenance_claim_id")
+    def _check_related_sale_id(self):
+        maintenance = self.filtered("maintenance_claim_id")
+        super(SaleOrder, self - maintenance)._check_related_sale_id()
+        for order in maintenance:
+            claim = order.maintenance_claim_id
+            if (order.related_sale_id != claim.origin_sale_id
+                    or order.company_id != claim.company_id
+                    or not order._check_recursion("related_sale_id")):
+                raise ValidationError(_("A maintenance sub order must link to its original order in the same company without a cycle."))
 
     maintenance_claim_id = fields.Many2one(
         "maintenance.claim",
