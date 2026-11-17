@@ -23,3 +23,4 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' < .github/verification/inspect_user_access.py
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_erp_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau --no-http --max-cron-threads=0' < .github/verification/inspect_user_access.py
