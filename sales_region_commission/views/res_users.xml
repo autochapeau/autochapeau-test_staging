@@ -5,11 +5,6 @@
   <field name="inherit_id" ref="base.view_users_form"/>
   <field name="priority">90</field>
   <field name="arch" type="xml">
-   <!-- Keep the generated group fields for ORM compatibility, but expose one
-        deliberate commission control surface, including in developer mode. -->
-   <xpath expr="//field[@name='groups_id'] | //field[starts-with(@name,'sel_groups_') and contains(concat('_',@name,'_'),'_%(group_user)d_') and contains(concat('_',@name,'_'),'_%(group_manager)d_') and contains(concat('_',@name,'_'),'_%(group_admin)d_')]" position="attributes">
-    <attribute name="invisible">1</attribute>
-   </xpath>
    <xpath expr="//page[@name='access_rights']" position="after">
     <page name="commission_access" string="Commission Access" groups="base.group_system" invisible="share">
      <div class="rounded border bg-light p-4 mb-4 mt-3">

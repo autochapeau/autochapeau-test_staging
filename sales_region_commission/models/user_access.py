@@ -5,6 +5,27 @@ from odoo.exceptions import AccessError, ValidationError
 class Users(models.Model):
     _inherit = 'res.users'
 
+    @api.model
+    def _get_view(self, view_id=None, view_type='form', **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
+        if view_type == 'form' and arch.xpath("//page[@name='commission_access']"):
+            # During upgrades Odoo temporarily replaces its generated group
+            # selectors with groups_id. Never hide that fallback: doing so
+            # leaves the entire Access Rights tab empty if it persists.
+            role_ids = {
+                self.env.ref('sales_region_commission.group_' + role).id
+                for role in ('user', 'manager', 'admin')
+            }
+            for node in arch.xpath("//page[@name='access_rights']//field"):
+                name = node.get('name', '')
+                if name.startswith('sel_groups_'):
+                    ids = {int(value) for value in name[11:].split('_')}
+                    if ids == role_ids:
+                        node.set('invisible', '1')
+                elif name.startswith('in_group_') and int(name[9:]) in role_ids:
+                    node.set('invisible', '1')
+        return arch, view
+
     commission_access_role = fields.Selection([
         ('none', 'No commission access'),
         ('user', 'Salesperson — own commissions'),

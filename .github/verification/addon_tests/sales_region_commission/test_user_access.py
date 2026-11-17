@@ -82,6 +82,30 @@ class TestCommissionUserTab(TransactionCase):
             form.commission_access_role='none'
         self.assertFalse(user.has_group('sales_region_commission.group_user'))
 
+    def test_access_rights_keeps_other_application_selectors(self):
+        arch = etree.fromstring(self.env['res.users'].with_user(self.operator).get_view(
+            self.env.ref('base.view_users_form').id, 'form')['arch'])
+        for xmlids in (('stock.group_stock_user', 'stock.group_stock_manager'),
+                       ('account.group_account_manager',)):
+            group_ids = {self.env.ref(xmlid).id for xmlid in xmlids}
+            selectors = arch.xpath("//page[@name='access_rights']//field[starts-with(@name,'sel_groups_')]")
+            matching = [node for node in selectors if group_ids <= {
+                int(value) for value in node.get('name')[11:].split('_')}]
+            self.assertTrue(matching, xmlids)
+            self.assertTrue(any(node.get('invisible') != '1' for node in matching), xmlids)
+
+    def test_temporary_upgrade_view_keeps_group_editor_visible(self):
+        generated = self.env.ref('base.user_groups_view')
+        generated.arch_db = '<field name="groups_id" position="after"/>'
+        arch = etree.fromstring(self.env['res.users'].with_user(self.operator).get_view(
+            self.env.ref('base.view_users_form').id, 'form')['arch'])
+        editors = arch.xpath("//page[@name='access_rights']//field[@name='groups_id']")
+        self.assertTrue(editors)
+        self.assertTrue(all(node.get('invisible') != '1' for node in editors))
+        self.env['res.groups']._update_user_groups_view()
+        self.test_view_has_separate_tab_and_hides_duplicate_selector()
+        self.test_access_rights_keeps_other_application_selectors()
+
     def test_navigation_respects_roles_and_keeps_guide_available(self):
         menus = self.env['ir.ui.menu']
         ref = lambda name: self.env.ref('sales_region_commission.menu_' + name).id
