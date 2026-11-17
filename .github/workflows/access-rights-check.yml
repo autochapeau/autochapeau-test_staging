@@ -1,0 +1,25 @@
+name: Check user access form on TEST
+on:
+  push:
+    branches: [codex/access-rights-fix]
+    paths: [.github/verification/inspect_user_access.py, .github/workflows/access-rights-check.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect effective user access form
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'CONTAINER=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$CONTAINER"; sudo docker exec -i "$CONTAINER" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0' < .github/verification/inspect_user_access.py
