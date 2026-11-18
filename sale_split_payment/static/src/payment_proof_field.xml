@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sale_split_payment.PaymentProofField" t-inherit="web.Many2ManyBinaryField"
+       t-inherit-mode="primary">
+        <xpath expr="//FileInput" position="replace">
+            <FileUploader acceptedFileExtensions="props.acceptedFileExtensions"
+                          multiUpload="true" onUploaded.bind="onProofUploaded">
+                <t t-set-slot="toggler">
+                    <button type="button" class="btn btn-secondary o_attach" data-tooltip="Attach">
+                        <span class="fa fa-paperclip" aria-label="Attach"/> <t t-esc="uploadText"/>
+                    </button>
+                </t>
+            </FileUploader>
+        </xpath>
+    </t>
+</templates>

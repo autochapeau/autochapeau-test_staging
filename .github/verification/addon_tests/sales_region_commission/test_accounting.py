@@ -73,6 +73,28 @@ class TestCommissionAccrual(commission_tests.TestCommissionStudio):
         with self.assertRaises(ValidationError),self.env.cr.savepoint():self.env.company.commission_debit_account_id=False
         with self.assertRaises(AccessError):self.env.company.with_user(self.alice).write({'commission_accrual_enabled':False})
 
+    def test_settings_save_enables_and_configures_accruals_together(self):
+        company = self.env.company
+        settings = self.env['res.config.settings']
+        values = {
+            'commission_accrual_enabled': True,
+            'commission_journal_id': self.accrual_journal.id,
+            'commission_debit_account_id': self.expense.id,
+            'commission_credit_account_id': self.payable.id,
+        }
+        company.write({name: False for name in values})
+        settings.create({'company_id': company.id, **values}).execute()
+        self.assertEqual(company.read(list(values), load=None)[0], {'id': company.id, **values})
+        self.assertEqual(
+            settings.with_context(default_company_id=company.id).default_get(list(values)),
+            values,
+        )
+
+        invalid = settings.create({'company_id': company.id, 'commission_credit_account_id': False})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            invalid.execute()
+        self.assertEqual(company.commission_credit_account_id, self.payable)
+
     def test_review_zero_and_disabled_do_not_book(self):
         self.rule.active=False
         invoice=self.invoice();invoice.action_post()

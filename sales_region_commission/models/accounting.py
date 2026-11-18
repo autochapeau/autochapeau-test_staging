@@ -5,6 +5,13 @@ from odoo.exceptions import AccessError, ValidationError, UserError
 
 
 _BOOKING_TOKEN = object()
+_ACCOUNTING_GROUP = 'account.group_account_manager'
+_ACCRUAL_SETTINGS = (
+    'commission_accrual_enabled',
+    'commission_journal_id',
+    'commission_debit_account_id',
+    'commission_credit_account_id',
+)
 
 
 class Company(models.Model):
@@ -34,10 +41,33 @@ class Company(models.Model):
 class Settings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    commission_accrual_enabled = fields.Boolean(related='company_id.commission_accrual_enabled', readonly=False)
-    commission_journal_id = fields.Many2one(related='company_id.commission_journal_id', readonly=False)
-    commission_debit_account_id = fields.Many2one(related='company_id.commission_debit_account_id', readonly=False)
-    commission_credit_account_id = fields.Many2one(related='company_id.commission_credit_account_id', readonly=False)
+    commission_accrual_enabled = fields.Boolean(string='Automatically accrue sales commissions', groups=_ACCOUNTING_GROUP)
+    commission_journal_id = fields.Many2one('account.journal', string='Commission journal', groups=_ACCOUNTING_GROUP)
+    commission_debit_account_id = fields.Many2one('account.account', string='Commission expense (Debit)', groups=_ACCOUNTING_GROUP)
+    commission_credit_account_id = fields.Many2one('account.account', string='Commission payable (Credit)', groups=_ACCOUNTING_GROUP)
+
+    @api.model
+    def default_get(self, fields_list):
+        defaults = super().default_get(fields_list)
+        names = [name for name in _ACCRUAL_SETTINGS if name in fields_list and name not in defaults]
+        if names and (self.env.su or self.env.user.has_group(_ACCOUNTING_GROUP)):
+            company_id = defaults.get('company_id') or self.env.context.get('default_company_id')
+            company = self.env['res.company'].browse(company_id) if company_id else self.env.company
+            values = company.read(names, load=None)[0]
+            defaults.update({name: values[name] for name in names})
+        return defaults
+
+    def set_values(self):
+        self.ensure_one()
+        super().set_values()
+        if self.env.su or self.env.user.has_group(_ACCOUNTING_GROUP):
+            company = self.company_id
+            values = self.read(list(_ACCRUAL_SETTINGS), load=None)[0]
+            current = company.read(list(_ACCRUAL_SETTINGS), load=None)[0]
+            changed = {name: values[name] for name in _ACCRUAL_SETTINGS if values[name] != current[name]}
+            if changed:
+                # Validate the final journal, accounts and switch in one company write.
+                company.write(changed)
 
 
 class Entry(models.Model):

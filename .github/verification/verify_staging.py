@@ -9,9 +9,9 @@ expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
     "partner_management": "17.0.1.6.5",
-    "sale_split_payment": "17.0.1.3.2",
+    "sale_split_payment": "17.0.1.3.3",
     "account_deferred_revenue": "17.0.1.2.1",
-    "sales_region_commission": "17.0.6.1.1",
+    "sales_region_commission": "17.0.6.1.2",
     "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
 }
@@ -60,6 +60,7 @@ for model, xmlid in (
     assert arch.xpath("//field[@name='journal_id'][@readonly='1']"), model
     uploads = arch.xpath("//field[@name='transfer_proof_ids']")
     assert len(uploads) == 1 and uploads[0].get("required") == "transfer_proof_required", model
+    assert uploads[0].get("widget") == "payment_proof", model
 result["collection_wizard_journal_readonly"] = True
 
 # Check a real billing-only user, since superuser views hide group regressions.

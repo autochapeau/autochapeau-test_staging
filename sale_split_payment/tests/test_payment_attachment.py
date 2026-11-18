@@ -167,6 +167,33 @@ class TestMultiOrderPaymentAttachment(TransactionCase):
     def test_full_multi_order_payment_keeps_receipt(self):
         self._assert_collected(self._wizard(), [3500, 11700])
 
+    def test_single_card_payment_keeps_wizard_upload(self):
+        order = self._wizard(proof=False).sale_order_ids[:1]
+        model = "sale.split.payment.wizard"
+        receipt = b"Manual card collection receipt"
+        proof = self.env["ir.attachment"].with_user(self.env.ref("base.user_admin")).create({
+            "name": "card-receipt.txt",
+            "datas": base64.b64encode(receipt).decode(),
+            "res_model": model,
+            "res_id": 0,
+        })
+        wizard = self.env[model].create({
+            "sale_order_id": order.id,
+            "collection_method_id": self.method.id,
+            "journal_id": self.journal.id,
+            "amount": order.amount_total,
+            "transfer_proof_ids": [Command.link(proof.id)],
+        })
+        self.assertEqual(wizard.action_collect_payment()["params"]["type"], "success")
+        allocation = order.split_payment_ids
+        payment = allocation.account_payment_id
+        self.assertEqual(allocation.state, "paid")
+        self.assertEqual(payment.state, "posted")
+        self.assertEqual(payment.amount, order.amount_total)
+        self.assertEqual(payment.transfer_proof_ids.raw, receipt)
+        self.assertEqual(payment.transfer_proof_ids.res_id, payment.id)
+        self.assertFalse(payment.transfer_proof_ids.public)
+
     def test_partial_multi_order_payment_keeps_receipt(self):
         self._assert_collected(self._wizard(amount=4000), [3500, 500])
 
