@@ -4,6 +4,7 @@
     <field name="name">Material Brands</field><field name="res_model">car.material.brand</field><field name="view_mode">tree,form</field>
   </record>
   <menuitem id="material_brand_menu" name="Material Brands" parent="work_orders.car_work_order_menu_configuration" action="material_brand_action" sequence="16" groups="work_orders.group_workshop_manager"/>
+  <menuitem id="material_brand_inventory_menu" name="Material Brands" parent="stock.menu_stock_config_settings" action="material_brand_action" sequence="65" groups="stock.group_stock_manager"/>
   <record id="raw_material_template_dimensions" model="ir.ui.view">
     <field name="name">product.template.material.dimensions</field><field name="model">product.template</field>
     <field name="inherit_id" ref="product.product_template_form_view"/>

@@ -1,6 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools.float_utils import float_round
+from odoo.tools.float_utils import float_compare, float_round
 
 
 class MaterialBrand(models.Model):
@@ -17,12 +17,12 @@ class ProductProduct(models.Model):
     _inherit = "product.product"
 
     material_brand_id = fields.Many2one("car.material.brand", string="Material Brand", ondelete="restrict")
-    film_width_in = fields.Float(string="Film Width (in)", digits=(16, 3))
-    roll_length_m = fields.Float(string="Roll Length (m)", digits=(16, 3),
+    film_width_in = fields.Float(string="Film Width (in)", digits=(16, 4))
+    roll_length_m = fields.Float(string="Roll Length (m)", digits=(16, 4),
         help="Physical length represented by ONE stock unit. For ROLL 15 m enter 15; for a stock unit of one metre enter 1.")
-    material_total_length_in = fields.Float(string="Total Car Length Budget (in)", digits=(16, 3))
-    material_total_width_in = fields.Float(string="Total Car Width Budget (in)", digits=(16, 3))
-    material_tolerance_in = fields.Float(string="Part Tolerance (in)", default=5, digits=(16, 3))
+    material_total_length_in = fields.Float(string="Total Car Length Budget (in)", digits=(16, 4))
+    material_total_width_in = fields.Float(string="Total Car Width Budget (in)", digits=(16, 4))
+    material_tolerance_in = fields.Float(string="Part Tolerance (in)", default=5, digits=(16, 4))
 
     @api.constrains("film_width_in", "roll_length_m", "material_total_length_in", "material_total_width_in", "material_tolerance_in")
     def _check_material_dimensions(self):
@@ -36,11 +36,11 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     material_brand_id = fields.Many2one("car.material.brand", compute="_compute_material_variant_fields", inverse="_inverse_material_brand")
-    film_width_in = fields.Float(string="Film Width (in)", compute="_compute_material_variant_fields", inverse="_inverse_film_width")
-    roll_length_m = fields.Float(string="Roll Length (m)", compute="_compute_material_variant_fields", inverse="_inverse_roll_length")
-    material_total_length_in = fields.Float(string="Total Car Length Budget (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_length")
-    material_total_width_in = fields.Float(string="Total Car Width Budget (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_width")
-    material_tolerance_in = fields.Float(string="Part Tolerance (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_tolerance")
+    film_width_in = fields.Float(digits=(16, 4), string="Film Width (in)", compute="_compute_material_variant_fields", inverse="_inverse_film_width")
+    roll_length_m = fields.Float(digits=(16, 4), string="Roll Length (m)", compute="_compute_material_variant_fields", inverse="_inverse_roll_length")
+    material_total_length_in = fields.Float(digits=(16, 4), string="Total Car Length Budget (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_length")
+    material_total_width_in = fields.Float(digits=(16, 4), string="Total Car Width Budget (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_width")
+    material_tolerance_in = fields.Float(digits=(16, 4), string="Part Tolerance (in)", compute="_compute_material_variant_fields", inverse="_inverse_material_tolerance")
 
     @api.depends("product_variant_ids.material_brand_id", "product_variant_ids.film_width_in", "product_variant_ids.roll_length_m",
                  "product_variant_ids.material_total_length_in", "product_variant_ids.material_total_width_in", "product_variant_ids.material_tolerance_in")
@@ -83,8 +83,8 @@ class MaterialRecipe(models.AbstractModel):
     _description = "Material Measurement Configuration"
 
     usage_mode = fields.Selection([("quantity", "Quantity"), ("roll", "Film Dimensions")], required=True, default="quantity")
-    standard_length_in = fields.Float(string="Standard Length (in)", digits=(16, 3))
-    standard_width_in = fields.Float(string="Standard Width (in)", digits=(16, 3))
+    standard_length_in = fields.Float(string="Standard Length (in)", digits=(16, 4))
+    standard_width_in = fields.Float(string="Standard Width (in)", digits=(16, 4))
     allowed_brand_ids = fields.Many2many("car.material.brand", string="Allowed Brands")
 
     @api.constrains("usage_mode", "standard_length_in", "standard_width_in", "product_id", "allowed_brand_ids")
@@ -101,6 +101,8 @@ class MaterialRecipe(models.AbstractModel):
 class CarBom(models.Model):
     _name = "car.bom"
     _inherit = ["car.bom", "car.material.recipe"]
+
+    quantity = fields.Float(digits=(16, 4))
 
     @api.constrains("product_id", "material_category_id", "service_part_id", "usage_mode", "product_uom_id", "quantity")
     def _check_category_recipe(self):
@@ -123,13 +125,16 @@ _ACTUAL_FIELDS = {"actual_length_in", "actual_width_in", "material_brand_id"}
 class WorkOrderProduct(models.Model):
     _inherit = "car.workorder.product"
 
+    quantity = fields.Float(digits=(16, 4))
+    suggested_qty = fields.Float(digits=(16, 4))
+
     usage_mode = fields.Selection([("quantity", "Quantity"), ("roll", "Film Dimensions")], default="quantity", required=True)
-    standard_length_in = fields.Float(string="Standard Length (in)", digits=(16, 3))
-    standard_width_in = fields.Float(string="Standard Width (in)", digits=(16, 3))
-    actual_length_in = fields.Float(string="Actual Length (in)", digits=(16, 3))
-    actual_width_in = fields.Float(string="Actual Width (in)", digits=(16, 3))
-    film_width_in = fields.Float(string="Film Width (in)", readonly=True, digits=(16, 3))
-    roll_length_m = fields.Float(string="Roll Length (m)", readonly=True, digits=(16, 3))
+    standard_length_in = fields.Float(string="Standard Length (in)", digits=(16, 4))
+    standard_width_in = fields.Float(string="Standard Width (in)", digits=(16, 4))
+    actual_length_in = fields.Float(string="Actual Length (in)", digits=(16, 4))
+    actual_width_in = fields.Float(string="Actual Width (in)", digits=(16, 4))
+    film_width_in = fields.Float(string="Film Width (in)", readonly=True, digits=(16, 4))
+    roll_length_m = fields.Float(string="Roll Length (m)", readonly=True, digits=(16, 4))
     allowed_brand_ids = fields.Many2many("car.material.brand", string="Allowed Brands")
     material_brand_id = fields.Many2one("car.material.brand", string="Brand", ondelete="restrict")
     dimension_warning = fields.Char(string="Measurement Warning", compute="_compute_dimension_warning")
@@ -144,6 +149,17 @@ class WorkOrderProduct(models.Model):
             material_brand_id=component.product_id.material_brand_id.id)
         return vals
 
+    @api.model
+    def _apply_material_precision(self):
+        """Only precision metadata changes; balances and posted moves stay intact."""
+        precision = self.env["decimal.precision"].search([("name", "=", "Product Unit of Measure")], limit=1)
+        if precision and precision.digits < 4:
+            precision.digits = 4
+        recipes = self.env["car.bom"].with_context(active_test=False).search([("service_part_id", "!=", False)])
+        film = self.env["product.product"].with_context(active_test=False).search([("film_width_in", ">", 0), ("roll_length_m", ">", 0)])
+        units = recipes.product_uom_id | recipes.product_id.uom_id | film.uom_id
+        units.filtered(lambda u: .0001 < u.rounding < 1).write({"rounding": .0001})
+
     def _film_quantity(self, length, width):
         self.ensure_one()
         if not self.product_id:
@@ -157,7 +173,7 @@ class WorkOrderProduct(models.Model):
         base_qty = length * width * 0.0254 / (self.film_width_in * self.roll_length_m)
         uom = self.used_uom_id or self.product_id.uom_id
         quantity = self.product_id.uom_id._compute_quantity(base_qty, uom, round=False)
-        precision = self.env["decimal.precision"].precision_get("Product Unit of Measure")
+        precision = max(4, self.env["decimal.precision"].precision_get("Product Unit of Measure"))
         return float_round(quantity, precision_rounding=max(uom.rounding, 10 ** -precision), rounding_method="UP")
 
     def _dimension_values(self):
@@ -236,11 +252,28 @@ class WorkOrderProduct(models.Model):
                 result = super(WorkOrderProduct, line).write(values) and result
         return result
 
-    @api.constrains("product_id", "allowed_brand_ids", "material_brand_id", "actual_length_in", "actual_width_in", "usage_mode")
+    @api.constrains("product_id", "allowed_brand_ids", "material_brand_id", "actual_length_in", "actual_width_in", "usage_mode", "source_task_id", "source_component_id", "material_category_id")
     def _check_actual_dimensions(self):
         for line in self:
             if min(line.actual_length_in, line.actual_width_in) < 0:
                 raise ValidationError(_("Actual dimensions cannot be negative."))
+            if line.material_category_id and line.product_id and not line.material_brand_id:
+                fixed = line.source_component_id.product_id == line.product_id
+                if not line.source_component_id and line.service_id:
+                    fixed = bool(self.env["car.bom"].search_count([
+                        ("service_id", "=", line.service_id.id), ("product_id", "=", line.product_id.id),
+                        ("service_part_id", "!=", False)]))
+                if not fixed:
+                    raise ValidationError(_("Choose the material brand before selecting a product."))
+            if line.usage_mode == "roll":
+                tolerance = line.source_task_id.material_tolerance_in if line.source_task_id else 5
+                for label, actual, standard in ((_("length"), line.actual_length_in, line.standard_length_in),
+                                                 (_("width"), line.actual_width_in, line.standard_width_in)):
+                    limit = standard + tolerance
+                    if float_compare(actual, limit, precision_digits=4) > 0:
+                        raise ValidationError(_(
+                            "The actual %(dimension)s for %(part)s cannot exceed %(limit).4f inches (standard plus part tolerance).",
+                            dimension=label, part=line.part_id.display_name or _("this material"), limit=limit))
             if line.material_brand_id and line.allowed_brand_ids and line.material_brand_id not in line.allowed_brand_ids:
                 raise ValidationError(_("Choose one of the allowed brands."))
             if line.product_id:
@@ -293,12 +326,12 @@ class WorkOrderProduct(models.Model):
 class WorkOrderService(models.Model):
     _inherit = "car.workorder.service"
 
-    material_total_length_in = fields.Float(string="Car Length Budget (in)", readonly=True)
-    material_total_width_in = fields.Float(string="Car Width Budget (in)", readonly=True)
-    material_tolerance_in = fields.Float(string="Part Tolerance (in)", readonly=True, default=5)
-    material_used_length_in = fields.Float(string="Total Used Length (in)", compute="_compute_material_totals")
-    material_used_width_in = fields.Float(string="Total Used Width (in)", compute="_compute_material_totals")
-    material_used_area_m2 = fields.Float(string="Total Film Area (mÂ²)", compute="_compute_material_totals")
+    material_total_length_in = fields.Float(digits=(16, 4), string="Car Length Budget (in)", readonly=True)
+    material_total_width_in = fields.Float(digits=(16, 4), string="Car Width Budget (in)", readonly=True)
+    material_tolerance_in = fields.Float(digits=(16, 4), string="Part Tolerance (in)", readonly=True, default=5)
+    material_used_length_in = fields.Float(digits=(16, 4), string="Total Used Length (in)", compute="_compute_material_totals")
+    material_used_width_in = fields.Float(digits=(16, 4), string="Total Used Width (in)", compute="_compute_material_totals")
+    material_used_area_m2 = fields.Float(digits=(16, 4), string="Total Film Area (mÂ²)", compute="_compute_material_totals")
     material_budget_warning = fields.Char(string="Car Budget Warning", compute="_compute_material_totals")
 
     def _get_service_boms(self):
@@ -352,9 +385,9 @@ class WorkOrderService(models.Model):
 class WorkOrder(models.Model):
     _inherit = "car.work.order"
 
-    material_used_length_m = fields.Float(string="Total Car Film Length (m)", compute="_compute_car_film_totals")
-    material_used_width_m = fields.Float(string="Total Car Film Width (m)", compute="_compute_car_film_totals")
-    material_used_area_m2 = fields.Float(string="Total Car Film Area (mÂ²)", compute="_compute_car_film_totals")
+    material_used_length_m = fields.Float(digits=(16, 4), string="Total Car Film Length (m)", compute="_compute_car_film_totals")
+    material_used_width_m = fields.Float(digits=(16, 4), string="Total Car Film Width (m)", compute="_compute_car_film_totals")
+    material_used_area_m2 = fields.Float(digits=(16, 4), string="Total Car Film Area (mÂ²)", compute="_compute_car_film_totals")
 
     @api.depends("service_ids.material_used_length_in", "service_ids.material_used_width_in", "service_ids.material_used_area_m2")
     def _compute_car_film_totals(self):

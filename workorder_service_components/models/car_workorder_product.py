@@ -163,6 +163,9 @@ class CarWorkOrderProduct(models.Model):
                 vals["suggested_qty"] = component.quantity
             if component and "material_category_id" not in vals:
                 vals["material_category_id"] = component.material_category_id.id
+            if component and "material_brand_id" not in vals:
+                # Reception may seed a fixed recipe product before part adoption.
+                vals["material_brand_id"] = product.material_brand_id.id
             if "used_uom_id" not in vals:
                 uom = component.product_uom_id if component else product.uom_id
                 if uom:

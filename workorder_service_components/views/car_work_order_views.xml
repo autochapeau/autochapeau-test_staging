@@ -16,10 +16,10 @@
             <field name="part_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
             <field name="material_category_id" readonly="1"/>
             <field name="tag_id" readonly="parent.state != 'new' or material_category_id" optional="hide" options="{'no_create': True}"/>
-            <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="materials_issued or (parent.state != 'new' and (not material_category_id or parent.state not in ('confirmed', 'progress')))" options="{'no_create': True}"/>
+            <field name="material_brand_id" domain="[('id', 'in', allowed_brand_ids)] if allowed_brand_ids else []" readonly="materials_issued" options="{'no_create': True}"/>
+            <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="((material_category_id or source_task_id) and not material_brand_id) or materials_issued or (parent.state != 'new' and (not material_category_id or parent.state not in ('confirmed', 'progress')))" options="{'no_create': True}"/>
             <field name="usage_mode" readonly="1" optional="show"/>
             <field name="allowed_brand_ids" widget="many2many_tags" readonly="1" optional="hide"/>
-            <field name="material_brand_id" domain="[('id', 'in', allowed_brand_ids)] if allowed_brand_ids else []" readonly="materials_issued" options="{'no_create': True}"/>
             <field name="standard_length_in" readonly="1" optional="show"/>
             <field name="standard_width_in" readonly="1" optional="show"/>
             <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
@@ -47,10 +47,10 @@
             <field name="part_id" readonly="parent.state != 'new'" options="{'no_create': True}"/>
             <field name="material_category_id" readonly="1"/>
             <field name="tag_id" readonly="parent.state != 'new' or material_category_id" optional="hide" options="{'no_create': True}"/>
-            <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="materials_issued or not material_category_id or parent.state not in ('confirmed', 'progress')" options="{'no_create': True}"/>
+            <field name="material_brand_id" domain="[('id', 'in', allowed_brand_ids)] if allowed_brand_ids else []" readonly="materials_issued" options="{'no_create': True}"/>
+            <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="not material_brand_id or materials_issued or not material_category_id or parent.state not in ('confirmed', 'progress')" options="{'no_create': True}"/>
             <field name="usage_mode" readonly="1" optional="show"/>
             <field name="allowed_brand_ids" widget="many2many_tags" readonly="1" optional="hide"/>
-            <field name="material_brand_id" domain="[('id', 'in', allowed_brand_ids)] if allowed_brand_ids else []" readonly="materials_issued" options="{'no_create': True}"/>
             <field name="standard_length_in" readonly="1" optional="show"/>
             <field name="standard_width_in" readonly="1" optional="show"/>
             <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
@@ -72,7 +72,7 @@
       </xpath>
       <xpath expr="//page[@name='products']" position="inside">
         <group string="Car Film Totals"><field name="material_used_length_m"/><field name="material_used_width_m"/><field name="material_used_area_m2"/></group>
-        <p class="text-muted">Film dimensions are in inches. Total lengths and widths are sums of all cuts. Film stock quantity uses cut area divided by the area represented by one raw-material stock unit. Measurement warnings are advisory.</p>
+        <p class="text-muted">Film dimensions are in inches. Total lengths and widths are sums of all cuts. Film stock quantity uses cut area divided by the area represented by one raw-material stock unit. Exceeding the standard plus part tolerance is blocked. Total car budget warnings are advisory.</p>
       </xpath>
       <xpath expr="//field[@name='service_ids']/tree" position="inside">
         <field name="material_total_length_in" optional="show"/><field name="material_total_width_in" optional="show"/>

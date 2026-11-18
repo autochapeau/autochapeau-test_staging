@@ -14,6 +14,7 @@ expected = {
     "sales_region_commission": "17.0.6.1.2",
     "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
+    "workorder_service_components": "17.0.4.1.0",
 }
 result = {"database": env.cr.dbname, "modules": {}, "views": [], "reports": {}}
 for name, version in expected.items():
@@ -88,5 +89,20 @@ for name, model, domain, report in (
         assert b"ac-invoice" in html and b"vehicle_block_info" in html
     result["reports"][name] = {"rendered": True, "bytes": len(html)}
 
+assert env['decimal.precision'].precision_get('Product Unit of Measure') >= 4
+for model, field in [('car.workorder.product', 'quantity'), ('car.workorder.product', 'actual_length_in'),
+                     ('car.work.order', 'material_used_area_m2')]:
+    assert tuple(env[model].fields_get([field])[field]['digits']) == (16, 4), (model, field)
+stock_manager = env.ref('stock.group_stock_manager')
+assert env['ir.model.access'].search_count([('model_id.model', '=', 'car.material.brand'),
+    ('group_id', '=', stock_manager.id), ('perm_create', '=', True), ('perm_write', '=', True)])
+assert env.ref('workorder_service_components.material_brand_inventory_menu').parent_id == env.ref('stock.menu_stock_config_settings')
+material_arch = etree.fromstring(env.ref('workorder_service_components.car_work_order_form_service_components').arch_db.encode())
+for tree in material_arch.xpath(".//field[@name='product_ids']/tree"):
+    names = [node.get('name') for node in tree.findall('field')]
+    assert names.index('material_brand_id') < names.index('product_id')
+    assert 'not material_brand_id' in tree.xpath("./field[@name='product_id']")[0].get('readonly')
+result['warehouse_feedback'] = {'version': '17.0.4.1.0', 'precision': 4, 'brand_before_product': True,
+    'stock_manager_brand_access': True, 'part_tolerance': 'hard limit'}
 env.cr.rollback()
 print("VIDEO_REQUIREMENTS_SMOKE=" + json.dumps(result, sort_keys=True))

@@ -9,7 +9,7 @@ class WorkOrderProduct(models.Model):
 
     branch_available_qty = fields.Float(
         string="Available in Branch", compute="_compute_branch_material_stock",
-        digits="Product Unit of Measure",
+        digits=(16, 4),
         help="Unreserved stock in the branch warehouse and its stock sublocations, "
              "in this line's unit. Selecting a lot/serial restricts availability to that lot. "
              "Reload the order to refresh stock changed by other operations.",

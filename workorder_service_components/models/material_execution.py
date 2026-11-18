@@ -348,6 +348,8 @@ class WorkOrderService(models.Model):
         self.ensure_one()
         order = self.workorder_id
         task_lines = order.product_ids.filtered(lambda line: line.source_task_id == self)
+        # Old open orders are checked too before any stock movement is created.
+        task_lines._check_actual_dimensions()
         if task_lines.filtered(lambda line: line.source_component_id and not line.product_id):
             raise UserError(_("Select the actual material for every configured category before finishing."))
         lines = task_lines.filtered(lambda line: line.quantity > 0)

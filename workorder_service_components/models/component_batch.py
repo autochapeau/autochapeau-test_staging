@@ -70,7 +70,7 @@ class ServiceComponentBatchLine(models.TransientModel):
         domain="[('is_main_material_category', '=', True)]",
     )
     product_id = fields.Many2one("product.product", string="Product")
-    quantity = fields.Float(string="Default Quantity", default=1, required=True)
+    quantity = fields.Float(digits=(16, 4), string="Default Quantity", default=1, required=True)
     product_uom_category_id = fields.Many2one(related="product_id.uom_id.category_id")
     product_uom_id = fields.Many2one("uom.uom", string="UoM")
 
@@ -105,10 +105,10 @@ class ServiceComponentBatchVariant(models.TransientModel):
 
     batch_id = fields.Many2one("car.service.component.batch", required=True, ondelete="cascade")
     service_id = fields.Many2one("product.product", string="Service Variant", required=True)
-    quantity = fields.Float(string="Default Quantity", default=1)
+    quantity = fields.Float(digits=(16, 4), string="Default Quantity", default=1)
     product_uom_id = fields.Many2one("uom.uom", string="UoM")
-    standard_length_in = fields.Float(string="Standard Length (in)")
-    standard_width_in = fields.Float(string="Standard Width (in)")
+    standard_length_in = fields.Float(string="Standard Length (in)", digits=(16, 4))
+    standard_width_in = fields.Float(string="Standard Width (in)", digits=(16, 4))
 
     @api.constrains("quantity", "standard_length_in", "standard_width_in")
     def _check_positive(self):

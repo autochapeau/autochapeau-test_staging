@@ -56,12 +56,12 @@
       return;
     }
     const raw = length * width * .0254 / (filmWidth * rollLength);
-    const rounded = Math.ceil(raw * 100 - 1e-9) / 100;
-    byId('calc-quantity').textContent = rounded.toFixed(2);
+    const rounded = Math.ceil(raw * 10000 - 1e-9) / 10000;
+    byId('calc-quantity').textContent = rounded.toFixed(4);
     byId('calc-details').textContent = `قبل التقريب: ${raw.toFixed(6)} رول · مساحة القصّة: ${(length * width * .0254 ** 2).toFixed(4)} م²`;
     const messages = [];
     if (width > filmWidth) messages.push('في أودو المقاس ده بيتمنع، لأن عرض القصّة أكبر من عرض الفيلم.');
-    if (length > 20 || width > 25) messages.push('بالمقارنة بقياسي المثال 15 × 20 وسماح 5 إنش، فيه زيادة تستحق تنبيه.');
+    if (length > 20 || width > 25) messages.push('بالمقارنة بقياسي المثال 15 × 20 وسماح 5 إنش، أودو هيمنع الحفظ عشان المقاس زاد عن سماح الجزء.');
     if (!messages.length) messages.push('المقاسات جوه سماح الجزء في مثال Small. إجمالي الخدمة بيتراجع لوحده.');
     byId('calc-message').textContent = messages.join(' ');
   };

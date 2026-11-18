@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <function model="car.workorder.product" name="_apply_material_precision"/>
+</odoo>

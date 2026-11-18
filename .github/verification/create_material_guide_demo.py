@@ -76,7 +76,7 @@ prepare(standard, film_a, marvel)
 warning = order("order_warning", variants["Small"])
 prepare(warning, film_a, marvel)
 if warning.state == "progress":
-    warning.product_ids[:1].actual_length_in = 21
+    warning.product_ids[:1].actual_length_in = 18  # Car budget warning; part tolerance is a hard limit now
 issued = order("order_issued", variants["Small"])
 prepare(issued, film_a, marvel)
 if issued.state == "progress" and not issued.materials_finished:

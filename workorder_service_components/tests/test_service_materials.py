@@ -24,6 +24,8 @@ class TestServiceMaterials(TransactionCase):
         brand = cls.env["fleet.vehicle.model.brand"].create({"name": "Material test brand"})
         model = cls.env["fleet.vehicle.model"].create({"name": "Material test car", "brand_id": brand.id})
         cls.vehicle = cls.env["fleet.vehicle"].create({"model_id": model.id, "license_plate": "MAT-TEST"})
+        cls.material_brand = cls.env["car.material.brand"].create({"name": "Test material manufacturer"})
+        cls.env = cls.env(context=dict(cls.env.context, default_material_brand_id=cls.material_brand.id))
         cls.service = cls.env["product.product"].create({"name": "Film installation test", "detailed_type": "service"})
         cls.film = cls.env["product.product"].create({"name": "Film material test", "detailed_type": "product", "uom_id": cls.unit.id, "uom_po_id": cls.unit.id})
         cls.liquid = cls.env["product.product"].create({"name": "Liquid material test", "detailed_type": "product", "uom_id": cls.unit.id, "uom_po_id": cls.unit.id})
@@ -827,8 +829,9 @@ class TestServiceMaterials(TransactionCase):
         self._start(order)
         with self.assertRaises(UserError), self.env.cr.savepoint():
             order.action_finish_materials()
+        line.material_brand_id = self.material_brand
         line.product_id = self.film
-        self.assertAlmostEqual(line.quantity, .01)
+        self.assertAlmostEqual(line.quantity, .0085)
         before = self._available(self.film)
         order.action_finish_materials()
         self.assertAlmostEqual(before - self._available(self.film), line.quantity, places=6)
@@ -842,8 +845,8 @@ class TestServiceMaterials(TransactionCase):
         line = order.product_ids
         suggested = line.suggested_qty
         self._start(order)
-        line.write({"actual_length_in": 20, "actual_width_in": 30})
-        self.assertAlmostEqual(line.quantity, .02)
+        line.write({"actual_length_in": 20, "actual_width_in": 25})
+        self.assertAlmostEqual(line.quantity, .0142)
         self.assertEqual(line.suggested_qty, suggested)
         recipe.standard_length_in = 12
         self.film.film_width_in = 70
@@ -863,10 +866,10 @@ class TestServiceMaterials(TransactionCase):
         line.actual_length_in = 20
         self.assertNotIn("standard plus", line.dimension_warning or "")
         self.assertIn("car budget", line.dimension_warning)
-        line.actual_length_in = 20.01
-        self.assertIn("standard plus", line.dimension_warning)
-        self.assertAlmostEqual(order.material_used_length_m, 20.01 * .0254)
-        self.assertAlmostEqual(order.material_used_area_m2, 20.01 * 20 * .0254 ** 2)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.actual_length_in = 20.0001
+        self.assertAlmostEqual(order.material_used_length_m, 20 * .0254)
+        self.assertAlmostEqual(order.material_used_area_m2, 20 * 20 * .0254 ** 2, places=4)
         self.service.material_total_length_in = 100
         self.assertEqual(order.service_ids.material_total_length_in, 19)
         with self.assertRaises(UserError), self.env.cr.savepoint():
@@ -898,7 +901,7 @@ class TestServiceMaterials(TransactionCase):
         line.product_id = replacement
         self.assertEqual(line.film_width_in, 70)
         self.assertEqual(line.roll_length_m, 30)
-        self.assertAlmostEqual(line.quantity, .01)
+        self.assertAlmostEqual(line.quantity, .0037)
 
     def test_video_rejects_invalid_dimensions_and_coarse_roll_unit(self):
         self._film_recipe()
@@ -944,6 +947,7 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(line.quantity, 4)
         self.assertFalse(line.product_id)
         self._start(order)
+        line.material_brand_id = self.material_brand
         line.product_id = self.liquid
         order.action_finish_materials()
         self.assertEqual(self._available(self.liquid), 96)
@@ -967,6 +971,7 @@ class TestServiceMaterials(TransactionCase):
         self._film_recipe(category_only=True)
         order = self._order()
         line = order.product_ids
+        line.material_brand_id = self.material_brand
         line.product_id = self.film
         order._sync_part_materials()
         order._sync_part_materials()
@@ -992,11 +997,10 @@ class TestServiceMaterials(TransactionCase):
         self._start(order)
         with Form(order, view="work_orders.car_work_order_view_form") as form:
             with form.product_ids.edit(0) as line:
-                line.actual_length_in = 25
-                line.actual_width_in = 30
-                self.assertTrue(line.dimension_warning)
-        self.assertEqual(order.product_ids.actual_length_in, 25)
-        self.assertEqual(order.product_ids.quantity, .03)
+                line.actual_length_in = 20
+                line.actual_width_in = 25
+        self.assertEqual(order.product_ids.actual_length_in, 20)
+        self.assertEqual(order.product_ids.quantity, .0142)
 
     def test_video_select_category_only_film_in_progress_form(self):
         # The web client shares the nested architecture between both occurrences
@@ -1021,13 +1025,13 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(line.product_id, self.film)
         self.assertEqual(line.material_category_id, recipe.material_category_id)
         self.assertEqual(line.used_uom_id, self.film.uom_id)
-        self.assertAlmostEqual(line.quantity, .01)
-        self.assertAlmostEqual(line.suggested_qty, .01)
+        self.assertAlmostEqual(line.quantity, .0085)
+        self.assertAlmostEqual(line.suggested_qty, .0085)
         with Form(order, view='work_orders.car_work_order_view_form') as form:
             with form.product_ids.edit(0) as edit:
-                edit.actual_length_in = 21
-        self.assertEqual(line.actual_length_in, 21)
-        self.assertTrue(line.dimension_warning)
+                edit.actual_length_in = 20
+        self.assertEqual(line.actual_length_in, 20)
+        self.assertFalse(line.dimension_warning)
         with self.assertRaises(UserError), self.env.cr.savepoint():
             line.material_category_id = self.env['product.category'].create({'name': 'Forbidden category change'})
 
@@ -1043,6 +1047,7 @@ class TestServiceMaterials(TransactionCase):
         order = self._order()
         self._start(order)
         line = order.product_ids
+        line.material_brand_id = self.material_brand
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
             line.product_id = self.film
         line.product_id = self.liquid
@@ -1065,7 +1070,7 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(len(order.product_ids), 1)
         self.assertEqual(order.product_ids.usage_mode, "roll")
         self.assertEqual(order.product_ids.actual_length_in, 15)
-        self.assertEqual(order.product_ids.quantity, .01)
+        self.assertEqual(order.product_ids.quantity, .0085)
 
     def test_video_template_film_metadata_edit_and_variants_independent(self):
         with Form(self.env["product.template"], view="product.product_template_only_form_view") as form:
@@ -1081,3 +1086,109 @@ class TestServiceMaterials(TransactionCase):
         variants[1].material_total_length_in = 100
         self.assertEqual(variants[0].material_total_length_in, 50)
         self.assertEqual(variants[1].material_total_length_in, 100)
+
+    def test_warehouse_stock_manager_can_maintain_brands(self):
+        manager = new_test_user(self.env, login='material_stock_manager', groups='base.group_user,stock.group_stock_manager')
+        staff = new_test_user(self.env, login='material_readonly_user', groups='base.group_user')
+        brand = self.env['car.material.brand'].with_user(manager).create({'name': 'Warehouse manufacturer'})
+        brand.with_user(manager).write({'name': 'Warehouse manufacturer updated'})
+        self.assertEqual(brand.name, 'Warehouse manufacturer updated')
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            self.env['car.material.brand'].with_user(staff).create({'name': 'Not permitted'})
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            brand.with_user(manager).unlink()
+
+    def test_warehouse_part_tolerance_blocks_both_dimensions_at_boundary(self):
+        self._film_recipe()
+        line = self._order().product_ids
+        line.write({'actual_length_in': 20, 'actual_width_in': 25})
+        for values in ({'actual_length_in': 20.0001}, {'actual_width_in': 25.0001}):
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                line.write(values)
+        self.assertEqual(line.actual_length_in, 20)
+        self.service.material_tolerance_in = 0
+        line = self._order().product_ids
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.actual_length_in = 15.0001
+
+    def test_warehouse_legacy_oversize_is_blocked_before_stock_issue(self):
+        self._film_recipe()
+        order = self._order()
+        self._start(order)
+        line = order.product_ids
+        self.env.cr.execute('UPDATE car_workorder_product SET actual_length_in=21 WHERE id=%s', (line.id,))
+        line.invalidate_recordset(['actual_length_in'])
+        before = self._available(self.film)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            order.action_finish_materials()
+        self.assertFalse(order.material_picking_ids)
+        self.assertEqual(self._available(self.film), before)
+
+    def test_warehouse_brand_required_before_category_product(self):
+        self._film_recipe(category_only=True)
+        line = self._order().product_ids
+        self.assertFalse(line.material_brand_id)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.product_id = self.film
+        line.material_brand_id = self.material_brand
+        line.product_id = self.film
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.material_brand_id = False
+        self.assertEqual(line.quantity, .0085)
+        arch = etree.fromstring(self.env.ref('workorder_service_components.car_work_order_form_service_components').arch_db.encode())
+        for tree in arch.xpath(".//field[@name='product_ids']/tree"):
+            names = [f.get('name') for f in tree.findall('field')]
+            self.assertLess(names.index('material_brand_id'), names.index('product_id'))
+            self.assertIn('not material_brand_id', tree.xpath("./field[@name='product_id']")[0].get('readonly'))
+
+    def test_warehouse_totals_are_sum_of_cuts_not_bounding_rectangle(self):
+        recipe = self._film_recipe()
+        recipe.copy({'service_part_id': self.left_config.id})
+        self.service.write({'material_total_length_in': 30, 'material_total_width_in': 40})
+        order = self._order()
+        order.product_ids.filtered(lambda r: r.part_id == self.right).actual_length_in = 18
+        self.assertAlmostEqual(order.material_used_length_m, 33 * .0254)
+        self.assertAlmostEqual(order.material_used_width_m, 40 * .0254)
+        self.assertAlmostEqual(order.material_used_area_m2, (18*20 + 15*20) * .0254**2, places=4)
+        self.assertNotAlmostEqual(order.material_used_area_m2, order.material_used_length_m * order.material_used_width_m)
+        self.assertTrue(order.service_ids.material_budget_warning)
+        self.assertEqual(sorted(order.product_ids.mapped('quantity')), [.0085, .0102])
+
+    def test_warehouse_four_decimals_consumed_from_stock(self):
+        self._film_recipe()
+        order = self._order()
+        self._start(order)
+        before = self._available(self.film)
+        self.assertEqual(order.product_ids.quantity, .0085)
+        order.action_finish_materials()
+        self.assertAlmostEqual(before - self._available(self.film), .0085, places=6)
+        self.assertEqual(self.env['car.workorder.product'].fields_get(['quantity'])['quantity']['digits'], (16, 4))
+
+    def test_warehouse_nonroll_litres_need_no_film_metadata(self):
+        self.service.service_part_ids.unlink()
+        litre = self.env.ref('uom.product_uom_litre')
+        litre.rounding = .0001
+        self.liquid.write({'uom_id': litre.id, 'uom_po_id': litre.id})
+        self.env['car.service.part'].create({'service_id': self.service.id,
+            'component_ids': [Command.create({'product_id': self.liquid.id, 'quantity': .3754})]})
+        order = self._order()
+        self.assertFalse(order.product_ids.part_id)
+        self.assertEqual(order.product_ids.usage_mode, 'quantity')
+        self.assertFalse(self.liquid.film_width_in or self.liquid.roll_length_m)
+        self._start(order)
+        before = self._available(self.liquid)
+        order.action_finish_materials()
+        self.assertAlmostEqual(before-self._available(self.liquid), .3754, places=6)
+
+    def test_warehouse_precision_setup_preserves_balances_and_whole_units(self):
+        self._film_recipe()
+        self.film.uom_id.rounding = .01
+        before = self._available(self.film)
+        whole = self.env['uom.uom'].create({'name': 'Whole stock unit', 'category_id': self.unit.category_id.id,
+            'uom_type': 'smaller', 'factor': 1, 'rounding': 1})
+        self.env['product.product'].create({'name': 'Whole-unit metadata only', 'detailed_type': 'product',
+            'uom_id': whole.id, 'uom_po_id': whole.id, 'film_width_in': 60, 'roll_length_m': 15})
+        self.env['car.workorder.product']._apply_material_precision()
+        self.assertEqual(self.film.uom_id.rounding, .0001)
+        self.assertEqual(whole.rounding, 1)
+        self.assertEqual(self._available(self.film), before)
