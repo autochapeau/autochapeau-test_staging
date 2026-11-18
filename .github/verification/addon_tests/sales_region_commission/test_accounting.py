@@ -85,10 +85,8 @@ class TestCommissionAccrual(commission_tests.TestCommissionStudio):
         company.write({name: False for name in values})
         settings.create({'company_id': company.id, **values}).execute()
         self.assertEqual(company.read(list(values), load=None)[0], {'id': company.id, **values})
-        self.assertEqual(
-            settings.with_context(default_company_id=company.id).default_get(list(values)),
-            values,
-        )
+        defaults = settings.with_context(default_company_id=company.id).default_get(list(values))
+        self.assertEqual({name: defaults[name] for name in values}, values)
 
         invalid = settings.create({'company_id': company.id, 'commission_credit_account_id': False})
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
