@@ -1,4 +1,5 @@
 from . import product_product
+from . import product_template
 from . import portal_partner
 from . import portal_loyalty_program
 from . import portal_testimony

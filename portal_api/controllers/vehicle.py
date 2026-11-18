@@ -3,7 +3,7 @@ import json
 from odoo import http
 from odoo.http import request
 
-from .common import authorization_required, check_params, format_search_read_result, make_json_response, make_response
+from .common import authorization_required, check_params, format_search_read_result, get_binary_url, make_json_response, make_response
 
 
 class VehicleAPI(http.Controller):
@@ -14,6 +14,12 @@ class VehicleAPI(http.Controller):
             brand_id = request.env.ref("cars_management.unknown_manufacturer").id
             models = request.env["fleet.vehicle.model"].sudo().search_read([("brand_id", "!=", brand_id)], fields_name)
             result = format_search_read_result(models, fields_name, [])
+            brand_ids = {row["brand_id"][0] for row in models if row["brand_id"]}
+            brands = request.env["fleet.vehicle.model.brand"].sudo().with_context(bin_size=True).browse(list(brand_ids))
+            logos = {brand.id: get_binary_url("fleet.vehicle.model.brand", brand.id, "image_128")
+                     if brand.image_128 else False for brand in brands}
+            for source, row in zip(models, result):
+                row["brand_image_url"] = logos.get(source["brand_id"][0], False) if source["brand_id"] else False
             return make_response(200, result)
         except Exception as e:
             return make_response(422, {"message": str(e)})

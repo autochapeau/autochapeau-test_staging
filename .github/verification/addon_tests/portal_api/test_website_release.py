@@ -202,6 +202,47 @@ class TestWebsiteRelease(TransactionCase):
         source._apply_reviews([{**review, "starRating": "FOUR"}])
         self.assertFalse(rows.active)
 
+    def test_service_card_price_is_public_but_does_not_change_selling_price(self):
+        template = self.service.product_tmpl_id
+        original_price = self.service.lst_price
+        category = self.env["product.category"].create({"name": "Website QA Card Category"})
+        template.categ_id = category
+        template.write({"website_card_price_enabled": True, "website_card_price": 13800,
+                        "website_card_price_label": "Starts from"})
+        status, data = self.call(product.ProductAPI(), "v1_service_list", method="POST",
+                                 body={"vehicle_id": -1, "categ_id": category.id})
+        self.assertEqual(status, 200)
+        rows = data["items"]
+        row = next(item for item in rows if item["id"] == template.id)
+        self.assertEqual(row["website_card_price"], 13800)
+        self.assertEqual(row["website_card_price_label"], "Starts from")
+        self.assertEqual(row["price_from"], original_price)
+        self.assertEqual(self.service.lst_price, original_price)
+        status, details = self.call(product.ProductAPI(), "v1_service_product_variants",
+                                    method="POST", body={"vehicle_id": -1}, service_id=template.id)
+        self.assertEqual(status, 200)
+        self.assertEqual(details[0]["website_card_price"], 13800)
+        self.assertEqual(details[0]["variants"][0]["lst_price"], original_price)
+
+    def test_service_card_price_disabled_zero_and_negative_validation(self):
+        template = self.service.product_tmpl_id
+        self.assertIsNone(template._website_card_price_payload()["website_card_price"])
+        template.write({"website_card_price_enabled": True, "website_card_price": 0})
+        self.assertEqual(template._website_card_price_payload()["website_card_price"], 0)
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            template.website_card_price = -1
+        template.website_card_price_enabled = False
+        self.assertIsNone(template._website_card_price_payload()["website_card_price"])
+
+    def test_car_model_options_include_the_configured_brand_logo_url(self):
+        brand = self.vehicle.model_id.brand_id
+        brand.image_128 = self.image
+        status, rows = self.call(vehicle.VehicleAPI(), "v1_get_models")
+        self.assertEqual(status, 200)
+        row = next(item for item in rows if item["id"] == self.vehicle.model_id.id)
+        self.assertIn("fleet.vehicle.model.brand", row["brand_image_url"])
+        self.assertIn(str(brand.id), row["brand_image_url"])
+
     def test_google_import_fetches_all_pages_with_authorized_account(self):
         source = self.env["portal.google.review.source"].create({"name": "Website QA Google pages",
             "location_name": "accounts/123/locations/456", "client_id": "qa-client",

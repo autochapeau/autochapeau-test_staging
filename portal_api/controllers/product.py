@@ -758,6 +758,7 @@ class ProductAPI(http.Controller):
                 "is_window_tinting": bool(t.is_window_tinting),
                 # Default values (taken from the cheapest variant)
                 "price_from": default_variant.lst_price,
+                **t._website_card_price_payload(),
                 "lst_price_discount": default_variant.lst_price_discount,
                 "warranty": default_variant.warranty,
                 "web_note": default_variant.web_note or False,
@@ -812,6 +813,7 @@ class ProductAPI(http.Controller):
         data = {
             "id": template.id,
             "name": template.name,
+            **template._website_card_price_payload(),
             "categ_id": template.categ_id.name,
             "description": template.description or False,
             "description_website": template.description_website or False,
