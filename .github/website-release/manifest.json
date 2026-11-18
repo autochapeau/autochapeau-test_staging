@@ -1,6 +1,6 @@
 {
-  "source_commit": "be1aafa1d7fea4588df6953406abe55fc03fb98f",
+  "source_commit": "d04871693633d344d6fa4be9e49d5e9826e07b31",
   "target": "web-test.autochapeau.com",
   "database": "autochapeau_prod_test",
-  "archive_sha256": "b733a0db64199f24d8d6131f7f6c79523b3c18b17d3da580e87385ea8a41a69b"
+  "archive_sha256": "25b4badc25c1b93721d28650bf780a7e6ea1c21efae5a237aa7a4a960f20548e"
 }
