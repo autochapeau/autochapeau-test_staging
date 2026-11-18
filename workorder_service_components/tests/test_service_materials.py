@@ -1210,3 +1210,11 @@ class TestServiceMaterials(TransactionCase):
         self.film.uom_id.rounding = .001
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
             self._order()
+
+    def test_warehouse_car_area_does_not_sum_rounded_service_areas(self):
+        self._film_recipe()
+        order = self._order(services=[self.service, self.service])
+        self.assertEqual(len(order.product_ids), 2)
+        self.assertEqual(order.material_used_area_m2, .3871)
+        self.assertEqual(order.material_used_length_m, .7620)
+        self.assertEqual(order.material_used_width_m, 1.0160)

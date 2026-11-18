@@ -391,9 +391,11 @@ class WorkOrder(models.Model):
     material_used_width_m = fields.Float(digits=(16, 4), string="Total Car Film Width (m)", compute="_compute_car_film_totals")
     material_used_area_m2 = fields.Float(digits=(16, 4), string="Total Car Film Area (mÂ²)", compute="_compute_car_film_totals")
 
-    @api.depends("service_ids.material_used_length_in", "service_ids.material_used_width_in", "service_ids.material_used_area_m2")
+    @api.depends("product_ids.actual_length_in", "product_ids.actual_width_in", "product_ids.usage_mode", "product_ids.source_task_id")
     def _compute_car_film_totals(self):
         for order in self:
-            order.material_used_length_m = sum(order.service_ids.mapped("material_used_length_in")) * 0.0254
-            order.material_used_width_m = sum(order.service_ids.mapped("material_used_width_in")) * 0.0254
-            order.material_used_area_m2 = sum(order.service_ids.mapped("material_used_area_m2"))
+            lines = order.product_ids.filtered(lambda row: row.source_task_id and row.usage_mode == "roll")
+            # Sum physical cuts before rounding the displayed order totals.
+            order.material_used_length_m = sum(lines.mapped("actual_length_in")) * 0.0254
+            order.material_used_width_m = sum(lines.mapped("actual_width_in")) * 0.0254
+            order.material_used_area_m2 = sum(row.actual_length_in * row.actual_width_in * 0.0254 ** 2 for row in lines)
