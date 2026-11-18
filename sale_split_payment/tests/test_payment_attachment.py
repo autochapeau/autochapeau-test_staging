@@ -190,7 +190,12 @@ class TestMultiOrderPaymentAttachment(TransactionCase):
         self.assertEqual(allocation.state, "paid")
         self.assertEqual(payment.state, "posted")
         self.assertEqual(payment.amount, order.amount_total)
+        self.assertEqual(payment.journal_id, self.journal)
+        self.assertEqual(allocation.transfer_proof_ids.raw, receipt)
+        self.assertEqual(allocation.transfer_proof_ids.res_model, "sale.order.payment")
+        self.assertEqual(allocation.transfer_proof_ids.res_id, allocation.id)
         self.assertEqual(payment.transfer_proof_ids.raw, receipt)
+        self.assertEqual(payment.transfer_proof_ids.res_model, "account.payment")
         self.assertEqual(payment.transfer_proof_ids.res_id, payment.id)
         self.assertFalse(payment.transfer_proof_ids.public)
 
