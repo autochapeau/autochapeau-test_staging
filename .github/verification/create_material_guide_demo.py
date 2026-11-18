@@ -65,6 +65,7 @@ def order(key, service):
 
 def prepare(record, product, selected_brand=False):
     if record.state == "new":
+        selected_brand = selected_brand or product.material_brand_id
         for line in record.product_ids:
             line.write({"product_id":product.id, **({"material_brand_id":selected_brand.id} if selected_brand else {})})
         record.picking_id = record._create_delivery_picking()
@@ -75,13 +76,15 @@ standard = order("order_standard", variants["Small"])
 prepare(standard, film_a, marvel)
 warning = order("order_warning", variants["Small"])
 prepare(warning, film_a, marvel)
-if warning.state == "progress":
+if warning.state == "progress" and not warning.materials_finished:
     warning.product_ids[:1].actual_length_in = 18  # Car budget warning; part tolerance is a hard limit now
 issued = order("order_issued", variants["Small"])
 prepare(issued, film_a, marvel)
 if issued.state == "progress" and not issued.materials_finished:
     issued.action_finish_materials()
 liquid_order = order("order_liquid", paint)
+if not liquid.material_brand_id:
+    liquid.material_brand_id = ensure("liquid_brand", "car.material.brand", {"name": "DEMO Liquid Supplier"})
 prepare(liquid_order, liquid)
 result = {"database":qa.cr.dbname,"service_template":template.id,"variants":{k:v.id for k,v in variants.items()},"film_template":film_a.product_tmpl_id.id,"film":film_a.id,"alternative_film":film_b.id,"liquid_template":liquid.product_tmpl_id.id,"liquid_service_template":paint.product_tmpl_id.id,"liquid_service":paint.id,"batch":batch.id,"liquid_batch":liquid_batch.id,"part_configuration":variants["Small"].service_part_ids[:1].id,"order_standard":standard.id,"order_warning":warning.id,"order_issued":issued.id,"order_liquid":liquid_order.id,"delivery":issued.material_picking_ids.id,"warehouse":warehouse.id}
 # Persist screenshot forms under the existing workshop manager's normal ACLs.
