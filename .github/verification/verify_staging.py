@@ -14,7 +14,7 @@ expected = {
     "sales_region_commission": "17.0.6.1.2",
     "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
-    "workorder_service_components": "17.0.4.1.0",
+    "workorder_service_components": "17.0.4.1.1",
 }
 result = {"database": env.cr.dbname, "modules": {}, "views": [], "reports": {}}
 for name, version in expected.items():
@@ -102,7 +102,7 @@ for tree in material_arch.xpath(".//field[@name='product_ids']/tree"):
     names = [node.get('name') for node in tree.findall('field')]
     assert names.index('material_brand_id') < names.index('product_id')
     assert 'not material_brand_id' in tree.xpath("./field[@name='product_id']")[0].get('readonly')
-result['warehouse_feedback'] = {'version': '17.0.4.1.0', 'precision': 4, 'brand_before_product': True,
+result['warehouse_feedback'] = {'version': '17.0.4.1.1', 'precision': 4, 'brand_before_product': True,
     'stock_manager_brand_access': True, 'part_tolerance': 'hard limit'}
 env.cr.rollback()
 print("VIDEO_REQUIREMENTS_SMOKE=" + json.dumps(result, sort_keys=True))

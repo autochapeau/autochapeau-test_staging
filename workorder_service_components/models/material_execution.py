@@ -350,6 +350,10 @@ class WorkOrderService(models.Model):
         task_lines = order.product_ids.filtered(lambda line: line.source_task_id == self)
         # Old open orders are checked too before any stock movement is created.
         task_lines._check_actual_dimensions()
+        # Refresh derived quantities on legacy open orders with two-decimal
+        # snapshots, using their saved actual cuts and film metadata.
+        for line in task_lines.filtered(lambda row: row.usage_mode == "roll" and row.product_id):
+            line.write({"actual_length_in": line.actual_length_in, "actual_width_in": line.actual_width_in})
         if task_lines.filtered(lambda line: line.source_component_id and not line.product_id):
             raise UserError(_("Select the actual material for every configured category before finishing."))
         lines = task_lines.filtered(lambda line: line.quantity > 0)

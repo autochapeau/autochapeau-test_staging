@@ -1192,3 +1192,21 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(self.film.uom_id.rounding, .0001)
         self.assertEqual(whole.rounding, 1)
         self.assertEqual(self._available(self.film), before)
+
+    def test_warehouse_finish_recomputes_unissued_legacy_rounding(self):
+        self._film_recipe()
+        order = self._order()
+        self._start(order)
+        line = order.product_ids
+        self.env.cr.execute('UPDATE car_workorder_product SET quantity=.01, suggested_qty=.01 WHERE id=%s', (line.id,))
+        line.invalidate_recordset(['quantity', 'suggested_qty'])
+        before = self._available(self.film)
+        order.action_finish_materials()
+        self.assertEqual(line.quantity, .0085)
+        self.assertAlmostEqual(before-self._available(self.film), .0085, places=6)
+
+    def test_warehouse_new_coarse_film_unit_is_rejected(self):
+        self._film_recipe()
+        self.film.uom_id.rounding = .001
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self._order()

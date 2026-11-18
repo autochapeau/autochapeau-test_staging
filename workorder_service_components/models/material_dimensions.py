@@ -168,12 +168,14 @@ class WorkOrderProduct(models.Model):
             raise ValidationError(_("Define film width and the roll length represented by one stock unit on the raw material."))
         if self.product_id.uom_id.rounding >= 1:
             raise ValidationError(_("Film stock needs a unit that permits fractions of a roll (rounding below 1)."))
+        if self.product_id.uom_id.rounding > .0001:
+            raise ValidationError(_("Film stock needs four-decimal unit precision. Set the stock unit rounding to 0.0001 or smaller."))
         # Both cut dimensions contribute to area. Convert inÂ² to mÂ², then to
         # fractions of the selected stock unit; Odoo handles compatible UoMs.
         base_qty = length * width * 0.0254 / (self.film_width_in * self.roll_length_m)
         uom = self.used_uom_id or self.product_id.uom_id
         quantity = self.product_id.uom_id._compute_quantity(base_qty, uom, round=False)
-        precision = max(4, self.env["decimal.precision"].precision_get("Product Unit of Measure"))
+        precision = 4
         return float_round(quantity, precision_rounding=max(uom.rounding, 10 ** -precision), rounding_method="UP")
 
     def _dimension_values(self):
