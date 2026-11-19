@@ -38,5 +38,5 @@ jobs:
           with tempfile.TemporaryDirectory() as td:
               key=Path(td)/'public.pem';key.write_bytes(public)
               payload=subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',str(key),'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256','-pkeyopt','rsa_mgf1_md:sha256'],input=user.encode())
-          print('ENCRYPTED_TRANSFER_IDENTITY='+base64.b64encode(payload).decode())
+          print('ENCRYPTED_TRANSFER_IDENTITY='+''.join('ABCDEFGHIJKLMNOP'[int(n,16)] for n in payload.hex()))
           PY
