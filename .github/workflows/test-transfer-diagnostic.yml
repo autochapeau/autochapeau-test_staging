@@ -42,6 +42,22 @@ jobs:
                       selected.append(text[:600])
               if selected:print('TEST_REFRESH_ERROR_CONTEXT='+json.dumps({'log':filename,'lines':selected[-14:]}))
 
+          workers=subprocess.check_output(['docker','ps','--filter','label=com.docker.swarm.service.name=test-refresh-worker-44512412979','--format','{{.ID}}'],text=True).split()
+          assert len(workers)==1
+          stop=r"""
+          import os,signal
+          from pathlib import Path
+          matched=[]
+          for proc in Path('/proc').iterdir():
+              if not proc.name.isdigit():continue
+              try:args=[x.decode() for x in (proc/'cmdline').read_bytes().split(b'\0') if x]
+              except (FileNotFoundError,ProcessLookupError):continue
+              if len(args)>4 and args[0].endswith('python3') and args[1]=='/opt/test-refresh-tools/test_refresh_odoo.py' and args[2]=='shell' and 'test_refresh_candidate_44512412979' in args:
+                  os.kill(int(proc.name),signal.SIGKILL);matched.append(int(proc.name))
+          assert len(matched)==1
+          print('ISOLATED_TEST_CLI_STOPPED=1')
+          """
+          subprocess.run(['docker','exec',workers[0],'python3','-c',stop],check=True)
           ids=subprocess.check_output(['docker','ps','--filter','label=com.docker.swarm.service.name=autochapeau_staging_odoo_odoo','--format','{{.ID}}'],text=True).split();assert len(ids)==1
           code="""
           import json,psycopg2
