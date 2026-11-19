@@ -18,6 +18,12 @@ if os.environ.get('TEST_REFRESH_USE_PREPARED_FILTERS')=='1':
     from odoo.modules.module import initialize_sys_path
     initialize_sys_path()
     from odoo.addons.access_roles.models.filter_registry import FilterRegistry
+    from odoo.addons.access_roles.models.groupby_registry import GroupByRegistry
+    from odoo.addons.access_roles.models.button_registry import ButtonRegistry
+    from odoo.addons.access_roles.models.tab_registry import TabRegistry
     FilterRegistry.get_all_filters=lambda self: {}
+    GroupByRegistry.get_all_groupby=lambda self: {}
+    ButtonRegistry.get_all_buttons=lambda self: {}
+    TabRegistry.get_all_tabs=lambda self: {}
 from odoo.cli import main
 main()
