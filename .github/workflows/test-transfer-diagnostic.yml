@@ -22,27 +22,41 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import json,subprocess
+          import json,subprocess,re,os
+          from pathlib import Path
+          root=Path('/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44512412979')
+          front=subprocess.check_output(['docker','ps','--filter','label=com.docker.swarm.service.name=autochapeau_staging_website_web','--format','{{.ID}}'],text=True).split();assert len(front)==1
+          info=json.loads(subprocess.check_output(['docker','inspect',front[0]],text=True))[0]
+          tokens=set()
+          for entry in info['Config'].get('Env',[]):
+              name,value=entry.split('=',1)
+              if re.search('API.*KEY|KEY.*API|TOKEN|AUTH',name,re.I) and value:tokens.add(value.removeprefix('Bearer ').strip())
+          for command in (['nginx','-T'],['cat','/usr/share/nginx/html/assets/js/env.js']):
+              text=subprocess.run(['docker','exec',front[0],*command],capture_output=True,text=True)
+              tokens.update(re.findall(r'(?<![A-Fa-f0-9])[A-Fa-f0-9]{40}(?![A-Fa-f0-9])',text.stdout))
+          private=root/'configured-test-api-tokens.private.json';private.write_text(json.dumps(sorted(tokens)));private.chmod(0o600)
           ids=subprocess.check_output(['docker','ps','--filter','label=com.docker.swarm.service.name=autochapeau_staging_odoo_odoo','--format','{{.ID}}'],text=True).split();assert len(ids)==1
           code=r"""
           import json,psycopg2
+          from passlib.context import CryptContext
           from odoo.tools import config
           config.parse_config([])
+          ctx=CryptContext(['pbkdf2_sha512'])
+          tokens=json.load(open('/var/lib/odoo/test-refresh-backups/production-copy-44512412979/configured-test-api-tokens.private.json'))
           options={k:config['db_'+k] for k in ('host','port','user','password') if config['db_'+k]}
           with psycopg2.connect(dbname='autochapeau_prod_test',**options) as old,psycopg2.connect(dbname='test_refresh_candidate_44512412979',**options) as new:
               old.set_session(readonly=True);new.set_session(readonly=True)
               a=old.cursor();b=new.cursor()
               a.execute("SELECT res_id FROM ir_model_data WHERE module='base' AND name='group_system' AND model='res.groups'");system=a.fetchone()[0]
-              a.execute('SELECT DISTINCT u.id,u.login FROM res_users_apikeys a JOIN res_users u ON u.id=a.user_id');users=a.fetchall()
-              missing=[];matching=0
-              for uid,login in users:
-                  b.execute('SELECT id FROM res_users WHERE login=%s AND active',[login])
-                  if b.fetchone():matching+=1;continue
-                  a.execute('SELECT 1 FROM res_groups_users_rel WHERE uid=%s AND gid=%s',[uid,system])
-                  missing.append({'was_test_administrator':uid==1 or bool(a.fetchone())})
-              b.execute("SELECT u.active FROM res_users u JOIN ir_model_data d ON d.res_id=u.id AND d.model='res.users' WHERE d.module='base' AND d.name='user_admin'")
-              admin=b.fetchone()
-              print('TEST_API_IDENTITY_COMPATIBILITY='+json.dumps({'identities':len(users),'matching':matching,'missing':missing,'production_administrator_active':bool(admin and admin[0])}))
+              a.execute('SELECT a.user_id,u.login,a.index,a.key FROM res_users_apikeys a JOIN res_users u ON u.id=a.user_id');rows=a.fetchall()
+              owners=[]
+              for uid,login,index,hashed in rows:
+                  if not any(token[:8]==index and ctx.verify(token,hashed) for token in tokens):continue
+                  b.execute('SELECT id FROM res_users WHERE login=%s AND active',[login]);matched=bool(b.fetchone())
+                  a.execute('SELECT 1 FROM res_groups_users_rel WHERE uid=%s AND gid=%s',[uid,system]);admin=uid==1 or bool(a.fetchone())
+                  owners.append({'same_active_login_exists':matched,'was_test_administrator':admin})
+              print('CONFIGURED_TEST_WEBSITE_API_COMPATIBILITY='+json.dumps({'tokens_examined':len(tokens),'website_key_owners':owners}))
           """
-          subprocess.run(['docker','exec',ids[0],'python3','-c',code],check=True)
+          # Read the private token file as root inside this TEST container only.
+          subprocess.run(['docker','exec','-u','0',ids[0],'python3','-c',code],check=True)
           PY
