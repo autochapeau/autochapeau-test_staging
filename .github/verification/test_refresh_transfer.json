@@ -1,4 +1,9 @@
 {
   "run_id": "44512412979",
-  "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOm61ZoaFadHvwVDcVgydFCcp2qtSD87UtOANzKe967T test-refresh-44512412979"
+  "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFVQjgnxKJI25kw9FCtlNddRKIE+G/7V8TqKKHRCzwYH test-refresh-44512412979",
+  "superseded_workflow_runs": [
+    "44507199289",
+    "44511253635",
+    "44512771714"
+  ]
 }

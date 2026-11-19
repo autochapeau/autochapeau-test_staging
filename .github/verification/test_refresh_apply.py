@@ -1,5 +1,5 @@
 """Stage, verify and atomically replace TEST; production is never an action target."""
-import copy,datetime,http.client,json,os,pwd,re,shutil,socket,subprocess,sys,time
+import copy,datetime,http.client,json,os,pwd,re,shutil,socket,subprocess,sys,time,signal
 from pathlib import Path
 from urllib.parse import quote,urlencode
 
@@ -66,12 +66,26 @@ root=data/'test-refresh-backups'/('production-copy-'+run_id)
 root.mkdir(mode=0o700,exist_ok=True)
 assert not (root/'completed.json').exists(),'This refresh already completed'
 resuming=(root/'received.json').exists()
+partial=(root/'incoming').exists()
+# Superseded waiters have never entered candidate preparation or TEST cutover.
+for old_run in settings.get('superseded_workflow_runs',[]):
+    assert old_run.isdigit()
+    old_script='/tmp/test-refresh-tools-'+old_run+'/test_refresh_apply.py'
+    assert not (root/'candidate-verified.json').exists()
+    for directory in Path('/proc').iterdir():
+        if not directory.name.isdigit() or int(directory.name)==os.getpid():continue
+        try:
+            args=[x.decode() for x in (directory/'cmdline').read_bytes().split(b'\0') if x]
+            if len(args)>1 and args[0].endswith('python3') and args[1]==old_script and directory.stat().st_uid==0:
+                os.kill(int(directory.name),signal.SIGTERM)
+        except (FileNotFoundError,ProcessLookupError):pass
+
 (root/'original-test-service.private.json').write_text(json.dumps(original,indent=2))
 (root/'rollback-backup.json').write_text(json.dumps(backup,indent=2))
-if not resuming and shutil.disk_usage(data).free<7*1024**3:
+if not resuming and not partial and shutil.disk_usage(data).free<7*1024**3:
     print('Reclaiming unused TEST build cache only; no images or volumes are removed',flush=True)
     subprocess.run(['docker','builder','prune','--all','--force','--keep-storage','512MB'],check=True)
-assert shutil.disk_usage(data).free>(2 if resuming else 6)*1024**3,'Insufficient TEST staging space'
+assert shutil.disk_usage(data).free>(2 if resuming else 3 if partial else 6)*1024**3,'Insufficient TEST staging space'
 assert os.environ.get('SUDO_UID'),'Use the existing TEST deployment identity'
 user=pwd.getpwuid(int(os.environ['SUDO_UID']))
 assert user.pw_uid!=0
