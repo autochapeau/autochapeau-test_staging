@@ -53,7 +53,7 @@ jobs:
               try:args=[x.decode() for x in (proc/'cmdline').read_bytes().split(b'\0') if x]
               except (FileNotFoundError,ProcessLookupError):continue
               if len(args)>4 and args[0].endswith('python3') and args[1]=='/opt/test-refresh-tools/test_refresh_odoo.py' and args[2]=='shell' and 'test_refresh_candidate_44512412979' in args:
-                  os.kill(int(proc.name),signal.SIGTERM);matched.append(int(proc.name))
+                  os.kill(int(proc.name),signal.SIGKILL);matched.append(int(proc.name))
           assert len(matched)==1
           print('ISOLATED_TEST_CLI_STOPPED=1')
           """
