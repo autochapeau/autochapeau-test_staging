@@ -22,21 +22,20 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import os,base64,pwd,subprocess,tempfile
+          import os,pwd,json,subprocess,hashlib,base64,stat
           from pathlib import Path
-          public=b"""          -----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4v+j3g1ncefSMMmEKoJ
-          wBQTtw9l0WKCNl9KXfhZCGoetYegf50v2B00rCCU+UZgp/HnLhJiNSRoPKOe9x6c
-          0ZAOyfJ57OQF7pTt4UwVbG5E78VtYqOsZ5YlANB4MMcvjLT3Nz8zAHvsM7EIFzCq
-          XnFlf0hlJi9njpfPxEbtTiKUWEbAu/b9TOuKsVkpB4236AIrLApq52LtIhlD124c
-          LkmQBgb5XXrPhPHsRFnva4gPcGC2KyBxf0SBzkwQolUmjRP+TK2XX4Iypdo4i/ja
-          88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj
-          JQIDAQAB
-          -----END PUBLIC KEY-----
-          """.strip()
-          user=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name
-          with tempfile.TemporaryDirectory() as td:
-              key=Path(td)/'public.pem';key.write_bytes(public)
-              payload=subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',str(key),'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256','-pkeyopt','rsa_mgf1_md:sha256'],input=user.encode())
-          print('ENCRYPTED_TRANSFER_IDENTITY='+''.join('ABCDEFGHIJKLMNOP'[int(n,16)] for n in payload.hex()))
+          user=pwd.getpwuid(int(os.environ['SUDO_UID']))
+          root=Path('/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44510251918')
+          keys=Path(user.pw_dir)/'.ssh/authorized_keys'
+          line=next(line for line in keys.read_text().splitlines() if 'test-refresh-44510251918' in line)
+          key=line.split('ssh-ed25519 ')[1].split()[0]
+          print('TASK_TRANSFER_KEY_FINGERPRINT=SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(key)).digest()).decode().rstrip('='))
+          result=subprocess.run(['sudo','-u',user.pw_name,'sudo','-n','/usr/bin/python3',str(root/'receive.py'),'ready'],capture_output=True,text=True)
+          print('DEPLOYMENT_RECEIVER_COMMAND_CHECK='+json.dumps({'returncode':result.returncode,'stdout':result.stdout[-200:],'stderr':result.stderr.replace(user.pw_name,'[deployment-user]')[-500:]}))
+          settings=subprocess.check_output(['/usr/sbin/sshd','-T','-C','user='+user.pw_name+',host=localhost,addr=127.0.0.1'],text=True)
+          print('\n'.join(line.replace(user.pw_name,'[deployment-user]') for line in settings.splitlines() if line.startswith(('authorizedkeysfile ','authorizedkeyscommand ','authenticationmethods ','usepam '))))
+          print('TRANSFER_KEY_PERMISSIONS='+json.dumps({'home':oct(stat.S_IMODE(Path(user.pw_dir).stat().st_mode)),'ssh':oct(stat.S_IMODE(keys.parent.stat().st_mode)),'keys':oct(stat.S_IMODE(keys.stat().st_mode)),'owner_matches':keys.stat().st_uid==user.pw_uid}))
+          journal=subprocess.run(['journalctl','-u','ssh','--since=-4min','--no-pager'],capture_output=True,text=True)
+          lines=[line.replace(user.pw_name,'[deployment-user]') for line in journal.stdout.splitlines() if user.pw_name in line and 'uHgYIJK' not in line and 'session opened' not in line and 'session closed' not in line]
+          print('\n'.join(lines[-12:]))
           PY
