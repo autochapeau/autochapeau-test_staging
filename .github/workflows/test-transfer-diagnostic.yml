@@ -22,23 +22,27 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import json,shutil,re
-          from pathlib import Path
-          root=Path('/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44512412979')
-          files=list((root/'incoming').rglob('*'))
-          regular=[p for p in files if p.is_file()]
-          result={'received_complete':(root/'received.json').exists(),'candidate_verified':(root/'candidate-verified.json').exists(),'completed':(root/'completed.json').exists(),'received_file_count':len(regular),'received_bytes':sum(p.stat().st_size for p in regular),'free_bytes':shutil.disk_usage(root).free,'stage_logs':{p.name:p.stat().st_size for p in root.glob('*.log')}}
-          print('TEST_REFRESH_PROGRESS='+json.dumps(result,sort_keys=True))
-          for filename in ('candidate-prepare.private.log','restore.private.log','native-neutralize.private.log','upgrade.private.log'):
-              path=root/filename
-              if not path.exists():continue
-              selected=[]
-              for line in path.read_text(errors='replace').splitlines()[-150:]:
-                  text=line.strip()
-                  if text.startswith(('Traceback','File ','AssertionError','ValueError','KeyError','TypeError','FileNotFoundError','RuntimeError','psycopg2.')) or ('psql:' in line and 'ERROR:' in line):
-                      text=re.sub(r"(['\"])(.*?)\1",'<redacted>',text)
-                      text=re.sub(r'[A-Za-z0-9_.+-]+@[A-Za-z0-9.-]+','<redacted>',text)
-                      selected.append(text[:600])
-              if selected:print('TEST_REFRESH_ERROR_CONTEXT='+json.dumps({'log':filename,'lines':selected[-14:]}))
-
+          import json,subprocess
+          ids=subprocess.check_output(['docker','ps','--filter','label=com.docker.swarm.service.name=autochapeau_staging_odoo_odoo','--format','{{.ID}}'],text=True).split();assert len(ids)==1
+          code=r"""
+          import json,psycopg2
+          from odoo.tools import config
+          config.parse_config([])
+          options={k:config['db_'+k] for k in ('host','port','user','password') if config['db_'+k]}
+          with psycopg2.connect(dbname='autochapeau_prod_test',**options) as old,psycopg2.connect(dbname='test_refresh_candidate_44512412979',**options) as new:
+              old.set_session(readonly=True);new.set_session(readonly=True)
+              a=old.cursor();b=new.cursor()
+              a.execute("SELECT res_id FROM ir_model_data WHERE module='base' AND name='group_system' AND model='res.groups'");system=a.fetchone()[0]
+              a.execute('SELECT DISTINCT u.id,u.login FROM res_users_apikeys a JOIN res_users u ON u.id=a.user_id');users=a.fetchall()
+              missing=[];matching=0
+              for uid,login in users:
+                  b.execute('SELECT id FROM res_users WHERE login=%s AND active',[login])
+                  if b.fetchone():matching+=1;continue
+                  a.execute('SELECT 1 FROM res_groups_users_rel WHERE uid=%s AND gid=%s',[uid,system])
+                  missing.append({'was_test_administrator':uid==1 or bool(a.fetchone())})
+              b.execute("SELECT u.active FROM res_users u JOIN ir_model_data d ON d.res_id=u.id AND d.model='res.users' WHERE d.module='base' AND d.name='user_admin'")
+              admin=b.fetchone()
+              print('TEST_API_IDENTITY_COMPATIBILITY='+json.dumps({'identities':len(users),'matching':matching,'missing':missing,'production_administrator_active':bool(admin and admin[0])}))
+          """
+          subprocess.run(['docker','exec',ids[0],'python3','-c',code],check=True)
           PY
