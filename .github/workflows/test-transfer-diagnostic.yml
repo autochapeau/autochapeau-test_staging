@@ -17,17 +17,16 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import os,json,subprocess,tempfile
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
+          import json,shutil
           from pathlib import Path
-          public=b'-----BEGIN PUBLIC KEY-----\r\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4v+j3g1ncefSMMmEKoJ\r\nwBQTtw9l0WKCNl9KXfhZCGoetYegf50v2B00rCCU+UZgp/HnLhJiNSRoPKOe9x6c\r\n0ZAOyfJ57OQF7pTt4UwVbG5E78VtYqOsZ5YlANB4MMcvjLT3Nz8zAHvsM7EIFzCq\r\nXnFlf0hlJi9njpfPxEbtTiKUWEbAu/b9TOuKsVkpB4236AIrLApq52LtIhlD124c\r\nLkmQBgb5XXrPhPHsRFnva4gPcGC2KyBxf0SBzkwQolUmjRP+TK2XX4Iypdo4i/ja\r\n88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj\r\nJQIDAQAB\r\n-----END PUBLIC KEY-----\r\n'
-          scan=subprocess.check_output(['ssh-keyscan','-p',os.environ['SSH_PORT'],'-t','ed25519',os.environ['SSH_HOST']],stderr=subprocess.DEVNULL)
-          with tempfile.TemporaryDirectory() as td:
-              key=Path(td)/'public.pem';key.write_bytes(public)
-              host=Path(td)/'host.pub';host.write_bytes(scan)
-              fingerprint=subprocess.check_output(['ssh-keygen','-lf',str(host)],text=True).split()[1]
-              payload=json.dumps({'h':os.environ['SSH_HOST'],'u':os.environ['SSH_USER'],'p':os.environ['SSH_PORT'],'f':fingerprint},separators=(',',':')).encode()
-              assert len(payload)<=190
-              encrypted=subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',str(key),'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256','-pkeyopt','rsa_mgf1_md:sha256'],input=payload)
-          print('ENCRYPTED_TEST_TRANSFER_CONFIG='+''.join('ABCDEFGHIJKLMNOP'[int(n,16)] for n in encrypted.hex()))
+          root=Path('/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44512412979')
+          files=list((root/'incoming').rglob('*'))
+          regular=[p for p in files if p.is_file()]
+          result={'received_complete':(root/'received.json').exists(),'candidate_verified':(root/'candidate-verified.json').exists(),'completed':(root/'completed.json').exists(),'received_file_count':len(regular),'received_bytes':sum(p.stat().st_size for p in regular),'free_bytes':shutil.disk_usage(root).free,'stage_logs':{p.name:p.stat().st_size for p in root.glob('*.log')}}
+          print('TEST_REFRESH_PROGRESS='+json.dumps(result,sort_keys=True))
           PY
