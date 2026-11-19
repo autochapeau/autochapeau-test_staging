@@ -48,6 +48,17 @@ jobs:
           from odoo.tools import config
           config.parse_config([])
           options={k:config['db_'+k] for k in ('host','port','user','password') if config['db_'+k]}
+          assert 'test_refresh_candidate_44512412979' != 'autochapeau'
+          conn=psycopg2.connect(dbname='test_refresh_candidate_44512412979',**options)
+          conn.autocommit=True
+          with conn.cursor() as index_cr:
+              index_cr.execute("SET lock_timeout='600s'")
+              index_cr.execute("SET statement_timeout='650s'")
+              index_cr.execute('CREATE INDEX IF NOT EXISTS test_refresh_filter_lookup_idx ON filter_registry (name,model_id) WHERE active')
+              index_cr.execute("SELECT indisvalid FROM pg_index WHERE indexrelid='test_refresh_filter_lookup_idx'::regclass")
+              assert index_cr.fetchone()[0]
+              print('TEST_CANDIDATE_SEARCH_INDEX=verified')
+          conn.close()
           with psycopg2.connect(dbname='postgres',**options) as conn:
               conn.set_session(readonly=True)
               with conn.cursor() as cr:
