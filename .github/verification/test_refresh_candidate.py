@@ -79,51 +79,69 @@ def neutralize(database):
 
 if mode=='prepare':
     os.umask(0o077)
-    conn=admin()
-    with conn.cursor() as cr:
-        cr.execute('SELECT 1 FROM pg_database WHERE datname=%s',[candidate])
-        if cr.fetchone():
-            assert candidate.startswith('test_refresh_candidate_') and candidate!=target
-            cr.execute('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s AND pid<>pg_backend_pid()',[candidate])
-            cr.execute(sql.SQL('DROP DATABASE {}').format(sql.Identifier(candidate)))
-        cr.execute(sql.SQL('CREATE DATABASE {} TEMPLATE template0').format(sql.Identifier(candidate)))
-    conn.close()
-    with (root/'restore.private.log').open('wb') as errors:
-        reader=subprocess.Popen([find_pg_tool('pg_restore'),'--no-owner','--no-privileges','--file=-',str(incoming/'database.dump')],env=pg_env,stdout=subprocess.PIPE,stderr=errors)
-        writer=subprocess.Popen([find_pg_tool('psql'),'--dbname='+candidate,'--set=ON_ERROR_STOP=1','--quiet'],env=pg_env,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=errors)
-        for index,line in enumerate(reader.stdout):
-            if index<100 and line.strip()==b'SET transaction_timeout = 0;':continue
-            writer.stdin.write(line)
-        writer.stdin.close()
-        assert reader.wait()==0 and writer.wait()==0,'Candidate restore failed; see private log'
-    preserve(candidate)
-    if (root/'neutralized.json').exists():(root/'neutralized.json').unlink()
-    cli(['neutralize','-d',candidate],'native-neutralize')
-    neutralize(candidate)
-    link=Path(config.filestore(candidate))
-    if link.is_symlink():
-        assert link.resolve()==(incoming/'filestore').resolve();link.unlink()
-    assert not link.exists();link.symlink_to(incoming/'filestore',target_is_directory=True)
-    import odoo.modules.module
-    odoo.modules.module.initialize_sys_path()
-    upgrades=[]
-    for name in manifest['installed']:
-        path=odoo.modules.module.get_module_path(name,display_warning=False)
-        assert path,'Installed production addon is missing on TEST: '+name
-        # Update only the TEST features which differ from the copied production
-        # database. Reloading every legacy addon can validate inherited views
-        # before their later extension modules have registered their fields.
-        changed={'account_asset_management','appointment_management','partner_management',
-                 'sale_split_payment','account_deferred_revenue','sales_region_commission',
-                 'account_move_print','commission','workorder_service_components',
-                 'portal_api','portal_content','order_maintenance'}
-        if name in changed:
-            upgrades.append(name)
-    required=['portal_api','portal_content','workorder_service_components','order_maintenance','partner_management']
-    installs=[name for name in required if name not in manifest['installed']]
-    args=['-d',candidate,'-u',','.join(upgrades),'--stop-after-init','--no-http','--max-cron-threads=0','--without-demo=all']
-    if installs:args+=['-i',','.join(installs)]
-    cli(args,'upgrade')
+    resume=json.loads((tools/'test_refresh_transfer.json').read_text()).get('resume_candidate_after_interrupted_tests',False)
+    if not resume:
+        conn=admin()
+        with conn.cursor() as cr:
+            cr.execute('SELECT 1 FROM pg_database WHERE datname=%s',[candidate])
+            if cr.fetchone():
+                assert candidate.startswith('test_refresh_candidate_') and candidate!=target
+                cr.execute('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s AND pid<>pg_backend_pid()',[candidate])
+                cr.execute(sql.SQL('DROP DATABASE {}').format(sql.Identifier(candidate)))
+            cr.execute(sql.SQL('CREATE DATABASE {} TEMPLATE template0').format(sql.Identifier(candidate)))
+        conn.close()
+        with (root/'restore.private.log').open('wb') as errors:
+            reader=subprocess.Popen([find_pg_tool('pg_restore'),'--no-owner','--no-privileges','--file=-',str(incoming/'database.dump')],env=pg_env,stdout=subprocess.PIPE,stderr=errors)
+            writer=subprocess.Popen([find_pg_tool('psql'),'--dbname='+candidate,'--set=ON_ERROR_STOP=1','--quiet'],env=pg_env,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=errors)
+            for index,line in enumerate(reader.stdout):
+                if index<100 and line.strip()==b'SET transaction_timeout = 0;':continue
+                writer.stdin.write(line)
+            writer.stdin.close()
+            assert reader.wait()==0 and writer.wait()==0,'Candidate restore failed; see private log'
+        preserve(candidate)
+        if (root/'neutralized.json').exists():(root/'neutralized.json').unlink()
+        cli(['neutralize','-d',candidate],'native-neutralize')
+        neutralize(candidate)
+        link=Path(config.filestore(candidate))
+        if link.is_symlink():
+            assert link.resolve()==(incoming/'filestore').resolve();link.unlink()
+        assert not link.exists();link.symlink_to(incoming/'filestore',target_is_directory=True)
+        import odoo.modules.module
+        odoo.modules.module.initialize_sys_path()
+        upgrades=[]
+        for name in manifest['installed']:
+            path=odoo.modules.module.get_module_path(name,display_warning=False)
+            assert path,'Installed production addon is missing on TEST: '+name
+            # Update only the TEST features which differ from the copied production
+            # database. Reloading every legacy addon can validate inherited views
+            # before their later extension modules have registered their fields.
+            changed={'account_asset_management','appointment_management','partner_management',
+                     'sale_split_payment','account_deferred_revenue','sales_region_commission',
+                     'account_move_print','commission','workorder_service_components',
+                     'portal_api','portal_content','order_maintenance'}
+            if name in changed:
+                upgrades.append(name)
+        required=['portal_api','portal_content','workorder_service_components','order_maintenance','partner_management']
+        installs=[name for name in required if name not in manifest['installed']]
+        args=['-d',candidate,'-u',','.join(upgrades),'--stop-after-init','--no-http','--max-cron-threads=0','--without-demo=all']
+        if installs:args+=['-i',','.join(installs)]
+        cli(args,'upgrade')
+    else:
+        assert (root/'received.json').exists() and (root/'neutralized.json').exists()
+        upgrade=(root/'upgrade.private.log').read_text(errors='replace')
+        assert 'Modules loaded.' in upgrade and 'Stopping gracefully' in upgrade
+        link=Path(config.filestore(candidate))
+        assert link.is_symlink() and link.resolve()==(incoming/'filestore').resolve()
+        preserve(candidate)
+        connection=psycopg2.connect(dbname=candidate,**options);connection.autocommit=True
+        with connection.cursor() as cr:
+            cr.execute("SET lock_timeout='15s'")
+            cr.execute('DROP INDEX IF EXISTS test_refresh_filter_registry_name_model_idx')
+            cr.execute('CREATE INDEX IF NOT EXISTS test_refresh_filter_lookup_idx ON filter_registry (name,model_id) WHERE active')
+            cr.execute("SELECT indisvalid FROM pg_index WHERE indexrelid='test_refresh_filter_lookup_idx'::regclass")
+            assert cr.fetchone()[0]
+        connection.close()
+        print('TEST_REFRESH_VERIFIED_CANDIDATE_REUSED=true',flush=True)
     neutralize(candidate)
     preserve(candidate)
     for name in ['verify_staging.py','run_regression.py','run_mobile_unique_tests.py']:
