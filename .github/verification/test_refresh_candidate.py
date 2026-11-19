@@ -51,6 +51,7 @@ def neutralize(database,api_rows=None):
     assert database==candidate
     with psycopg2.connect(dbname=database,**options) as conn:
         with conn.cursor() as cr:
+            cr.execute('ALTER TABLE res_partner ADD COLUMN IF NOT EXISTS mobile_unique_key varchar')
             cr.execute('UPDATE ir_cron SET active=false')
             cr.execute("UPDATE ir_mail_server SET active=false,smtp_user=NULL,smtp_pass=NULL")
             cr.execute("UPDATE ir_mail_server SET active=true,smtp_host='127.0.0.1',smtp_port=9 WHERE name='neutralization - disable emails'")

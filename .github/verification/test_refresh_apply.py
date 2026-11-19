@@ -72,7 +72,18 @@ if not resuming and shutil.disk_usage(data).free<7*1024**3:
     print('Reclaiming unused TEST build cache only; no images or volumes are removed',flush=True)
     subprocess.run(['docker','builder','prune','--all','--force','--keep-storage','512MB'],check=True)
 assert shutil.disk_usage(data).free>(2 if resuming else 6)*1024**3,'Insufficient TEST staging space'
-user=pwd.getpwnam('admin')
+assert os.environ.get('SUDO_UID'),'Use the existing TEST deployment identity'
+user=pwd.getpwuid(int(os.environ['SUDO_UID']))
+assert user.pw_uid!=0
+# Remove only this task's expired/superseded transfer keys from prior attempts.
+for old_state in (data/'test-refresh-backups').glob('production-copy-*/transfer.private.json'):
+    previous=json.loads(old_state.read_text())
+    if previous['run_id']==run_id:continue
+    old_keys=Path(previous['authorized_keys'])
+    if old_keys.is_file():
+        old_tag='test-refresh-'+previous['run_id']
+        old_keys.write_text('\n'.join(line for line in old_keys.read_text().splitlines() if old_tag not in line)+'\n')
+        old_keys.chmod(0o600);os.chown(old_keys,previous['ssh_uid'],previous['ssh_gid'])
 authorized=Path(user.pw_dir)/'.ssh/authorized_keys'
 assert user.pw_shell not in ('/usr/sbin/nologin','/bin/false')
 authorized.parent.mkdir(mode=0o700,exist_ok=True)
