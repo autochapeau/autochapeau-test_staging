@@ -19,9 +19,9 @@ export const GUIDE_TOPICS = [
       ], tip: ['الاحتساب على الفاتورة الـPosted، مش أمر البيع. الـCredit note المرتبط بيخصم عمولة بنفس النسبة الأصلية. السجل للقراءة ومش قابل للتعديل اليدوي.', 'Only posted invoices earn commission. Linked credit notes reduce it using the original rate. Ledger rows cannot be manually edited.'] },
     { id: 'targets', menu: 'menu_targets', image: 'targets.jpg',
       title: ['تارجت واضح لكل مستوى', 'A clear target for every level'], label: ['تارجت المبيعات', 'Sales targets'],
-      intro: ['الإدارة تحدد هدفًا شهريًا أو ربع سنوي أو نصف سنوي أو سنوي للفريق وتوزعه على أعضائه ومديريه.', 'Administrators set monthly, quarterly, half-yearly or yearly team goals and distribute them to members and managers.'],
+      intro: ['الإدارة تحدد هدفًا شهريًا أو ربع سنوي أو نصف سنوي أو سنوي أو لفترة مخصصة من وإلى وتوزعه على الأعضاء والمديرين.', 'Administrators set calendar or custom date-range team goals and distribute them to members and managers.'],
       steps: [
-        ['المسؤول يختار الشركة والفريق ونوع الفترة وأول يوم في أول شهر منها.', 'Select company, team, calendar period and its first day.'],
+        ['اختار الشركة والفريق ونوع الفترة. للفترات العادية اختار البداية التقويمية؛ ومع Custom date range اكتب Date From وDate To بنفسك مثل 15 سبتمبر لحد 14 أكتوبر.', 'Select company, team and period type. Calendar periods use their calendar start; Custom date range lets you enter Date From and Date To, such as September 15 through October 14.'],
         ['اكتب المبلغ بعملة الشركة ثم اضغط توزيع الأعضاء والمديرين. مجموع الأنصبة يجب أن يساوي الهدف؛ الفترات المتداخلة لنفس الفريق مرفوضة.', 'Enter the company-currency total and distribute it to members and managers. Shares must add up to the total; periods for one team cannot overlap.'],
         ['ارجع للـOverview على نفس الشهر والفريق لمتابعة نسبة الإنجاز. المندوب بيقارن مساهمته هو بالتارجت المتاح ليه.', 'Return to Overview for that month and team to monitor achievement. A salesperson compares their own contribution with their accessible team target.'],
       ], tip: ['المندوب ومدير المنطقة يقدروا يطّلعوا على التارجت المسموح ليهم. إنشاء الأهداف وتعديلها لمسؤول العمولات.', 'Salespeople and region managers can read permitted targets. Only commission administrators create or change them.'] },

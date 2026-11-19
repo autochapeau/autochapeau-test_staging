@@ -1,4 +1,5 @@
 import calendar
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, AccessError
@@ -190,22 +191,22 @@ class Rule(models.Model):
 
 class Target(models.Model):
     _name = 'sales.commission.target'
-    _description = 'Monthly sales target'
+    _description = 'Sales target period'
     _rec_name = 'team_id'
     _check_company_auto = True
 
     team_id = fields.Many2one('crm.team', required=True, check_company=True, ondelete='restrict')
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
-    month = fields.Date(required=True, default=lambda self: fields.Date.context_today(self).replace(day=1))
+    month = fields.Date(string='Date From', required=True, default=lambda self: fields.Date.context_today(self).replace(day=1))
     currency_id = fields.Many2one(related='company_id.currency_id')
     amount = fields.Monetary(required=True)
-    _sql_constraints = [('team_month_unique', 'unique(team_id, company_id, month)', 'One target per team and month.')]
+    _sql_constraints = [('team_month_unique', 'unique(team_id, company_id, month)', 'One target per team and start date.')]
 
-    @api.constrains('month', 'amount')
+    @api.constrains('month', 'amount', 'period_type')
     def _check_target(self):
         for target in self:
-            if target.month.day != 1 or target.amount <= 0:
-                raise ValidationError(_('Use the first day of the month and a positive target.'))
+            if target.amount <= 0 or (target.period_type != 'custom' and target.month.day != 1):
+                raise ValidationError(_('Use a positive target. Calendar periods must start on the first day of the month.'))
 
 
 class Entry(models.Model):
@@ -274,19 +275,27 @@ class Entry(models.Model):
         target_total = 0
         cursor = start
         personal = not self.env.user.has_group('sales_region_commission.group_manager')
+        # Allocate calendar targets equally by month, as before. Custom periods
+        # are allocated by covered days for reports only; invoice achievement
+        # always uses the full individual target for its actual period.
+        values = {}
+        parents = {} if personal else {team.id: set(self._team_parents(team).ids) for team in targets.team_id}
+        for target in targets:
+            if personal:
+                own_share = target.member_target_ids.filtered(lambda share: share.user_id == self.env.user)
+                values[target.id] = sum(own_share.mapped('amount')) if target.sudo().member_target_ids else target.amount
+            else:
+                values[target.id] = target.amount
         while cursor <= end:
             current = targets.filtered(lambda target: target.month <= cursor <= target.date_end)
-            if personal:
-                for target in current:
-                    own_share = target.member_target_ids.filtered(lambda share: share.user_id == self.env.user)
-                    # Keep legacy undivided targets visible until an administrator distributes them.
-                    value = sum(own_share.mapped('amount')) if target.sudo().member_target_ids else target.amount
-                    target_total += value / lengths[target.period_type]
-            else:
-                current_teams = current.team_id
-                for target in current.filtered(lambda t: not any(p in current_teams for p in self._team_parents(t.team_id))):
-                    target_total += target.amount / lengths[target.period_type]
-            cursor += relativedelta(months=1)
+            if not personal:
+                current_teams = set(current.team_id.ids)
+                current = current.filtered(lambda target: not parents[target.team_id.id] & current_teams)
+            for target in current:
+                divisor = ((target.date_end - target.month).days + 1 if target.period_type == 'custom'
+                    else lengths[target.period_type] * calendar.monthrange(cursor.year, cursor.month)[1])
+                target_total += values[target.id] / divisor
+            cursor += timedelta(days=1)
         totals = self.read_group(domain, ['base:sum', 'amount:sum'], [], lazy=False)
         total = totals[0] if totals else {}
         people = self.read_group(domain, ['base:sum', 'amount:sum', 'user_id'], ['user_id'], lazy=False)

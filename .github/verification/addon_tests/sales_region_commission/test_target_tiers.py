@@ -162,6 +162,119 @@ class TestTargetTiers(TestCommissionStudio):
         return self.env["sales.commission.target"].create({"team_id": self.branch.id, "month": start,
             "period_type": period, "amount": amount})
 
+    def custom_target(self, start='2026-09-15', end='2026-10-14', amount=1000, **values):
+        vals = {'team_id': self.branch.id, 'month': start, 'date_end': end,
+                'period_type': 'custom', 'amount': amount,
+                'member_target_ids': [Command.create({'user_id': self.alice.id, 'amount': amount})]}
+        vals.update(values)
+        return self.env['sales.commission.target'].create(vals)
+
+    def test_rule_preview_uses_selected_dates_instead_of_current_month(self):
+        self.target(300000, start='2026-09-01').action_distribute_members()
+        self.target(350000, start='2026-11-01').action_distribute_members()
+        self.rule.write({'date_from': '2026-09-01', 'date_to': '2026-09-30'})
+        with patch.object(fields.Date, 'context_today', return_value=fields.Date.to_date('2026-11-19')):
+            self.assertEqual(self.rule.personal_target, 300000)
+            self.rule.write({'date_from': '2026-11-01', 'date_to': '2026-11-30'})
+            self.assertEqual(self.rule.personal_target, 350000)
+            self.rule.write({'date_from': '2026-09-01', 'date_to': False})
+            self.assertEqual(self.rule.personal_target, 300000)
+            self.rule.date_to = '2026-11-30'
+            self.assertEqual(self.rule.personal_target, 650000)
+
+    def test_custom_dates_are_editable_in_form_and_calendar_ends_remain_automatic(self):
+        with Form(self.env['sales.commission.target']) as form:
+            form.team_id = self.branch
+            form.period_type = 'custom'
+            form.month = fields.Date.to_date('2026-09-15')
+            form.date_end = fields.Date.to_date('2026-10-14')
+            form.amount = 1000
+        target = form.record
+        self.assertEqual(str(target.month), '2026-09-15')
+        self.assertEqual(str(target.date_end), '2026-10-14')
+        target.month = '2026-09-16'
+        self.assertEqual(str(target.date_end), '2026-10-14')
+        with Form(target) as form:
+            form.date_end = fields.Date.to_date('2026-10-13')
+        self.assertEqual(str(target.date_end), '2026-10-13')
+        with Form(target) as form:
+            form.period_type = 'month'
+        self.assertEqual(str(target.month), '2026-09-01')
+        self.assertEqual(str(target.date_end), '2026-09-30')
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            target.date_end = '2026-10-14'
+
+    def test_custom_invalid_dates_and_mixed_period_overlaps_are_rejected(self):
+        self.custom_target()
+        for start, end in [('2026-10-14', '2026-11-14'), ('2026-09-20', '2026-09-25'),
+                           ('2026-08-01', '2026-12-31'), ('2027-01-10', '2027-01-09')]:
+            with self.assertRaises(ValidationError), self.cr.savepoint():
+                self.custom_target(start, end)
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.target(1000, start='2026-10-01')
+        adjacent = self.custom_target('2026-10-15', '2026-11-14')
+        self.assertTrue(adjacent)
+        other = self.custom_target(team_id=self.other.id,
+            member_target_ids=[Command.create({'user_id': self.bob.id, 'amount': 1000})])
+        self.assertTrue(other)
+
+    def test_custom_duplicate_preserves_length_shares_and_skips_occupied_dates(self):
+        target = self.custom_target('2026-11-15', '2026-12-14', notes='Agreed custom period')
+        self.custom_target('2026-12-15', '2027-01-13')
+        duplicate = target.copy()
+        self.assertEqual(str(duplicate.month), '2027-01-14')
+        self.assertEqual(str(duplicate.date_end), '2027-02-12')
+        self.assertEqual(duplicate.notes, target.notes)
+        self.assertEqual(duplicate.member_target_ids.amount, 1000)
+        self.assertNotEqual(duplicate.member_target_ids, target.member_target_ids)
+        moved = target.copy({'month': '2027-03-10'})
+        self.assertEqual(str(moved.date_end), '2027-04-08')
+        self.assertEqual(str(target.month), '2026-11-15')
+
+    def test_custom_commission_uses_full_period_inclusive_bounds_and_preserves_snapshots(self):
+        target = self.custom_target()
+        self.tiers()
+        for date in ('2026-09-14', '2026-10-15'):
+            outside = self.invoice(price=5000, invoice_date=date)
+            outside.action_post()
+            self.assertEqual(self.entries(outside).status, 'review')
+        first = self.invoice(price=900, invoice_date='2026-09-15')
+        first.action_post()
+        self.assertEqual(self.entries(first).personal_target, 1000)
+        self.assertEqual(self.entries(first).achievement_percent, 90)
+        self.assertEqual(self.entries(first).amount, 18)
+        last = self.invoice(price=100, invoice_date='2026-10-14')
+        last.action_post()
+        self.assertEqual(self.entries(last).achievement_percent, 100)
+        self.assertEqual(self.entries(last).rate, 4)
+        self.assertEqual(self.entries(last).amount, 4)
+        entries = self.entries(first) | self.entries(last)
+        before = entries.read(['personal_target', 'achievement_percent', 'rate', 'amount'])
+        target.date_end = '2026-10-13'
+        self.assertEqual(entries.read(['personal_target', 'achievement_percent', 'rate', 'amount']), before)
+
+    def test_custom_dashboard_allocates_days_and_does_not_double_count_parent_targets(self):
+        self.custom_target(amount=3000)
+        Ledger = self.env['sales.commission.entry']
+        self.assertEqual(Ledger.with_user(self.alice).dashboard('2026-09-01')['target'], 1600)
+        self.assertEqual(Ledger.with_user(self.alice).dashboard('2026-10-01')['target'], 1400)
+        self.assertEqual(Ledger.with_user(self.alice).dashboard('2026-11-01', period_type='year')['target'], 3000)
+        self.custom_target('2026-09-20', '2026-09-25', amount=1200, team_id=self.region.id,
+            member_target_ids=[Command.create({'user_id': self.manager.id, 'amount': 1200})])
+        self.assertEqual(Ledger.with_user(self.manager).dashboard('2026-09-01')['target'], 2200)
+
+    def test_custom_rule_preview_respects_dates_scope_and_private_shares(self):
+        self._archive_rates()
+        rule = self._shared_rule(date_from='2026-09-15', date_to='2026-10-14')
+        self.custom_target(amount=1000)
+        self.custom_target(amount=2000, team_id=self.other.id,
+            member_target_ids=[Command.create({'user_id': self.bob.id, 'amount': 2000})])
+        self.assertEqual(rule.personal_target, 3000)
+        self.assertEqual(rule.with_user(self.alice).personal_target, 1000)
+        self.assertEqual(rule.with_user(self.bob).personal_target, 2000)
+        rule.write({'scope': 'team', 'team_id': self.branch.id, 'user_ids': [Command.clear()]})
+        self.assertEqual(rule.personal_target, 1000)
+
     def tiers(self):
         self.rule.tier_ids = [Command.create({"achievement_from": 85, "achievement_to": 99.99, "rate": 2}),
             Command.create({"achievement_from": 100, "achievement_to": 0, "rate": 4})]
