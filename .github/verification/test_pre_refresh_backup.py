@@ -54,7 +54,17 @@ assert scratch.startswith('test_restore_check_') and scratch not in ('autochapea
 admin=psycopg2.connect(dbname='postgres',**options);admin.autocommit=True
 with admin.cursor() as cr:cr.execute(sql.SQL('CREATE DATABASE {} TEMPLATE template0').format(sql.Identifier(scratch)))
 try:
-    subprocess.run([find_pg_tool('pg_restore'),'--no-owner','--no-privileges','--exit-on-error','--dbname='+scratch,str(dump)],env=pg_env,check=True)
+    # pg_dump 17+ emits this session setting even when dumping PostgreSQL 16.
+    # Strip only the unsupported header setting; keep all schema and data intact.
+    with (folder/'scratch-restore.private.log').open('wb') as errors:
+        reader=subprocess.Popen([find_pg_tool('pg_restore'),'--no-owner','--no-privileges','--file=-',str(dump)],env=pg_env,stdout=subprocess.PIPE,stderr=errors)
+        writer=subprocess.Popen([find_pg_tool('psql'),'--dbname='+scratch,'--set=ON_ERROR_STOP=1','--quiet'],env=pg_env,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=errors)
+        for index,line in enumerate(reader.stdout):
+            if index<100 and line.strip()==b'SET transaction_timeout = 0;':continue
+            writer.stdin.write(line)
+        writer.stdin.close()
+        assert reader.wait()==0 and writer.wait()==0,'Scratch restore failed; inspect private backup log'
+
     with psycopg2.connect(dbname=scratch,**options) as restored:
         restored.set_session(readonly=True)
         with restored.cursor() as cr:
