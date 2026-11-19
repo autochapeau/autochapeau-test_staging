@@ -29,7 +29,7 @@ jobs:
           regular=[p for p in files if p.is_file()]
           result={'received_complete':(root/'received.json').exists(),'candidate_verified':(root/'candidate-verified.json').exists(),'completed':(root/'completed.json').exists(),'received_file_count':len(regular),'received_bytes':sum(p.stat().st_size for p in regular),'free_bytes':shutil.disk_usage(root).free,'stage_logs':{p.name:p.stat().st_size for p in root.glob('*.log')}}
           print('TEST_REFRESH_PROGRESS='+json.dumps(result,sort_keys=True))
-          for filename in ('candidate-prepare.private.log','restore.private.log','native-neutralize.private.log','upgrade.private.log'):
+          for filename in ('candidate-prepare.private.log','restore.private.log','native-neutralize.private.log','upgrade.private.log','verify_staging.py.private.log','run_regression.py.private.log','run_mobile_unique_tests.py.private.log'):
               path=root/filename
               if not path.exists():continue
               selected=[]
