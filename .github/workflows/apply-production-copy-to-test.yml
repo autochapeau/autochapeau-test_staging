@@ -1,0 +1,38 @@
+name: Restore verified production copy into existing TEST
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-production-copy-to-test.yml
+      - .github/verification/test_refresh_*.py
+      - .github/verification/test_refresh_transfer.json
+permissions:
+  contents: read
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare receiver restore candidate verify and switch TEST only
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          REMOTE_DIR="/home/admin/test-refresh-tools-${{ github.run_id }}"
+          mkdir -p /tmp/test-refresh-tools/verification
+          cp .github/verification/test_refresh_*.py .github/verification/test_refresh_transfer.json /tmp/test-refresh-tools/
+          cp -r .github/verification/* /tmp/test-refresh-tools/verification/
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$REMOTE_DIR'"
+          scp -r -P "$SSH_PORT" /tmp/test-refresh-tools/. "$SSH_USER@$SSH_HOST:$REMOTE_DIR/"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "sudo -n python3 '$REMOTE_DIR/test_refresh_apply.py'"
