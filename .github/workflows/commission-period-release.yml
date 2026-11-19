@@ -1,0 +1,50 @@
+name: Upgrade and verify TEST commission periods offline
+on:
+  workflow_dispatch:
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Back up upgrade verify and recover TEST application
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /home/admin/custom_addons
+          exec 9>"$(git rev-parse --git-path commission-period-release.lock)"
+          flock -w 120 9
+          git diff --quiet
+          git diff --cached --quiet
+          git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
+          git merge --ff-only FETCH_HEAD
+          sudo -n python3 .github/scripts/odoo_maintenance.py \
+            --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test \
+            --modules sales_region_commission --release-check \
+            --state-file "$(pwd)/$(git rev-parse --git-path commission-period-maintenance.json)"
+          container=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
+          test -n "$container"
+          healthy=false
+          for attempt in $(seq 1 30); do
+            if sudo docker exec "$container" python3 -c "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8069/web/health', timeout=10).status == 200"; then
+              healthy=true
+              break
+            fi
+            sleep 3
+          done
+          test "$healthy" = true
+          echo TEST_HTTP_HEALTH_OK=true
+          echo TEST_COMMISSION_PERIOD_RELEASE_COMPLETE=true
+          REMOTE
