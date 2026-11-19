@@ -35,7 +35,7 @@ jobs:
               selected=[]
               for line in path.read_text(errors='replace').splitlines()[-150:]:
                   text=line.strip()
-                  if text.startswith(('Traceback','File ','AssertionError','ValueError','KeyError','TypeError','FileNotFoundError','RuntimeError','psycopg2.')) or ('psql:' in line and 'ERROR:' in line):
+                  if text.startswith(('Traceback','File ','AssertionError','ValueError','KeyError','TypeError','FileNotFoundError','RuntimeError','odoo.tools.convert.ParseError','Error while validating view','Field ' ,'psycopg2.')) or ('psql:' in line and 'ERROR:' in line):
                       text=re.sub(r"(['\"])(.*?)\1",'<redacted>',text)
                       text=re.sub(r'[A-Za-z0-9_.+-]+@[A-Za-z0-9.-]+','<redacted>',text)
                       selected.append(text[:600])
