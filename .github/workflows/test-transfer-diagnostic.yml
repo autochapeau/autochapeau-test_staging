@@ -22,13 +22,20 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import subprocess,json,pwd,os
-          print('TRANSFER_ACCOUNT='+json.dumps({'exists':True,'shell':pwd.getpwnam('admin').pw_shell}))
-          settings=subprocess.check_output(['/usr/sbin/sshd','-T'],text=True)
-          print('\n'.join(line for line in settings.splitlines() if line.startswith(('permitrootlogin ','allowusers ','denyusers ','authorizedkeysfile ','pubkeyauthentication '))))
-          script='/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44505400366/receive.py'
-          result=subprocess.run(['sudo','-u','admin','sudo','-n','/usr/bin/python3',script,'ready'],capture_output=True,text=True)
-          print('RECEIVER_SUDO_CHECK='+json.dumps({'returncode':result.returncode,'stdout':result.stdout[-200:],'stderr':result.stderr[-700:]}))
-          journal=subprocess.run(['journalctl','-u','ssh','--since=-5min','--no-pager'],capture_output=True,text=True)
-          print('\n'.join(line for line in journal.stdout.splitlines() if 'admin' in line)[-2500:])
+          import os,base64,pwd
+          from cryptography.hazmat.primitives import serialization,hashes
+          from cryptography.hazmat.primitives.asymmetric import padding
+          public=serialization.load_pem_public_key(b"""          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4v+j3g1ncefSMMmEKoJ
+          wBQTtw9l0WKCNl9KXfhZCGoetYegf50v2B00rCCU+UZgp/HnLhJiNSRoPKOe9x6c
+          0ZAOyfJ57OQF7pTt4UwVbG5E78VtYqOsZ5YlANB4MMcvjLT3Nz8zAHvsM7EIFzCq
+          XnFlf0hlJi9njpfPxEbtTiKUWEbAu/b9TOuKsVkpB4236AIrLApq52LtIhlD124c
+          LkmQBgb5XXrPhPHsRFnva4gPcGC2KyBxf0SBzkwQolUmjRP+TK2XX4Iypdo4i/ja
+          88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj
+          JQIDAQAB
+          -----END PUBLIC KEY-----
+          """)
+          user=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name
+          payload=public.encrypt(user.encode(),padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          print('ENCRYPTED_TRANSFER_IDENTITY='+base64.b64encode(payload).decode())
           PY
