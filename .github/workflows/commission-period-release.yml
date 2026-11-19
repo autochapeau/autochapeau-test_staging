@@ -1,6 +1,12 @@
 name: Upgrade and verify TEST commission periods offline
 on:
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Finish preservation mobile tests and HTTP after completed upgrade and regression
+        type: boolean
+        required: false
+        default: false
 concurrency:
   group: odoo-test-deployment
   cancel-in-progress: false
@@ -15,14 +21,17 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VERIFY_ONLY: ${{ inputs.verify_only }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash -s -- ${VERIFY_ONLY:-false}" <<'REMOTE'
           set -euo pipefail
+          verify_args=()
+          if [ "${1:-false}" = true ]; then verify_args=(--verify-only); fi
           cd /home/admin/custom_addons
           exec 9>"$(git rev-parse --git-path commission-period-release.lock)"
           flock -w 120 9
@@ -43,6 +52,7 @@ jobs:
           sudo -n python3 .github/scripts/odoo_maintenance.py \
             --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test \
             --modules sales_region_commission --release-check \
+            "${verify_args[@]}" \
             --state-file "$(pwd)/$(git rev-parse --git-path commission-period-maintenance.json)"
           container=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
           test -n "$container"

@@ -186,7 +186,9 @@ def run_migration(docker, migration_id, seconds=900):
                        check=False, timeout=30)
 
 
-def deploy(docker, service_name, database, modules, state_path, install_modules="", release_check=False):
+def deploy(docker, service_name, database, modules, state_path, install_modules="", release_check=False, verify_only=False):
+    if verify_only and (database != 'autochapeau_prod_test' or not release_check):
+        raise ValueError('Verification resume is restricted to the TEST release check')
     service = docker.service(service_name)
     if state_path.exists():
         state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -222,7 +224,7 @@ def deploy(docker, service_name, database, modules, state_path, install_modules=
     state["migration_id"] = docker.request("POST", "/services/create", spec)["ID"]
     store_state(state_path, state)
     try:
-        print("Entering maintenance; upgrading: " + modules, flush=True)
+        print("Entering maintenance; " + ("verifying existing upgrade" if verify_only else "upgrading: " + modules), flush=True)
         if install_modules:
             print("Installing modules: " + install_modules, flush=True)
         docker.scale(service["ID"], 0)
@@ -230,11 +232,11 @@ def deploy(docker, service_name, database, modules, state_path, install_modules=
         if release_check:
             smoke = Path(__file__).parent.parent / "verification" / "verify_staging.py"
             smoke_source = smoke.read_text(encoding="utf-8")
-            if database == 'autochapeau_prod_test':
-                smoke_source += '\n' + smoke.with_name('commission_period_release_checks.py').read_text(encoding='utf-8')
             mobile_tests = smoke.with_name("run_mobile_unique_tests.py")
             if mobile_tests.exists():
                 smoke_source += "\n" + mobile_tests.read_text(encoding="utf-8")
+            if database == 'autochapeau_prod_test' and not verify_only:
+                smoke_source += '\n' + smoke.with_name('commission_period_release_checks.py').read_text(encoding='utf-8')
             material_tests = smoke.with_name("run_service_material_tests.py")
             if material_tests.exists() and "workorder_service_components" in modules.split(","):
                 smoke_source += "\n" + material_tests.read_text(encoding="utf-8")
@@ -242,7 +244,7 @@ def deploy(docker, service_name, database, modules, state_path, install_modules=
             if maintenance_tests.exists() and "order_maintenance" in modules.split(","):
                 smoke_source += "\n" + maintenance_tests.read_text(encoding="utf-8")
             code = "SMOKE_SOURCE = " + repr(smoke_source) + "\n" + Path(__file__).with_name("production_release_check.py").read_text(encoding="utf-8")
-            for mode_name, key in (("backup", "backup_id"),):
+            for mode_name, key in (() if verify_only else (("backup", "backup_id"),)):
                 task_spec = copy.deepcopy(spec)
                 task_spec["Name"] = service["Spec"]["Name"] + "-release-" + mode_name
                 task_spec["TaskTemplate"]["ContainerSpec"].update(Command=["python3"], Args=["-c", code, database, mode_name])
@@ -250,8 +252,9 @@ def deploy(docker, service_name, database, modules, state_path, install_modules=
                 store_state(state_path, state)
                 docker.scale(state[key], 1)
                 run_migration(docker, state[key], seconds=1500)
-        docker.scale(state["migration_id"], 1)
-        run_migration(docker, state["migration_id"])
+        if not verify_only:
+            docker.scale(state["migration_id"], 1)
+            run_migration(docker, state["migration_id"])
         if release_check:
             task_spec = copy.deepcopy(spec)
             task_spec["Name"] = service["Spec"]["Name"] + "-release-verify"
@@ -278,9 +281,10 @@ if __name__ == "__main__":
     parser.add_argument("--install-modules", default="")
     parser.add_argument("--state-file", type=Path, required=True)
     parser.add_argument("--release-check", action="store_true")
+    parser.add_argument("--verify-only", action="store_true")
     args = parser.parse_args()
     signal.signal(signal.SIGTERM, interrupted)
     signal.signal(signal.SIGINT, interrupted)
     if hasattr(signal, "SIGHUP"):
         signal.signal(signal.SIGHUP, interrupted)
-    deploy(Docker(), args.service, args.database, args.modules, args.state_file, args.install_modules, args.release_check)
+    deploy(Docker(), args.service, args.database, args.modules, args.state_file, args.install_modules, args.release_check, args.verify_only)
