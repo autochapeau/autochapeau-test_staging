@@ -148,8 +148,8 @@ try:
     execute('prepare')
     assert (root/'candidate-verified.json').exists()
     # Only after candidate verification do we stop the old TEST application.
-    stopped=copy.deepcopy(original);stopped['Mode']['Replicated']['Replicas']=0
-    update(stopped);scaled_down=True
+    stopped_spec=copy.deepcopy(original);stopped_spec['Mode']['Replicated']['Replicas']=0
+    update(stopped_spec);scaled_down=True
     wait(lambda:stopped(SERVICE),180,'TEST did not stop for atomic switch')
     live_store=data/'filestore/autochapeau_prod_test'
     old_store=root/'old-test-filestore'
@@ -200,7 +200,7 @@ print('REFRESHED_TEST_FRONTEND_API=200')
     print('TEST_REFRESH_COMPLETE='+json.dumps(result,sort_keys=True),flush=True)
 except BaseException:
     if scaled_down:
-        stopped=copy.deepcopy(original);stopped['Mode']['Replicated']['Replicas']=0;update(stopped)
+        stopped_spec=copy.deepcopy(original);stopped_spec['Mode']['Replicated']['Replicas']=0;update(stopped_spec)
         wait(lambda:stopped(SERVICE),180,'Stopping failed TEST replacement')
         if database_switched:execute('rollback')
         if files_switched:

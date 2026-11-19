@@ -110,7 +110,14 @@ if mode=='prepare':
     for name in manifest['installed']:
         path=odoo.modules.module.get_module_path(name,display_warning=False)
         assert path,'Installed production addon is missing on TEST: '+name
-        if str(path).startswith('/mnt/extra-addons/'):
+        # Update only the TEST features which differ from the copied production
+        # database. Reloading every legacy addon can validate inherited views
+        # before their later extension modules have registered their fields.
+        changed={'account_asset_management','appointment_management','partner_management',
+                 'sale_split_payment','account_deferred_revenue','sales_region_commission',
+                 'account_move_print','commission','workorder_service_components',
+                 'portal_api','portal_content','order_maintenance'}
+        if name in changed:
             upgrades.append(name)
     required=['portal_api','portal_content','workorder_service_components','order_maintenance','partner_management']
     installs=[name for name in required if name not in manifest['installed']]
