@@ -88,7 +88,11 @@ if mode=='prepare':
     os.umask(0o077)
     conn=admin()
     with conn.cursor() as cr:
-        cr.execute('SELECT 1 FROM pg_database WHERE datname=%s',[candidate]);assert not cr.fetchone(),'Candidate already exists'
+        cr.execute('SELECT 1 FROM pg_database WHERE datname=%s',[candidate])
+        if cr.fetchone():
+            assert candidate.startswith('test_refresh_candidate_') and candidate!=target
+            cr.execute('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s AND pid<>pg_backend_pid()',[candidate])
+            cr.execute(sql.SQL('DROP DATABASE {}').format(sql.Identifier(candidate)))
         cr.execute(sql.SQL('CREATE DATABASE {} TEMPLATE template0').format(sql.Identifier(candidate)))
     conn.close()
     with (root/'restore.private.log').open('wb') as errors:
@@ -109,9 +113,13 @@ if mode=='prepare':
             for row in cr.fetchall():
                 values=dict(zip(names,row));login=values.pop('login');values.pop('id',None)
                 api_rows.append({'login':login,'values':values})
+    if (root/'neutralized.json').exists():(root/'neutralized.json').unlink()
     cli(['neutralize','-d',candidate],'native-neutralize')
     neutralize(candidate,api_rows)
-    link=Path(config.filestore(candidate));assert not link.exists();link.symlink_to(incoming/'filestore',target_is_directory=True)
+    link=Path(config.filestore(candidate))
+    if link.is_symlink():
+        assert link.resolve()==(incoming/'filestore').resolve();link.unlink()
+    assert not link.exists();link.symlink_to(incoming/'filestore',target_is_directory=True)
     import odoo.modules.module
     odoo.modules.module.initialize_sys_path()
     upgrades=[]

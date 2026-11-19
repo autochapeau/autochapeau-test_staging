@@ -63,16 +63,23 @@ assert backup['database']=='autochapeau_prod_test' and backup['scratch_restore_v
 stamp=datetime.datetime.strptime(backup['created_utc'],'%Y%m%dT%H%M%SZ').replace(tzinfo=datetime.timezone.utc)
 assert datetime.datetime.now(datetime.timezone.utc)-stamp<datetime.timedelta(hours=24)
 root=data/'test-refresh-backups'/('production-copy-'+run_id)
-root.mkdir(mode=0o700,exist_ok=False)
+root.mkdir(mode=0o700,exist_ok=True)
+assert not (root/'completed.json').exists(),'This refresh already completed'
+resuming=(root/'received.json').exists()
 (root/'original-test-service.private.json').write_text(json.dumps(original,indent=2))
 (root/'rollback-backup.json').write_text(json.dumps(backup,indent=2))
-if shutil.disk_usage(data).free<7*1024**3:
+if not resuming and shutil.disk_usage(data).free<7*1024**3:
     print('Reclaiming unused TEST build cache only; no images or volumes are removed',flush=True)
     subprocess.run(['docker','builder','prune','--all','--force','--keep-storage','512MB'],check=True)
-assert shutil.disk_usage(data).free>6*1024**3,'Insufficient TEST staging space'
+assert shutil.disk_usage(data).free>(2 if resuming else 6)*1024**3,'Insufficient TEST staging space'
 user=pwd.getpwnam('admin')
 authorized=Path(user.pw_dir)/'.ssh/authorized_keys'
-assert authorized.is_file()
+assert user.pw_shell not in ('/usr/sbin/nologin','/bin/false')
+authorized.parent.mkdir(mode=0o700,exist_ok=True)
+assert authorized.parent.resolve().is_relative_to(Path(user.pw_dir).resolve())
+os.chown(authorized.parent,user.pw_uid,user.pw_gid)
+authorized.parent.chmod(0o700)
+authorized.touch(mode=0o600,exist_ok=True)
 tag='test-refresh-'+run_id
 assert tag not in authorized.read_text()
 shutil.copy2(tools/'test_refresh_receive.py',root/'receive.py')
@@ -81,7 +88,8 @@ state={'run_id':run_id,'authorized_keys':str(authorized),'ssh_uid':user.pw_uid,'
 expiry=(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(minutes=75)).strftime('%Y%m%d%H%M%SZ')
 forced='sudo -n /usr/bin/python3 '+str(root/'receive.py')+' "$SSH_ORIGINAL_COMMAND"'
 line='restrict,expiry-time="'+expiry+'",command="'+forced.replace('"','\\"')+'" '+public_key+'\n'
-with authorized.open('a') as file:file.write('\n'+line)
+if not resuming:
+    with authorized.open('a') as file:file.write('\n'+line)
 authorized.chmod(0o600);os.chown(authorized,user.pw_uid,user.pw_gid)
 print('TEST_RECEIVER_READY='+json.dumps({'run_id':run_id,'rollback_backup':backup['directory'],'minimum_free_bytes':shutil.disk_usage(data).free}),flush=True)
 worker_name='test-refresh-worker-'+run_id
