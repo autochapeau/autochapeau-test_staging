@@ -26,10 +26,21 @@ jobs:
           cd /home/admin/custom_addons
           exec 9>"$(git rev-parse --git-path commission-period-release.lock)"
           flock -w 120 9
-          git diff --quiet
+          git status --short --untracked-files=no
           git diff --cached --quiet
+          if ! git diff --quiet -- sales_region_commission; then
+            echo 'Unexpected local commission changes; refusing to overwrite or deploy them' >&2
+            exit 1
+          fi
+          local_before=$(git diff --binary | sha256sum)
+          preserved=$(git stash create 'Preserve existing TEST source customizations before commission release')
+          if [ -n "$preserved" ]; then
+            git update-ref "refs/backups/test-before-commission-$(date -u +%Y%m%dT%H%M%SZ)" "$preserved"
+          fi
           git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
           git merge --ff-only FETCH_HEAD
+          test "$local_before" = "$(git diff --binary | sha256sum)"
+          echo PREEXISTING_TEST_SOURCE_CHANGES_PRESERVED=true
           sudo -n python3 .github/scripts/odoo_maintenance.py \
             --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test \
             --modules sales_region_commission --release-check \
