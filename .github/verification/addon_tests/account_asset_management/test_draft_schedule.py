@@ -95,6 +95,62 @@ class TestAssetDraftSchedule(TransactionCase):
         self.assertEqual(len(self.lines(asset).filtered("move_check")), 1)
         self.assertEqual(asset.value_residual, 200)
 
+    def test_early_removal_replaces_draft_schedule_with_final_depreciation(self):
+        asset = self.asset()
+        asset.validate()
+        lines = self.lines(asset)
+        first = lines[0]
+        old_drafts = (lines - first).move_id
+        self.assertEqual(old_drafts.mapped("state"), ["draft", "draft"])
+
+        removal_date = date(2030, 2, 15)
+        with patch.object(fields.Date, "context_today", return_value=removal_date):
+            first.create_move()
+            posted_move = first.move_id
+            wizard = self.env["account.asset.remove"].with_context(
+                asset.remove()["context"]
+            ).create({
+                "date_remove": removal_date,
+                "posting_regime": "gain_loss_on_sale",
+                "account_min_value_id": self.profile.account_expense_depreciation_id.id,
+            })
+            wizard.remove()
+
+        self.assertEqual(asset.state, "removed")
+        self.assertEqual(asset.date_remove, removal_date)
+        self.assertFalse(old_drafts.exists())
+        self.assertEqual(first.move_id, posted_move)
+        self.assertEqual(posted_move.state, "posted")
+        self.assertEqual(first.amount, 100.0)
+        final = self.lines(asset) - first
+        self.assertEqual(final.line_date, date(2030, 2, 14))
+        self.assertEqual(final.amount, 50.0)
+        self.assertEqual(final.move_id.state, "posted")
+        removal = asset.depreciation_line_ids.filtered(lambda line: line.type == "remove")
+        self.assertEqual(removal.amount, 150.0)
+        self.assertEqual(removal.move_id.state, "draft")
+        self.assertEqual(sum(removal.move_id.line_ids.mapped("balance")), 0.0)
+
+    def test_early_removal_preserves_depreciation_reset_to_draft(self):
+        asset = self.asset()
+        asset.validate()
+        first = self.lines(asset)[0]
+        move = first.move_id
+        with patch.object(fields.Date, "context_today", return_value=first.line_date):
+            first.create_move()
+            move.button_draft()
+        self.assertTrue(move.posted_before)
+
+        wizard = self.env["account.asset.remove"].with_context(
+            asset.remove()["context"]
+        ).create({"date_remove": first.line_date})
+        with self.assertRaisesRegex(UserError, "previously posted"), self.cr.savepoint():
+            wizard.remove()
+
+        self.assertEqual(first.move_id, move)
+        self.assertEqual(move.state, "draft")
+        self.assertEqual(asset.state, "open")
+
     def test_soft_post_only_posts_due_entries(self):
         asset = self.asset()
         asset.validate()

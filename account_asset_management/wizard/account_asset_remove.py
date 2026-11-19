@@ -267,6 +267,16 @@ class AccountAssetRemove(models.TransientModel):
                 )
             )
 
+        if dlines.move_id.filtered("posted_before"):
+            raise UserError(
+                _(
+                    "A previously posted depreciation entry is no longer posted. "
+                    "Resolve it before removing this asset."
+                )
+            )
+
+        asset._discard_draft_depreciation_schedule()
+
         if first_to_depreciate_dl.previous_id:
             last_depr_date = first_to_depreciate_dl.previous_id.line_date
         else:
