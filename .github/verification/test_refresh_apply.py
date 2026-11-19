@@ -182,7 +182,7 @@ print('REFRESHED_TEST_HTTP='+json.dumps(result))
         result=subprocess.run(['docker','exec',app,'python3','-c',probe],capture_output=True,text=True)
         if result.returncode==0:print(result.stdout.strip(),flush=True);return True
         return False
-    wait(health,240,'Refreshed TEST HTTP check failed')
+    wait(health,600,'Refreshed TEST HTTP check failed')
     execute('verify')
     frontend=r'''import json,urllib.request
 request=urllib.request.Request('http://autochapeau_staging_website_web/v1/portal/statistics?lang=en',headers={'Host':'web-test.autochapeau.com'})

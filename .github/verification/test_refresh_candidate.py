@@ -38,6 +38,7 @@ def preserve(database):
 def cli(args,name,source=None):
     log=root/(name+'.private.log')
     environment=dict(os.environ,VIDEO_VERIFICATION_ROOT=str(tools/'verification'))
+    if args[0]=='shell':environment['TEST_REFRESH_USE_PREPARED_FILTERS']='1'
     with log.open('wb') as output:
         result=subprocess.run(['python3',str(tools/'test_refresh_odoo.py'),*args],input=source,env=environment,stdout=output,stderr=subprocess.STDOUT)
     if result.returncode:

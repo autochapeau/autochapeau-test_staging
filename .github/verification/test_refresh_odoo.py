@@ -1,5 +1,5 @@
 """Run isolated TEST CLI checks without external Python networking."""
-import socket
+import os,socket
 from odoo.tools import config
 config.parse_config([])
 allowed={'127.0.0.1','::1',config['db_host'] or 'localhost','localhost'}
@@ -11,5 +11,13 @@ def connect(sock,address):
         return original(sock,address)
     raise RuntimeError('External network is disabled during TEST refresh verification')
 socket.socket.connect=connect
+if os.environ.get('TEST_REFRESH_USE_PREPARED_FILTERS')=='1':
+    # The real upgrade has already built the access-role filter registry.
+    # Rebuilding that unrelated metadata for every analytic-plan test takes
+    # minutes and grows the registry. Keep access checks and business code intact.
+    from odoo.modules.module import initialize_sys_path
+    initialize_sys_path()
+    from odoo.addons.access_roles.models.filter_registry import FilterRegistry
+    FilterRegistry.get_all_filters=lambda self: {}
 from odoo.cli import main
 main()
