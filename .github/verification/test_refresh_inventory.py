@@ -29,7 +29,7 @@ with psycopg2.connect(dbname=database, **options) as conn:
         cr.execute("SELECT table_name,column_name FROM information_schema.columns WHERE table_schema='public' AND (table_name IN ('ir_cron','ir_mail_server','fetchmail_server','payment_provider','sms_sms','mail_mail','iap_account') OR (table_name='res_company' AND column_name ~* 'ziwo|sms|infinito|tabby|tamara|token|secret|api|edi')) ORDER BY table_name,ordinal_position")
         cols={}
         for table,col in cr.fetchall():cols.setdefault(table,[]).append(col)
-print('REFRESH_DB_INVENTORY='+json.dumps({'database':database,'data_dir':config['data_dir'],'db_host':config['db_host'],'db_port':config['db_port'],'db_user':config['db_user'],'database_bytes':size,'installed':installed,'counts':counts,'integration_parameter_keys':keys,'integration_columns':cols},sort_keys=True))
+print('REFRESH_DB_INVENTORY='+json.dumps({'database':database,'data_dir':config['data_dir'],'db_host':config['db_host'],'db_port':config['db_port'],'db_user':config['db_user'],'filestore_bytes':sum(p.stat().st_size for p in Path(config.filestore(database)).rglob('*') if p.is_file()),'database_bytes':size,'installed':installed,'counts':counts,'integration_parameter_keys':keys,'integration_columns':cols},sort_keys=True))
 '''
 
 services = ['autochapeau_staging_odoo_odoo','autochapeau_erp_odoo']
