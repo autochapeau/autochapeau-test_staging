@@ -1,0 +1,34 @@
+name: Inspect restricted TEST transfer connection
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/test-transfer-diagnostic.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read restricted transfer eligibility only
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
+          import subprocess,json,pwd,os
+          print('TRANSFER_ACCOUNT='+json.dumps({'exists':True,'shell':pwd.getpwnam('admin').pw_shell}))
+          settings=subprocess.check_output(['/usr/sbin/sshd','-T'],text=True)
+          print('\n'.join(line for line in settings.splitlines() if line.startswith(('permitrootlogin ','allowusers ','denyusers ','authorizedkeysfile ','pubkeyauthentication '))))
+          script='/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44505400366/receive.py'
+          result=subprocess.run(['sudo','-u','admin','sudo','-n','/usr/bin/python3',script,'ready'],capture_output=True,text=True)
+          print('RECEIVER_SUDO_CHECK='+json.dumps({'returncode':result.returncode,'stdout':result.stdout[-200:],'stderr':result.stderr[-700:]}))
+          journal=subprocess.run(['journalctl','-u','ssh','--since=-5min','--no-pager'],capture_output=True,text=True)
+          print('\n'.join(line for line in journal.stdout.splitlines() if 'admin' in line)[-2500:])
+          PY
