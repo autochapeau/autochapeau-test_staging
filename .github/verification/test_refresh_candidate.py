@@ -161,6 +161,21 @@ if mode=='prepare':
     result={'candidate':candidate,'business_data_preserved':True,'checksums_verified':True,'outbound_disabled':True,'original_test_unchanged':True,'existing_source_missing_attachments':len(manifest['missing_source_attachments'])}
     (root/'candidate-verified.json').write_text(json.dumps(result,indent=2))
     print('TEST_REFRESH_CANDIDATE_VERIFIED='+json.dumps(result,sort_keys=True))
+elif mode=='verify-candidate':
+    verified=json.loads((root/'candidate-verified.json').read_text())
+    assert verified['candidate']==candidate and verified['business_data_preserved'] and verified['checksums_verified']
+    neutralize(candidate)
+    preserve(candidate)
+    link=Path(config.filestore(candidate))
+    assert link.is_symlink() and link.resolve()==(incoming/'filestore').resolve()
+    with psycopg2.connect(dbname=candidate,**options) as conn:
+        conn.set_session(readonly=True)
+        with conn.cursor() as cr:
+            cr.execute('SELECT DISTINCT store_fname FROM ir_attachment WHERE store_fname IS NOT NULL')
+            assert all((incoming/'filestore'/row[0]).is_file() for row in cr.fetchall())
+            cr.execute('SELECT count(*) FROM ir_cron WHERE active');assert cr.fetchone()[0]==0
+            cr.execute("SELECT count(*) FROM payment_provider WHERE state!='disabled'");assert cr.fetchone()[0]==0
+    print('TEST_REFRESH_EXISTING_VERIFICATION_RECHECKED=true',flush=True)
 elif mode in ('cutover','rollback'):
     assert (root/'candidate-verified.json').exists()
     conn=admin()

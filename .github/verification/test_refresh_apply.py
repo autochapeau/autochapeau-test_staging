@@ -70,6 +70,7 @@ partial=(root/'incoming').exists()
 # Superseded waiters have never entered candidate preparation or TEST cutover.
 for old_run in settings.get('superseded_workflow_runs',[]):
     assert old_run.isdigit()
+    if (root/'candidate-verified.json').exists():continue
     old_script='/tmp/test-refresh-tools-'+old_run+'/test_refresh_apply.py'
     assert not (root/'candidate-verified.json').exists()
     for directory in Path('/proc').iterdir():
@@ -145,7 +146,7 @@ try:
     template['Placement']={'Constraints':['node.id=='+node]}
     docker('POST','/services/create',{'Name':worker_name,'Labels':{'traefik.enable':'false','test-refresh':run_id},'TaskTemplate':template,'Mode':{'Replicated':{'Replicas':1}},'EndpointSpec':{'Mode':'vip'}})
     worker=wait(lambda:running(worker_name),180,'TEST worker did not start')
-    execute('prepare')
+    execute('verify-candidate' if (root/'candidate-verified.json').exists() else 'prepare')
     assert (root/'candidate-verified.json').exists()
     # Only after candidate verification do we stop the old TEST application.
     stopped_spec=copy.deepcopy(original);stopped_spec['Mode']['Replicated']['Replicas']=0
@@ -154,7 +155,10 @@ try:
     live_store=data/'filestore/autochapeau_prod_test'
     old_store=root/'old-test-filestore'
     candidate_link=data/'filestore'/('test_refresh_candidate_'+run_id)
-    assert candidate_link.is_symlink() and candidate_link.resolve()==(incoming/'filestore').resolve()
+    # The link is absolute inside the container; host resolve() would follow
+    # /var/lib/odoo on the host rather than this Docker volume.
+    expected_link=Path('/var/lib/odoo')/incoming.relative_to(data)/'filestore'
+    assert candidate_link.is_symlink() and Path(os.readlink(candidate_link))==expected_link
     candidate_link.unlink()
     if live_store.exists():live_store.rename(old_store)
     (incoming/'filestore').rename(live_store);files_switched=True
