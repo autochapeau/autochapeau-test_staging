@@ -47,7 +47,7 @@ def cli(args,name,source=None):
         if line.startswith(('VIDEO_REQUIREMENTS_SMOKE=','VIDEO_REQUIREMENTS_REGRESSION=','MODULE_UNIQUE_TESTS=','PRODUCTION_MAINTENANCE_TESTS=')):
             print(line,flush=True)
 
-def neutralize(database,api_rows=None):
+def neutralize(database):
     assert database==candidate
     with psycopg2.connect(dbname=database,**options) as conn:
         with conn.cursor() as cr:
@@ -63,15 +63,7 @@ def neutralize(database,api_rows=None):
                 elif table=='sms_sms':cr.execute("UPDATE sms_sms SET state='canceled' WHERE state IN ('outgoing','processing','pending')")
                 elif table=='mail_mail':cr.execute("UPDATE mail_mail SET state='cancel' WHERE state='outgoing'")
                 elif table=='iap_account':cr.execute("UPDATE iap_account SET account_token='neutralized'")
-                elif table=='res_users_apikeys' and api_rows is not None:
-                    cr.execute('DELETE FROM res_users_apikeys')
-                    for row in api_rows:
-                        login=row['login'];values=dict(row['values'])
-                        cr.execute('SELECT id FROM res_users WHERE login=%s AND active',[login])
-                        found=cr.fetchone();assert found,'A TEST API identity needs explicit mapping before cutover'
-                        values['user_id']=found[0]
-                        columns=list(values)
-                        cr.execute(sql.SQL('INSERT INTO res_users_apikeys ({}) VALUES ({})').format(sql.SQL(',').join(map(sql.Identifier,columns)),sql.SQL(',').join(sql.Placeholder()*len(columns))),list(values.values()))
+                elif table=='res_users_apikeys':cr.execute('DELETE FROM res_users_apikeys')
             cr.execute("UPDATE ir_config_parameter SET value='' WHERE key ~* 'infinito|tabby|tamara|hyperpay|alrajhi|qitaf|mylist|yougotagift|card_terminal|ziwo|api[_.]?key|secret|token' AND key NOT IN ('database.secret','database.uuid','portal_api.allow_test_otp')")
             parameters={'web.base.url':'https://erp-test.autochapeau.com','web.base.url.freeze':'True','web.base.portal_url':'https://web-test.autochapeau.com','database.is_neutralized':'True','portal_api.allow_test_otp':'True'}
             if not (root/'neutralized.json').exists():parameters.update({'database.uuid':str(uuid.uuid4()),'database.secret':uuid.uuid4().hex+uuid.uuid4().hex})
@@ -83,7 +75,7 @@ def neutralize(database,api_rows=None):
                 elif any(word in name for word in ('token','password','user_name','account_name')):
                     cr.execute(sql.SQL('UPDATE res_company SET {}=NULL').format(sql.Identifier(name)))
             cr.execute('UPDATE res_company SET stock_move_sms_validation=false')
-    (root/'neutralized.json').write_text(json.dumps({'database':database,'outbound_disabled':True,'test_api_keys_preserved':len(api_rows or [])}))
+    (root/'neutralized.json').write_text(json.dumps({'database':database,'outbound_disabled':True,'api_keys_reset':True}))
 
 if mode=='prepare':
     os.umask(0o077)
@@ -105,18 +97,9 @@ if mode=='prepare':
         writer.stdin.close()
         assert reader.wait()==0 and writer.wait()==0,'Candidate restore failed; see private log'
     preserve(candidate)
-    api_rows=[]
-    with psycopg2.connect(dbname=target,**options) as old:
-        old.set_session(readonly=True)
-        with old.cursor() as cr:
-            cr.execute("SELECT a.*,u.login FROM res_users_apikeys a JOIN res_users u ON u.id=a.user_id")
-            names=[c[0] for c in cr.description]
-            for row in cr.fetchall():
-                values=dict(zip(names,row));login=values.pop('login');values.pop('id',None)
-                api_rows.append({'login':login,'values':values})
     if (root/'neutralized.json').exists():(root/'neutralized.json').unlink()
     cli(['neutralize','-d',candidate],'native-neutralize')
-    neutralize(candidate,api_rows)
+    neutralize(candidate)
     link=Path(config.filestore(candidate))
     if link.is_symlink():
         assert link.resolve()==(incoming/'filestore').resolve();link.unlink()
@@ -134,12 +117,12 @@ if mode=='prepare':
     args=['-d',candidate,'-u',','.join(upgrades),'--stop-after-init','--no-http','--max-cron-threads=0','--without-demo=all']
     if installs:args+=['-i',','.join(installs)]
     cli(args,'upgrade')
-    neutralize(candidate,api_rows)
+    neutralize(candidate)
     preserve(candidate)
     for name in ['verify_staging.py','run_regression.py','run_mobile_unique_tests.py']:
         source=(tools/'verification'/name).read_bytes()
         cli(['shell','-d',candidate,'--no-http','--max-cron-threads=0'],name,source=source)
-    neutralize(candidate,api_rows)
+    neutralize(candidate)
     preserve(candidate)
     with psycopg2.connect(dbname=candidate,**options) as conn:
         conn.set_session(readonly=True)
