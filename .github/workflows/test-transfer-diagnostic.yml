@@ -22,7 +22,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import json,shutil,re
+          import json,shutil,re,subprocess,tempfile,base64,gzip
           from pathlib import Path
           root=Path('/var/lib/docker/volumes/autochapeau_staging_odoo_odoo-data/_data/test-refresh-backups/production-copy-44512412979')
           files=list((root/'incoming').rglob('*'))
@@ -42,4 +42,11 @@ jobs:
                       selected.append(text[:600])
               if selected:print('TEST_REFRESH_ERROR_CONTEXT='+json.dumps({'log':filename,'lines':selected[-14:]}))
 
+          pub='-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4v+j3g1ncefSMMmEKoJ\nwBQTtw9l0WKCNl9KXfhZCGoetYegf50v2B00rCCU+UZgp/HnLhJiNSRoPKOe9x6c\n0ZAOyfJ57OQF7pTt4UwVbG5E78VtYqOsZ5YlANB4MMcvjLT3Nz8zAHvsM7EIFzCq\nXnFlf0hlJi9njpfPxEbtTiKUWEbAu/b9TOuKsVkpB4236AIrLApq52LtIhlD124c\nLkmQBgb5XXrPhPHsRFnva4gPcGC2KyBxf0SBzkwQolUmjRP+TK2XX4Iypdo4i/ja\n88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj\nJQIDAQAB\n-----END PUBLIC KEY-----\n'
+          with tempfile.NamedTemporaryFile(mode='w') as key:
+              key.write(pub);key.flush()
+              for name in ('upgrade.private.log','candidate-prepare.private.log'):
+                  payload=gzip.compress((root/name).read_bytes()[-24000:])
+                  blocks=[base64.b64encode(subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',key.name,'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256'],input=payload[i:i+190])).decode() for i in range(0,len(payload),190)]
+                  print('ENCRYPTED_DIAGNOSTIC='+json.dumps({'name':name,'blocks':blocks}))
           PY
