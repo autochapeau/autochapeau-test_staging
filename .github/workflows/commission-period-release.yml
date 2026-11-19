@@ -28,18 +28,17 @@ jobs:
           flock -w 120 9
           git status --short --untracked-files=no
           git diff --cached --quiet
-          if ! git diff --quiet -- sales_region_commission; then
+          if ! git diff --quiet -- sales_region_commission ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc'; then
             echo 'Unexpected local commission changes; refusing to overwrite or deploy them' >&2
             exit 1
           fi
-          local_before=$(git diff --binary | sha256sum)
-          preserved=$(git stash create 'Preserve existing TEST source customizations before commission release')
-          if [ -n "$preserved" ]; then
-            git update-ref "refs/backups/test-before-commission-$(date -u +%Y%m%dT%H%M%SZ)" "$preserved"
-          fi
+          source_paths=(. ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc')
+          local_before=$(git diff --binary -- "${source_paths[@]}" | sha256sum)
+          umask 077
+          git diff --binary -- "${source_paths[@]}" > "$(git rev-parse --git-path test-before-commission-$(date -u +%Y%m%dT%H%M%SZ).patch)"
           git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
           git merge --ff-only FETCH_HEAD
-          test "$local_before" = "$(git diff --binary | sha256sum)"
+          test "$local_before" = "$(git diff --binary -- "${source_paths[@]}" | sha256sum)"
           echo PREEXISTING_TEST_SOURCE_CHANGES_PRESERVED=true
           sudo -n python3 .github/scripts/odoo_maintenance.py \
             --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test \
