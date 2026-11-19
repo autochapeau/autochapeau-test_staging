@@ -1,3 +1,4 @@
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, Command, fields, models
@@ -10,41 +11,56 @@ class Target(models.Model):
     _description = "Sales target period"
 
     period_type = fields.Selection([("month", "Monthly"), ("quarter", "Quarterly"),
-        ("half", "Half-yearly"), ("year", "Yearly")], required=True, default="month")
-    date_end = fields.Date(compute="_compute_date_end", store=True)
+        ("half", "Half-yearly"), ("year", "Yearly"), ("custom", "Custom date range")], required=True, default="month")
+    date_end = fields.Date(string="Date To", compute="_compute_date_end", store=True, precompute=True, copy=False,
+        readonly=False, required=True,
+        help="Calendar periods calculate their end automatically. Custom date ranges allow any inclusive start and end dates.")
     member_target_ids = fields.One2many("sales.commission.target.member", "target_id", copy=True)
     notes = fields.Text(string="Notes")
 
     def copy(self, default=None):
         self.ensure_one()
         default = dict(default or {})
+        period = default.get('period_type', self.period_type)
+        company = default.get('company_id', self.company_id.id)
+        team = default.get('team_id', self.team_id.id)
+        span = self.date_end - self.month
         if 'month' not in default:
             lengths = {'month': 1, 'quarter': 3, 'half': 6, 'year': 12}
-            period = default.get('period_type', self.period_type)
-            length = lengths[period]
-            start = self.month.replace(day=1, month=((self.month.month - 1) // length) * length + 1)
-            company = default.get('company_id', self.company_id.id)
-            team = default.get('team_id', self.team_id.id)
-            while True:
+            if period == 'custom':
+                start = self.date_end + timedelta(days=1)
+            else:
+                length = lengths[period]
+                start = self.month.replace(day=1, month=((self.month.month - 1) // length) * length + 1)
                 start += relativedelta(months=length)
-                end = start + relativedelta(months=length, days=-1)
-                if not self.sudo().search_count([('company_id', '=', company), ('team_id', '=', team),
-                        ('month', '<=', end), ('date_end', '>=', start)]):
+            while True:
+                end = start + span if period == 'custom' else start + relativedelta(months=length, days=-1)
+                overlap = self.sudo().search([('company_id', '=', company), ('team_id', '=', team),
+                    ('month', '<=', end), ('date_end', '>=', start)], order='date_end desc', limit=1)
+                if not overlap:
                     break
+                start = overlap.date_end + timedelta(days=1) if period == 'custom' else start + relativedelta(months=length)
             default['month'] = start
+            if period == 'custom':
+                default.setdefault('date_end', end)
+        elif period == 'custom' and 'date_end' not in default:
+            default['date_end'] = fields.Date.to_date(default['month']) + span
         return super().copy(default)
 
     @api.depends("month", "period_type")
     def _compute_date_end(self):
         lengths = {"month": 1, "quarter": 3, "half": 6, "year": 12}
         for target in self:
-            target.date_end = target.month + relativedelta(months=lengths[target.period_type], days=-1) if target.month else False
+            if target.period_type == 'custom':
+                target.date_end = target.date_end or target.month
+            else:
+                target.date_end = target.month + relativedelta(months=lengths[target.period_type], days=-1) if target.month else False
 
     @api.onchange("period_type")
     def _onchange_period_type(self):
         lengths = {"month": 1, "quarter": 3, "half": 6, "year": 12}
         for target in self:
-            if target.month:
+            if target.month and target.period_type != 'custom':
                 length = lengths[target.period_type]
                 target.month = target.month.replace(day=1, month=((target.month.month - 1) // length) * length + 1)
 
@@ -53,8 +69,14 @@ class Target(models.Model):
         for target in self:
             self.env.cr.execute("UPDATE crm_team SET write_date=write_date WHERE id=%s", [target.team_id.id])
             starts = {"month": range(1, 13), "quarter": (1, 4, 7, 10), "half": (1, 7), "year": (1,)}
-            if target.month.month not in starts[target.period_type]:
-                raise ValidationError(_("Start the target on the first month of its calendar period."))
+            if not target.month or not target.date_end or target.date_end < target.month:
+                raise ValidationError(_("Date To must be on or after Date From."))
+            if target.period_type != 'custom':
+                if target.month.day != 1 or target.month.month not in starts[target.period_type]:
+                    raise ValidationError(_("Start the target on the first day and first month of its calendar period."))
+                lengths = {'month': 1, 'quarter': 3, 'half': 6, 'year': 12}
+                if target.date_end != target.month + relativedelta(months=lengths[target.period_type], days=-1):
+                    raise ValidationError(_("Calendar period ends are automatic. Select Custom date range to enter your own dates."))
             if self.sudo().search_count([("id", "!=", target.id), ("team_id", "=", target.team_id.id),
                 ("company_id", "=", target.company_id.id), ("month", "<=", target.date_end), ("date_end", ">=", target.month)]):
                 raise ValidationError(_("Target periods for the same team must not overlap."))
@@ -188,16 +210,20 @@ class Rule(models.Model):
 
     apply_discount_adjustment = fields.Boolean(string="Apply Customer Discount Adjustment",
         help="0% discount increases commission by 20%; 1–10% leaves it unchanged; 10.01–20% reduces it by 25%. Other discounts require review.")
-    personal_target = fields.Monetary(compute="_compute_personal_target", currency_field="currency_id")
+    personal_target = fields.Monetary(string="Selected Period Target Total", compute="_compute_personal_target", currency_field="currency_id",
+        help="Full individual target shares overlapping Date From / Date To, without proration. If Date To is empty, show targets covering Date From. Each invoice still uses its own target period.")
     currency_id = fields.Many2one(related="company_id.currency_id")
 
-    @api.depends("user_id", "user_ids", "scope", "team_id", "company_id")
+    @api.depends("user_id", "user_ids", "scope", "team_id", "company_id", "date_from", "date_to")
     @api.depends_context('uid')
     def _compute_personal_target(self):
-        today = fields.Date.context_today(self)
         for rule in self:
+            if not rule.date_from:
+                rule.personal_target = 0
+                continue
+            end = rule.date_to or rule.date_from
             domain = [("company_id", "=", rule.company_id.id),
-                ("target_id.month", "<=", today), ("target_id.date_end", ">=", today)]
+                ("target_id.month", "<=", end), ("target_id.date_end", ">=", rule.date_from)]
             domain += [("team_id", "=", rule.team_id.id)] if rule.scope == 'team' else [("user_id", "in", rule._scope_users().ids)]
             shares = self.env["sales.commission.target.member"].search(domain)
             rule.personal_target = sum(shares.mapped("amount"))

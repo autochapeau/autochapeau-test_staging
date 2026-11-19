@@ -6,6 +6,12 @@ Version **17.0.4.0.0** includes an app icon, a comprehensive Arabic/English hand
 
 ## Configuration
 
+### Custom target periods and dated target preview (17.0.6.2.0)
+
+**Custom date range** allows any inclusive Date From / Date To, including periods crossing months or years. Calendar types retain their automatic ends. Amount and allocated shares apply to the entire target period; invoice achievement uses its full net posted sales and full individual share. Overlap is rejected across all period types for the same team/company. Duplicate preserves a custom period's day count, shares and notes and advances to the next available continuous interval. Existing target dates, shares, ledger snapshots and accrual entries are retained on upgrade.
+
+**Selected Period Target Total** follows the rule's dates instead of today's month. For bounded rules it sums full accessible shares from overlapping periods, without proration; an open-ended rule previews the target covering Date From. This aggregate is explanatory and does not replace the individual target selected by each invoice date. Calendar dashboard filters allocate custom targets by covered days, preserving month-based allocation for calendar targets and avoiding parent/child double counting on each covered day.
+
 ### Shared rules and category tiers (17.0.6.0.0)
 
 Choose **Salespeople** to select several users, or **Sales team** to apply a rule to orders assigned to one exact team. Team rules do not automatically include child teams. An explicit personal rule takes priority over a team rule for the same category/date. Overlapping active rules within the same scope and category are rejected.
@@ -18,7 +24,7 @@ Achievement always uses the source salesperson's individual target and their pos
 2. Open Settings / Users & Companies / Users and use the dedicated **Commission Access** tab. A system administrator selects No access, Salesperson, Region manager or Commission administrator. The duplicate generated selector in Access Rights is hidden. Existing users are not automatically granted access.
 3. An administrator configures **Regions and teams** using CRM sales teams: Region → Subregion → Branch. Set the company, parent region and **Team Leader**, then assign salespeople as team members. With the **Region manager** commission role, a leader automatically receives that team and its descendants. **Commission manager** is optional additional scope. Leadership supplies scope but never grants a commission role.
 4. Configure dated rules per salesperson: exact `Product Category` for goods, existing `Commission Category` for services (VIP / Platinum / Gold, etc.). Assign service categories on product variants using the existing field. Rates accept 0–100%; overlapping active rules for the same company, person and category are rejected. Archive used rules rather than deleting them.
-5. Set monthly targets per team/company, using the first day of each month. Targets are monitoring goals and **do not gate or change commission rates**. Parent and child targets are not added twice in the overview. A salesperson sees their own contribution against their accessible team target, not teammates' sales.
+5. Set calendar or custom-date targets per team/company and allocate the full amount to members/managers. Fixed percentages do not require a target to choose a rate; tiered rules use the individual's target achievement. Parent and child targets are not added twice in the overview. A salesperson sees their own contribution against their accessible team target, not teammates' sales.
 
 ## Calculation policy
 

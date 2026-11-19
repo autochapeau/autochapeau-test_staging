@@ -31,7 +31,7 @@
         <field name="name">sales.commission.rule.target.tiers</field><field name="model">sales.commission.rule</field>
         <field name="inherit_id" ref="rule_form"/><field name="arch" type="xml">
             <field name="rate" position="after">
-                <field name="currency_id" invisible="1"/><field name="personal_target" readonly="1" string="Current Selected Target Total"/>
+                <field name="currency_id" invisible="1"/><field name="personal_target" readonly="1" string="Selected Period Target Total"/>
                 <field name="apply_discount_adjustment"/>
             </field>
             <xpath expr="//div[hasclass('alert-info')]" position="replace">
@@ -54,8 +54,8 @@
         <field name="inherit_id" ref="target_tree"/><field name="arch" type="xml">
             <tree position="attributes"><attribute name="editable"/></tree>
             <field name="month" position="before"><field name="period_type"/></field>
-            <field name="month" position="attributes"><attribute name="string">Period Start</attribute></field>
-            <field name="month" position="after"><field name="date_end"/></field>
+            <field name="month" position="attributes"><attribute name="string">Date From</attribute></field>
+            <field name="month" position="after"><field name="date_end" readonly="period_type != 'custom'"/></field>
         </field>
     </record>
     <record id="target_form_periods" model="ir.ui.view">
@@ -64,9 +64,9 @@
             <button name="action_distribute_members" type="object" string="Distribute to Members and Managers" class="oe_highlight"
                     groups="sales_region_commission.group_admin" confirm="Redistribute this target equally across current members and managers? Existing individual shares will be replaced."/>
         </header><sheet><group><group><field name="company_id"/><field name="team_id"/><field name="period_type"/>
-            <field name="month" string="Period Start"/><field name="date_end"/></group><group>
+            <field name="month" string="Date From"/><field name="date_end" readonly="period_type != 'custom'"/></group><group>
             <field name="currency_id" invisible="1"/><field name="amount"/></group></group>
-            <div class="alert alert-info">Set a calendar period, then distribute the total to the current team members and managers. Shares can be adjusted below and must add up to the team total before tiered commissions can be calculated.</div>
+            <div class="alert alert-info">Choose a calendar period or Custom date range. For a custom period, enter Date From and Date To yourself. The amount and individual shares are for the full inclusive period, not a monthly amount. Periods for the same team must not overlap. Shares must add up to the total before tiered commissions can be calculated. Calendar dashboards allocate custom targets by covered days for reporting only.</div>
             <field name="member_target_ids"><tree editable="bottom"><field name="company_id" column_invisible="True"/><field name="user_id"/>
                 <field name="currency_id" column_invisible="True"/><field name="amount" sum="Individual targets"/></tree></field>
             <group string="Target notes"><field name="notes" nolabel="1" colspan="2" class="w-100" placeholder="Explain the target, allocation or any agreed exceptions..."/></group>
