@@ -22,10 +22,9 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" sudo -n python3 - <<'PY'
-          import os,base64,pwd
-          from cryptography.hazmat.primitives import serialization,hashes
-          from cryptography.hazmat.primitives.asymmetric import padding
-          public=serialization.load_pem_public_key(b"""          -----BEGIN PUBLIC KEY-----
+          import os,base64,pwd,subprocess,tempfile
+          from pathlib import Path
+          public=b"""          -----BEGIN PUBLIC KEY-----
           MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4v+j3g1ncefSMMmEKoJ
           wBQTtw9l0WKCNl9KXfhZCGoetYegf50v2B00rCCU+UZgp/HnLhJiNSRoPKOe9x6c
           0ZAOyfJ57OQF7pTt4UwVbG5E78VtYqOsZ5YlANB4MMcvjLT3Nz8zAHvsM7EIFzCq
@@ -34,8 +33,10 @@ jobs:
           88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj
           JQIDAQAB
           -----END PUBLIC KEY-----
-          """.strip())
+          """.strip()
           user=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name
-          payload=public.encrypt(user.encode(),padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          with tempfile.TemporaryDirectory() as td:
+              key=Path(td)/'public.pem';key.write_bytes(public)
+              payload=subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',str(key),'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256','-pkeyopt','rsa_mgf1_md:sha256'],input=user.encode())
           print('ENCRYPTED_TRANSFER_IDENTITY='+base64.b64encode(payload).decode())
           PY
