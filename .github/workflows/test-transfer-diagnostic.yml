@@ -34,7 +34,7 @@ jobs:
           88pWeKHogq+rSYxgSwFd0wjoiSyk+3yuqBN38Sfty677VOITTxnAVunnKSff6Flj
           JQIDAQAB
           -----END PUBLIC KEY-----
-          """)
+          """.strip())
           user=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name
           payload=public.encrypt(user.encode(),padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
           print('ENCRYPTED_TRANSFER_IDENTITY='+base64.b64encode(payload).decode())
