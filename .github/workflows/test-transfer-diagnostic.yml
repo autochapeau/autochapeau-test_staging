@@ -63,6 +63,6 @@ jobs:
               key.write(pub);key.flush()
               for name in ('upgrade.private.log','candidate-prepare.private.log','activity.private.json'):
                   payload=gzip.compress((root/name).read_bytes()[-24000:])
-                  blocks=[base64.b64encode(subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',key.name,'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256'],input=payload[i:i+190])).decode() for i in range(0,len(payload),190)]
+                  blocks=[subprocess.check_output(['openssl','pkeyutl','-encrypt','-pubin','-inkey',key.name,'-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256'],input=payload[i:i+190]).hex().translate(str.maketrans('0123456789abcdef','ABCDEFGHIJKLMNOP')) for i in range(0,len(payload),190)]
                   print('ENCRYPTED_DIAGNOSTIC='+json.dumps({'name':name,'blocks':blocks}))
           PY
