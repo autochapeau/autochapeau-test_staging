@@ -203,7 +203,12 @@ if mode == 'backup':
     with odoo.sql_db.db_connect(database).cursor() as cr:
         cr.execute('SELECT pg_database_size(current_database())')
         database_size = cr.fetchone()[0]
-    if shutil.disk_usage(data_dir).free < size + database_size + 512 * 1024**2:
+    test_release = database == 'autochapeau_prod_test'
+    # TEST retains both the old clone and its verified production-copy files.
+    # Odoo's content-addressed filestore is immutable: hard links preserve files
+    # even if an upgrade unlinks an attachment, without a second full data copy.
+    required_space = 512 * 1024**2 if test_release else size + database_size + 512 * 1024**2
+    if shutil.disk_usage(data_dir).free < required_space:
         raise RuntimeError('Insufficient backup disk space; upgrade has not started.')
     before = snapshot()
     (folder / 'before.json').write_text(json.dumps(before, indent=2))
@@ -211,7 +216,24 @@ if mode == 'backup':
     dump = folder / 'database.dump'
     subprocess.run([find_pg_tool('pg_dump'), '--no-owner', '--format=c', '--file='+str(dump), database], env=exec_pg_environ(), check=True)
     subprocess.run([find_pg_tool('pg_restore'), '--list', str(dump)], stdout=subprocess.DEVNULL, check=True)
-    if filestore.exists():
+    if filestore.exists() and test_release:
+        linked = folder / 'filestore'
+        linked.mkdir()
+        linked_count = 0
+        for source in filestore.rglob('*'):
+            assert not source.is_symlink(), 'Unexpected symlink inside content-addressed filestore'
+            destination = linked / source.relative_to(filestore)
+            if source.is_dir():
+                destination.mkdir(exist_ok=True)
+            elif source.is_file():
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                os.link(source, destination)
+                assert os.path.samefile(source, destination)
+                linked_count += 1
+        (folder / 'filestore-snapshot.json').write_text(json.dumps({
+            'format': 'immutable-content-hardlinks', 'files': linked_count,
+            'source': str(filestore), 'snapshot': str(linked)}))
+    elif filestore.exists():
         with tarfile.open(folder/'filestore.tar.gz', 'w:gz') as archive:
             archive.add(filestore, arcname='filestore')
         with tarfile.open(folder/'filestore.tar.gz', 'r:gz') as archive:
