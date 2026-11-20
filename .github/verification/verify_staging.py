@@ -4,6 +4,7 @@ The shell provides ``env``. No financial records are created, posted or edited.
 """
 import json
 from lxml import etree
+from odoo.modules.module import get_manifest
 
 expected = {
     "account_asset_management": "17.0.1.1.0",
@@ -14,7 +15,8 @@ expected = {
     "sales_region_commission": "17.0.6.2.0",
     "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
-    "workorder_service_components": "17.0.4.1.1",
+    "work_orders": get_manifest("work_orders")["version"],
+    "workorder_service_components": get_manifest("workorder_service_components")["version"],
 }
 result = {"database": env.cr.dbname, "modules": {}, "views": [], "reports": {}}
 for name, version in expected.items():
@@ -102,7 +104,7 @@ for tree in material_arch.xpath(".//field[@name='product_ids']/tree"):
     names = [node.get('name') for node in tree.findall('field')]
     assert names.index('material_brand_id') < names.index('product_id')
     assert 'not material_brand_id' in tree.xpath("./field[@name='product_id']")[0].get('readonly')
-result['warehouse_feedback'] = {'version': '17.0.4.1.1', 'precision': 4, 'brand_before_product': True,
+result['warehouse_feedback'] = {'version': result['modules']['workorder_service_components'], 'precision': 4, 'brand_before_product': True,
     'stock_manager_brand_access': True, 'part_tolerance': 'hard limit'}
 env.cr.rollback()
 print("VIDEO_REQUIREMENTS_SMOKE=" + json.dumps(result, sort_keys=True))
