@@ -8,7 +8,14 @@ test -s "$DIR/current-website-backup.tar.gz"
 git rev-parse HEAD > "$DIR/backend-before-rollback-latest.txt"
 # Refuse to replace any newer website customization, including local changes.
 mapfile -t website_paths < <(git diff --name-only 90613ba c9f1d0d -- portal_api portal_content partner_management)
-git diff --quiet c9f1d0d -- "${website_paths[@]}"
+already_original=false
+if git diff --quiet 90613ba -- "${website_paths[@]}"; then
+  already_original=true
+else
+  git diff --quiet c9f1d0d -- "${website_paths[@]}"
+fi
+# Git must retain the original addon readability despite the private backup umask.
+for path in "${website_paths[@]}"; do if [ -f "$path" ]; then chmod 644 -- "$path"; fi; done
 outside=(. ':(exclude)portal_api/**' ':(exclude)portal_content/**' ':(exclude)partner_management/**' ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc')
 before_local=$(git diff --binary -- "${outside[@]}" | sha256sum)
 git fetch https://github.com/autochapeau/autochapeau-test_staging.git codex/website-test-rollback
@@ -18,6 +25,7 @@ ODOO=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.I
 test -n "$ODOO"
 test "$(sudo docker inspect "$ODOO" --format '{{index .Config.Labels "com.docker.swarm.service.name"}}')" = autochapeau_staging_odoo_odoo
 sudo docker service inspect autochapeau_staging_website_web | python3 -c 'import json,sys; s=json.load(sys.stdin)[0]["Spec"]; assert s["Name"]=="autochapeau_staging_website_web"; assert "DB_NAME=autochapeau_prod_test" in s["TaskTemplate"]["ContainerSpec"]["Env"]; assert "Host(`web-test.autochapeau.com`)" in s["Labels"].values()'
+if [ "$already_original" = false ]; then
 sudo docker cp /tmp/website-original-sms.json "$ODOO:/tmp/website-original-sms.json"
 sudo docker exec -u 0 "$ODOO" sh -c 'chown odoo:odoo /tmp/website-original-sms.json; chmod 600 /tmp/website-original-sms.json'
 git show "$ROLLBACK:.github/verification/prepare_website_rollback.py" | sudo docker exec -i "$ODOO" python3 -
@@ -26,6 +34,8 @@ git diff --binary c9f1d0d 90613ba -- portal_api portal_content partner_managemen
 git apply --check "$DIR/website-original.patch"
 git apply --index "$DIR/website-original.patch"
 git -c user.name='TEST website rollback' -c user.email='test-rollback@autochapeau.invalid' commit -m 'Revert website integration on TEST preserving newer ERP source'
+fi
+for path in "${website_paths[@]}"; do if [ -f "$path" ]; then chmod 644 -- "$path"; fi; done
 git show "$ROLLBACK:.github/verification/verify_website_rollback.py" > "$DIR/verify_website_rollback.py"
 test "$before_local" = "$(git diff --binary -- "${outside[@]}" | sha256sum)"
 echo UNRELATED_LOCAL_SOURCE_PRESERVED=true
