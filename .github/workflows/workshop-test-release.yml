@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Back up TEST, upgrade workshop modules offline, and verify
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -38,7 +38,7 @@ jobs:
             sleep 3
           done
           test -s ~/.ssh/known_hosts
-          release_sha=$(git rev-parse HEAD^)
+          release_sha=$(git rev-list -1 HEAD -- work_orders workorder_service_components)
           ssh -o BatchMode=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             -i ~/.ssh/workshop_test_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "bash -s -- $release_sha $GITHUB_SHA" <<'REMOTE'
@@ -57,7 +57,7 @@ jobs:
           test "$(git rev-parse FETCH_HEAD)" = "$release_sha"
           git fetch --no-tags https://github.com/autochapeau/autochapeau-test_staging.git codex/workshop-test-release
           test "$(git rev-parse FETCH_HEAD)" = "$verification_sha"
-          test "$(git rev-parse "$verification_sha^")" = "$release_sha"
+          git merge-base --is-ancestor "$release_sha" "$verification_sha"
           git diff --quiet HEAD "$release_sha" -- . ':(exclude)work_orders' ':(exclude)workorder_service_components'
           container=$(sudo -n docker ps --filter "label=com.docker.swarm.service.name=$service" --format '{{.ID}}' | head -1)
           test -n "$container"
@@ -72,7 +72,27 @@ jobs:
           git show "$verification_sha:.github/verification/workshop_test_acceptance.py" > "$scratch/verification/verify_staging.py"
           # The generic helper appends an extra TEST acceptance file. Keep this release scoped to workshops.
           touch "$scratch/verification/commission_period_release_checks.py"
-          git merge --ff-only "$release_sha"
+          (umask 022; git merge --ff-only "$release_sha")
+          mapfile -d '' -t published_files < <(git diff-tree --no-commit-id -r --name-only -z --diff-filter=ACMRT \
+            "$release_sha" -- work_orders workorder_service_components)
+          test "${#published_files[@]}" -gt 0
+          for source in "${published_files[@]}"; do
+            test -f "$source" && test ! -L "$source"
+            chmod a+r -- "$source"
+            dir=$(dirname -- "$source")
+            while [ "$dir" != "." ]; do
+              chmod a+rx -- "$dir"
+              dir=$(dirname -- "$dir")
+            done
+          done
+          sudo -n docker exec -i "$container" python3 -c '
+          import sys
+          from pathlib import Path
+          for name in sys.argv[1:]:
+              with (Path("/mnt/extra-addons") / name).open("rb") as source:
+                  source.read(1)
+          ' "${published_files[@]}"
+          echo TEST_RELEASE_FILES_READABLE=true
           test "$original_changes" = "$(git diff --binary -- "${source_paths[@]}" | sha256sum)"
           echo TEST_LOCAL_SOURCE_CHANGES_PRESERVED=true
           sudo -n python3 "$scratch/scripts/odoo_maintenance.py" \
