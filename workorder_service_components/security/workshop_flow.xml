@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="group_workshop_material_preparer" model="res.groups">
+        <field name="name">Workshop Materials Preparer</field>
+        <field name="category_id" ref="work_orders.module_category_work_orders"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="workshop_preparation_assigned" model="ir.rule">
+        <field name="name">Preparation assigned to this user</field>
+        <field name="model_id" ref="model_car_workshop_preparation"/>
+        <field name="domain_force">[('user_id', '=', user.id), ('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_workshop_material_preparer'))]"/>
+    </record>
+    <record id="workshop_preparation_manager" model="ir.rule">
+        <field name="name">Workshop manager preparation requests</field>
+        <field name="model_id" ref="model_car_workshop_preparation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('work_orders.group_workshop_manager'))]"/>
+    </record>
+    <record id="workshop_preparation_line_assigned" model="ir.rule">
+        <field name="name">Parts of assigned preparation requests</field>
+        <field name="model_id" ref="model_car_workshop_preparation_line"/>
+        <field name="domain_force">[('preparation_id.user_id', '=', user.id), ('preparation_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_workshop_material_preparer'))]"/>
+    </record>
+    <record id="workshop_preparation_line_manager" model="ir.rule">
+        <field name="name">Workshop manager preparation parts</field>
+        <field name="model_id" ref="model_car_workshop_preparation_line"/>
+        <field name="domain_force">[('preparation_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('work_orders.group_workshop_manager'))]"/>
+    </record>
+    <record id="workshop_preparer_material_privacy" model="ir.rule">
+        <field name="name">Materials-only users use the preparation view</field>
+        <field name="model_id" ref="work_orders.model_car_workorder_product"/>
+        <field name="domain_force">[(0, '=', 1)] if user.has_group('workorder_service_components.group_workshop_material_preparer') and not user.has_group('work_orders.group_workshop_employee') else [(1, '=', 1)]</field>
+    </record>
+    <record id="workshop_quality_service_scope" model="ir.rule">
+        <field name="name">Task quality for the assigned workshop</field>
+        <field name="model_id" ref="work_orders.model_car_workorder_service"/>
+        <field name="domain_force">[('workshop_id.quality_reviewer_ids', 'in', [user.id]), ('workorder_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('work_orders.group_quality_officer'))]"/>
+    </record>
+    <record id="workshop_quality_items_scope" model="ir.rule">
+        <field name="name">Task checklist for the assigned workshop</field>
+        <field name="model_id" ref="workorder_task_quality.model_workorder_service_qa_check_item"/>
+        <field name="domain_force">['|', ('service_id.workorder_id.material_preparation_enabled', '=', False), '&amp;', ('service_id.workshop_id.quality_reviewer_ids', 'in', [user.id]), ('service_id.workorder_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('work_orders.group_quality_officer'))]"/>
+    </record>
+    <record id="workshop_manager_quality_items" model="ir.rule">
+        <field name="name">Workshop manager task quality items</field>
+        <field name="model_id" ref="workorder_task_quality.model_workorder_service_qa_check_item"/>
+        <field name="domain_force">[('service_id.workorder_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('work_orders.group_workshop_manager'))]"/>
+    </record>
+</odoo>

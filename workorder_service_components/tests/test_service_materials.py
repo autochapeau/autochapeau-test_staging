@@ -387,7 +387,9 @@ class TestServiceMaterials(TransactionCase):
         self.assertTrue(order)
         self.assertEqual(len(order.product_ids), 3)
         self.assertNotIn(legacy, order.product_ids.source_component_id)
-        self.assertEqual(sum(order.product_ids.mapped("quantity")), 6)
+        self.assertEqual(sum(order.product_ids.mapped("suggested_qty")), 6)
+        self.assertEqual(sum(order.product_ids.mapped("quantity")), 0)
+        self.assertFalse(order.product_ids.product_id)
 
     def test_upsells_only_load_configured_materials(self):
         SaleOrder = self.env["sale.order"]
@@ -1058,7 +1060,7 @@ class TestServiceMaterials(TransactionCase):
         self.assertAlmostEqual(before - self._available(self.liquid), .25)
         self.assertEqual(order.service_ids.qa_check_item_ids.product_id, self.liquid)
 
-    def test_video_concrete_film_appointment_adopts_dimensions(self):
+    def test_concrete_film_appointment_defers_selection(self):
         self._film_recipe()
         slot = self.env["car.appointment.slot"].create({"date": "2099-01-17", "start_hour": 9,
             "duration": 1, "capacity": 5, "is_available": True})
@@ -1070,7 +1072,115 @@ class TestServiceMaterials(TransactionCase):
         self.assertEqual(len(order.product_ids), 1)
         self.assertEqual(order.product_ids.usage_mode, "roll")
         self.assertEqual(order.product_ids.actual_length_in, 15)
-        self.assertEqual(order.product_ids.quantity, .0085)
+        self.assertFalse(order.product_ids.product_id)
+        self.assertEqual(order.product_ids.quantity, 0)
+
+    def test_appointment_preparation_and_role_scoped_execution(self):
+        recipe = self._film_recipe()
+        recipe.allowed_brand_ids = self.material_brand
+        wrong_brand = self.env["car.material.brand"].create({"name": "Different default film brand"})
+        self.film.material_brand_id = wrong_brand
+        alternate_film = {"detailed_type": "product", "material_brand_id": self.material_brand.id,
+                          "categ_id": self.film.categ_id.id, "uom_id": self.film.uom_id.id,
+                          "uom_po_id": self.film.uom_id.id, "film_width_in": 60, "roll_length_m": 15}
+        alternative, without_stock = self.env["product.product"].create([
+            dict(alternate_film, name="Approved available preparation film"),
+            dict(alternate_film, name="Approved out of stock film"),
+        ])
+        self.env["stock.quant"]._update_available_quantity(alternative, self.warehouse.lot_stock_id, 3)
+        preparer_group = "workorder_service_components.group_workshop_material_preparer"
+        roles = self.env(context=dict(self.env.context, no_reset_password=True))
+        preparer = new_test_user(roles, login="flow_material_preparer", groups=preparer_group)
+        other_preparer = new_test_user(roles, login="flow_other_preparer", groups=preparer_group)
+        manager = new_test_user(roles, login="flow_workshop_manager", groups="work_orders.group_workshop_manager")
+        technician = new_test_user(roles, login="flow_assigned_technician", groups="work_orders.group_workshop_employee")
+        second_technician = new_test_user(roles, login="flow_second_technician", groups="work_orders.group_workshop_employee")
+        reviewer = new_test_user(roles, login="flow_assigned_reviewer", groups="work_orders.group_quality_officer")
+        unrelated_reviewer = new_test_user(roles, login="flow_other_reviewer", groups="work_orders.group_quality_officer")
+        self.staff.user_id = technician
+        second_staff = self.env["hr.employee"].create({"name": "Second flow technician", "branch_id": self.branch.id,
+                                                       "is_technician": True, "user_id": second_technician.id})
+        self.warehouse.workshop_preparer_id = preparer
+        task_check = self.env["qa.check.item"].create({"name": "Check cut edges"})
+        final_check = self.env["qa.check.item"].create({"name": "Inspect finished vehicle"})
+        workshop = self.env["car.workshop"].create({"name": "Film Workshop",
+            "quality_reviewer_ids": [Command.set(reviewer.ids)], "final_check_item_ids": [Command.set(final_check.ids)]})
+        self.service.write({"workshop_id": workshop.id, "task_quality_check_item_ids": [Command.set(task_check.ids)]})
+        slot = self.env["car.appointment.slot"].create({"date": "2099-01-18", "start_hour": 9,
+              "duration": 1, "capacity": 5, "is_available": True})
+        simple_service = self.env["product.product"].create({"name": "Workshop service without materials",
+                                                             "detailed_type": "service", "workshop_id": workshop.id})
+        self.vehicle.partner_id = self.customer
+        sale = self.env["sale.order"].create({
+            "partner_id": self.customer.id, "vehicle_id": self.vehicle.id,
+            "branch_id": self.branch.id, "appointment_slot_id": slot.id, "order_type": "intern",
+            "order_line": [Command.create({"product_id": product.id, "product_uom_qty": 1})
+                           for product in self.service | simple_service],
+        })
+        sale.action_confirm()
+        appointment = sale.appointment_id
+        appointment.action_done()
+        order = appointment.car_work_order_id.with_user(manager)
+        self.assertFalse(order.product_ids.product_id)
+        self.assertFalse(order.material_preparation_ids)
+        task = order.service_ids.filtered(lambda record: record.product_id == self.service)
+        simple_task = order.service_ids - task
+        task.staff_ids = self.staff | second_staff
+        simple_task.staff_ids = self.staff
+        with self.assertRaises(UserError):
+            order.action_confirm()
+        appointment.car_checkin_id.write({"otp_code": "123456", "otp_code_input": "123456"})
+        appointment.car_checkin_id.action_confirm()
+        order.action_confirm()
+        request = order.material_preparation_ids
+        self.assertEqual(request.user_id, preparer)
+        self.assertFalse(order.material_preparation_ready)
+        self.assertFalse(request.with_user(preparer).fields_get(["workorder_id", "task_id"]))
+        self.assertFalse(request.with_user(other_preparer).search([("id", "=", request.id)]))
+        with self.assertRaises(AccessError):
+            order.with_user(preparer).read(["partner_id"])
+        with self.assertRaises(UserError):
+            order.action_progress()
+        line = request.with_user(preparer).line_ids
+        line.write({"material_brand_id": self.material_brand.id, "product_id": without_stock.id})
+        with self.assertRaises(UserError):
+            request.with_user(preparer).action_mark_prepared()
+        with Form(request.with_user(preparer), view="workorder_service_components.workshop_material_preparation_form") as form:
+            with form.line_ids.edit(0) as part:
+                part.product_id = alternative
+                part.actual_length_in = 16
+        self.assertEqual(line.actual_length_in, 16)
+        request.with_user(preparer).action_mark_prepared()
+        self.assertTrue(order.material_preparation_ready)
+        self.assertEqual(self._available(alternative), 3)
+        order.action_progress()
+        self.assertEqual(task.state, "ready")
+        self.assertIn(second_technician, task.staff_ids.user_id)
+        visible_to_second = task.with_user(second_technician)
+        visible_tasks = visible_to_second.search([("id", "=", task.id), ("staff_ids.user_id", "=", second_technician.id)])
+        self.assertIn(task.id, visible_tasks.ids)
+        task.with_user(technician).action_start()
+        task.with_user(technician).action_finish()
+        self.assertEqual(task.state, "quality")
+        simple_task.with_user(technician).action_start()
+        simple_task.with_user(technician).action_finish()
+        self.assertEqual(simple_task.state, "done")
+        self.assertAlmostEqual(self._available(alternative), 3 - order.product_ids.quantity, places=6)
+        self.assertFalse(task.with_user(unrelated_reviewer).search([("id", "=", task.id)]))
+        check = task.with_user(reviewer).qa_check_item_ids
+        self.assertEqual(check.name, task_check.name)
+        with self.assertRaises(UserError):
+            order.action_quality()
+        check.checked = True
+        task.with_user(reviewer).action_confirm_quality()
+        order.action_quality()
+        self.assertEqual(order.qa_check_item_ids.qa_check_item_id, final_check)
+        with self.assertRaises(UserError):
+            order.action_confirm_quality()
+        order.qa_check_item_ids.checked = True
+        order.action_confirm_quality()
+        order.action_done()
+        self.assertEqual(order.state, "done")
 
     def test_video_template_film_metadata_edit_and_variants_independent(self):
         with Form(self.env["product.template"], view="product.product_template_only_form_view") as form:

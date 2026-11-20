@@ -194,7 +194,7 @@ class WorkOrder(models.Model):
                         })
                         available -= candidate
                     else:
-                        vals = self.env["car.workorder.product"]._values_from_component(task.product_id, bom)
+                        vals = order._prepare_part_material_values(task, bom)
                         vals.update(workorder_id=order.id, source_task_id=task.id)
                         self.env["car.workorder.product"].create(vals)
             # Manual lines carrying a service are consumed with that service too.
@@ -202,6 +202,9 @@ class WorkOrder(models.Model):
                 tasks = order.service_ids.filtered(lambda task: task.product_id == line.service_id)
                 if len(tasks) == 1:
                     line.source_task_id = tasks.id
+
+    def _prepare_part_material_values(self, task, component):
+        return self.env["car.workorder.product"]._values_from_component(task.product_id, component)
 
     def action_confirm(self):
         self._sync_part_materials()
@@ -347,13 +350,15 @@ class WorkOrderService(models.Model):
     def _issue_materials(self):
         self.ensure_one()
         order = self.workorder_id
-        task_lines = order.product_ids.filtered(lambda line: line.source_task_id == self)
+        task_lines = order.sudo().product_ids.filtered(lambda line: line.source_task_id.id == self.id)
         # Old open orders are checked too before any stock movement is created.
         task_lines._check_actual_dimensions()
         # Refresh derived quantities on legacy open orders with two-decimal
         # snapshots, using their saved actual cuts and film metadata.
         for line in task_lines.filtered(lambda row: row.usage_mode == "roll" and row.product_id):
-            line.write({"actual_length_in": line.actual_length_in, "actual_width_in": line.actual_width_in})
+            line.with_context(material_issue_token=_ISSUE_TOKEN).write({
+                "actual_length_in": line.actual_length_in, "actual_width_in": line.actual_width_in,
+            })
         if task_lines.filtered(lambda line: line.source_component_id and not line.product_id):
             raise UserError(_("Select the actual material for every configured category before finishing."))
         lines = task_lines.filtered(lambda line: line.quantity > 0)
@@ -426,7 +431,8 @@ class WorkOrderService(models.Model):
             move.picked = True
         picking._action_done()
         self.with_context(material_issue_token=_ISSUE_TOKEN).write({"material_picking_id": picking.id, "materials_issued": True})
-        order.message_post(body=_("Service materials issued: %s") % picking.name)
+        # The technician can finish their task without write access to the parent order.
+        order.sudo().message_post(body=_("Service materials issued: %s") % picking.name, subtype_xmlid="mail.mt_note")
 
 
 class StockPicking(models.Model):

@@ -13,7 +13,22 @@ class CarAppointment(models.Model):
     car_work_order_id = fields.Many2one(
         "car.work.order", readonly=True, copy=False)
 
+    def _work_order_service_materials(self, service):
+        return [
+            fields.Command.create({
+                "service_id": bom.service_id.id,
+                "product_id": bom.product_id.id,
+                "quantity": bom.quantity,
+            })
+            for bom in service.bom_ids
+        ]
+
     def action_done(self):
+        self.ensure_one()
+        self.env.cr.execute("SELECT id FROM car_appointment WHERE id = %s FOR UPDATE", (self.id,))
+        self.invalidate_recordset(["state", "car_work_order_id"])
+        if self.state == "confirmed" and self.car_work_order_id:
+            return True
         res = super().action_done()
         # Create a work order
         if not self.car_work_order_id:
@@ -32,18 +47,7 @@ class CarAppointment(models.Model):
                         },
                     )
                 )
-                for bom in service.product_id.bom_ids:
-                    products.append(
-                        (
-                            0,
-                            0,
-                            {
-                                "service_id": bom.service_id.id,
-                                "product_id": bom.product_id.id,
-                                "quantity": bom.quantity,
-                            },
-                        )
-                    )
+                products.extend(self._work_order_service_materials(service.product_id))
             for line in self.product_ids:
                 products.append(
                     (0, 0, {"product_id": line.product_id.id, "quantity": line.quantity}))
@@ -52,7 +56,7 @@ class CarAppointment(models.Model):
                 "partner_id": self.partner_id.id,
                 "vehicle_id": self.vehicle_id.id,
                 "company_id": self.company_id.id,
-                # 'branch_id' removed because car.work.order does not have this field
+                "branch_id": self.branch_id.id,
                 "service_ids": services,
                 "product_ids": products,
             }

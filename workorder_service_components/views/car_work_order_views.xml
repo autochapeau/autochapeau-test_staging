@@ -6,6 +6,9 @@
     <field name="inherit_id" ref="work_orders.car_work_order_view_form"/>
     <field name="priority">99</field>
     <field name="arch" type="xml">
+      <xpath expr="//form/header" position="before">
+        <field name="material_preparation_enabled" invisible="1"/>
+      </xpath>
       <xpath expr="//page[@name='products']//field[@name='product_ids']" position="replace">
         <field name="product_ids" colspan="2" nolabel="1" invisible="state != 'new'">
           <tree editable="bottom" decoration-warning="material_stock_shortage">
@@ -20,10 +23,10 @@
             <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="((material_category_id or source_task_id) and not material_brand_id) or materials_issued or (parent.state != 'new' and (not material_category_id or parent.state not in ('confirmed', 'progress')))" options="{'no_create': True}"/>
             <field name="usage_mode" readonly="1" optional="show"/>
             <field name="allowed_brand_ids" widget="many2many_tags" readonly="1" optional="hide"/>
-            <field name="standard_length_in" readonly="1" optional="show"/>
-            <field name="standard_width_in" readonly="1" optional="show"/>
-            <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
-            <field name="actual_width_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
+            <field name="standard_length_in" readonly="1" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="standard_width_in" readonly="1" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="actual_width_in" readonly="materials_issued or usage_mode != 'roll'" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
             <field name="film_width_in" readonly="1" optional="show"/>
             <field name="roll_length_m" readonly="1" optional="hide"/>
             <field name="dimension_warning" readonly="1" optional="show"/>
@@ -51,10 +54,10 @@
             <field name="product_id" domain="[('detailed_type', '!=', 'service')] + ([('categ_id', 'child_of', material_category_id)] if material_category_id else ([('product_tag_ids', 'in', [tag_id])] if tag_id else [])) + ([('material_brand_id', 'in', allowed_brand_ids)] if allowed_brand_ids else []) + ([('material_brand_id', '=', material_brand_id)] if material_brand_id else [])" readonly="not material_brand_id or materials_issued or not material_category_id or parent.state not in ('confirmed', 'progress')" options="{'no_create': True}"/>
             <field name="usage_mode" readonly="1" optional="show"/>
             <field name="allowed_brand_ids" widget="many2many_tags" readonly="1" optional="hide"/>
-            <field name="standard_length_in" readonly="1" optional="show"/>
-            <field name="standard_width_in" readonly="1" optional="show"/>
-            <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
-            <field name="actual_width_in" readonly="materials_issued or usage_mode != 'roll'" optional="show"/>
+            <field name="standard_length_in" readonly="1" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="standard_width_in" readonly="1" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="actual_length_in" readonly="materials_issued or usage_mode != 'roll'" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
+            <field name="actual_width_in" readonly="materials_issued or usage_mode != 'roll'" optional="show" invisible="parent.material_preparation_enabled and not product_id"/>
             <field name="film_width_in" readonly="1" optional="show"/>
             <field name="roll_length_m" readonly="1" optional="hide"/>
             <field name="dimension_warning" readonly="1" optional="show"/>
@@ -75,10 +78,13 @@
         <p class="text-muted">Film dimensions are in inches. Total lengths and widths are sums of all cuts. Film stock quantity uses cut area divided by the area represented by one raw-material stock unit. Exceeding the standard plus part tolerance is blocked. Total car budget warnings are advisory.</p>
       </xpath>
       <xpath expr="//field[@name='service_ids']/tree" position="inside">
-        <field name="material_total_length_in" optional="show"/><field name="material_total_width_in" optional="show"/>
-        <field name="material_tolerance_in" optional="hide"/><field name="material_used_length_in" optional="show"/>
-        <field name="material_used_width_in" optional="show"/><field name="material_used_area_m2" optional="hide"/>
-        <field name="material_budget_warning" optional="show"/>
+        <field name="material_total_length_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_total_width_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_tolerance_in" optional="hide" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_used_length_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_used_width_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_used_area_m2" optional="hide" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_budget_warning" optional="show" column_invisible="parent.material_preparation_enabled"/>
       </xpath>
       <xpath expr="//div[@name='button_box']" position="inside">
         <field name="materials_finished" invisible="1"/>

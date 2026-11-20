@@ -7,3 +7,5 @@ from . import material_category
 from . import component_batch
 from . import material_availability
 from . import material_dimensions
+from . import workshop_preparation
+from . import workshop_quality_flow

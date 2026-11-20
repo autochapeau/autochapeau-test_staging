@@ -54,6 +54,14 @@ def _is_upsell_sync(env):
     )
 
 
+class HrEmployeePublic(models.Model):
+    _inherit = "hr.employee.public"
+
+    # Managers use public employee records in the workshop staff picker.
+    branch_id = fields.Many2one("hr.department", readonly=True)
+    is_technician = fields.Boolean(readonly=True)
+
+
 class CarWorkcenter(models.Model):
     _name = "car.workcenter"
     _description = "Work center"

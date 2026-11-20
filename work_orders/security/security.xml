@@ -41,9 +41,7 @@
     <record id="work_order_employee_service_rule" model="ir.rule">
         <field name="name">Work Order Service Branch Employee</field>
         <field name="model_id" ref="model_car_workorder_service"/>
-        <field name="domain_force">['&amp;',('staff_ids', 'in',user.employee_id.ids),'|',('workcenter_id.company_id',
-            'in', company_ids),('workcenter_id.company_id', '=', False)]
-        </field>
+        <field name="domain_force">[('staff_ids', 'in', user.sudo().employee_ids.ids), ('workorder_id.company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('work_orders.group_workshop_employee'))]"/>
     </record>
 

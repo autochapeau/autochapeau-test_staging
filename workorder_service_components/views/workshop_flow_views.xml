@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="workshop_material_preparation_tree" model="ir.ui.view">
+        <field name="name">car.workshop.preparation.tree</field>
+        <field name="model">car.workshop.preparation</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="id" string="Request"/>
+                <field name="service_id" options="{'no_open': True}"/>
+                <field name="user_id" groups="work_orders.group_workshop_manager"/>
+                <field name="state" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+    <record id="workshop_material_preparation_form" model="ir.ui.view">
+        <field name="name">car.workshop.preparation.form</field>
+        <field name="model">car.workshop.preparation</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_mark_prepared" string="Materials Prepared" type="object" class="oe_highlight"
+                            invisible="state != 'pending'"/>
+                    <button name="action_reopen" string="Reopen Preparation" type="object"
+                            groups="work_orders.group_workshop_manager" invisible="state != 'prepared'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="service_id" options="{'no_open': True}"/>
+                        <field name="user_id" groups="work_orders.group_workshop_manager"
+                               readonly="state != 'pending'" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <field name="line_ids" readonly="state != 'pending'">
+                        <tree editable="bottom" create="0" delete="0" decoration-warning="material_stock_warning">
+                            <field name="part_id" options="{'no_open': True}"/>
+                            <field name="material_category_id" options="{'no_open': True}"/>
+                            <field name="allowed_brand_ids" column_invisible="1"/>
+                            <field name="usage_mode" column_invisible="1"/>
+                            <field name="material_brand_id" domain="[('id', 'in', allowed_brand_ids)] if allowed_brand_ids else []"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" string="Material"
+                                   domain="[('detailed_type', '=', 'product'), ('categ_id', 'child_of', material_category_id), ('material_brand_id', '=', material_brand_id)]"
+                                   readonly="not material_brand_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="standard_length_in" invisible="not product_id or usage_mode != 'roll'"/>
+                            <field name="standard_width_in" invisible="not product_id or usage_mode != 'roll'"/>
+                            <field name="actual_length_in" invisible="not product_id or usage_mode != 'roll'"/>
+                            <field name="actual_width_in" invisible="not product_id or usage_mode != 'roll'"/>
+                            <field name="suggested_qty" invisible="not product_id or usage_mode != 'quantity'"/>
+                            <field name="quantity" string="Actual Usage" invisible="not product_id" readonly="usage_mode == 'roll'"/>
+                            <field name="used_uom_id" invisible="not product_id" options="{'no_open': True}"/>
+                            <field name="lot_id" invisible="not product_id" domain="[('product_id', '=', product_id)]"
+                                   options="{'no_create': True, 'no_open': True}" optional="show"/>
+                            <field name="branch_available_qty" string="Available in Branch" invisible="not product_id"/>
+                            <field name="material_stock_warning" invisible="not product_id"/>
+                            <field name="dimension_warning" invisible="not product_id" optional="hide"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_workshop_material_preparation" model="ir.actions.act_window">
+        <field name="name">Material Preparation</field>
+        <field name="res_model">car.workshop.preparation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_workshop_pending_preparation" model="ir.actions.act_window">
+        <field name="name">Materials to Prepare</field>
+        <field name="res_model">car.workshop.preparation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'pending')]</field>
+    </record>
+    <menuitem id="menu_workshop_pending_preparation" name="Materials to Prepare" parent="work_orders.car_work_order_menu_root"
+              action="action_workshop_pending_preparation" sequence="12"
+              groups="group_workshop_material_preparer,work_orders.group_workshop_manager"/>
+
+    <record id="action_my_active_workshop_tasks" model="ir.actions.act_window">
+        <field name="name">My Workshop Tasks</field>
+        <field name="res_model">car.workorder.service</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('staff_ids.user_id', '=', uid), ('workorder_id.state', '=', 'progress'), ('state', 'in', ['waiting', 'ready', 'progress'])]</field>
+    </record>
+    <menuitem id="menu_my_active_workshop_tasks" name="My Workshop Tasks" parent="work_orders.car_work_order_menu_root"
+              action="action_my_active_workshop_tasks" sequence="13" groups="work_orders.group_workshop_employee"/>
+    <record id="work_orders.car_workorder_service_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('work_orders.group_workshop_manager'), ref('work_orders.group_work_order_viewer_all')])]"/>
+    </record>
+    <record id="action_pending_workshop_quality" model="ir.actions.act_window">
+        <field name="name">Pending Task Quality</field>
+        <field name="res_model">car.workorder.service</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'quality')]</field>
+    </record>
+    <menuitem id="menu_pending_workshop_quality" name="Pending Task Quality" parent="work_orders.car_work_order_menu_root"
+              action="action_pending_workshop_quality" sequence="14"
+              groups="work_orders.group_quality_officer,work_orders.group_workshop_manager"/>
+
+    <record id="workshop_flow_work_order_form" model="ir.ui.view">
+        <field name="name">car.work.order.form.workshop.preparation</field>
+        <field name="model">car.work.order</field>
+        <field name="inherit_id" ref="car_work_order_form_service_components"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="before">
+                <field name="material_preparation_ready" invisible="1"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_confirm']" position="attributes">
+                <attribute name="confirm">Confirm this work order and send any configured materials for preparation?</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_progress']" position="attributes">
+                <attribute name="invisible" add="(material_preparation_enabled and not material_preparation_ready)" separator=" or "/>
+            </xpath>
+            <xpath expr="//page[@name='qa_checklist']" position="attributes">
+                <attribute name="groups">work_orders.group_quality_officer,work_orders.group_workshop_manager</attribute>
+            </xpath>
+            <xpath expr="//page[@name='qa_checklist']/group/field[@name='qa_check_item_ids']" position="attributes">
+                <attribute name="readonly">state != 'quality'</attribute>
+            </xpath>
+            <xpath expr="//page[@name='qa_checklist']//field[@name='qa_check_item_ids']/tree" position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_start_materials']" position="attributes">
+                <attribute name="invisible" add="material_preparation_enabled" separator=" or "/>
+            </xpath>
+            <xpath expr="//button[@name='action_finish_materials']" position="attributes">
+                <attribute name="invisible" add="material_preparation_enabled" separator=" or "/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_material_preparation" type="object" icon="fa-list" class="oe_stat_button"
+                        groups="work_orders.group_workshop_manager" invisible="not material_preparation_count">
+                    <field name="material_preparation_count" widget="statinfo" string="Material Preparation"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='service_ids']/tree/field[@name='staff_ids']" position="after">
+                <field name="material_preparer_id" optional="hide" column_invisible="not parent.material_preparation_enabled"
+                       groups="work_orders.group_workshop_manager" options="{'no_create': True, 'no_open': True}"/>
+            </xpath>
+            <xpath expr="(//page[@name='products']//field[@name='product_ids'])[1]" position="attributes">
+                <attribute name="domain">[('source_component_id', '=', False)] if material_preparation_enabled else []</attribute>
+            </xpath>
+            <xpath expr="(//page[@name='products']//field[@name='product_ids'])[2]" position="attributes">
+                <attribute name="readonly" add="material_preparation_enabled" separator=" or "/>
+            </xpath>
+            <xpath expr="//page[@name='products']//field[@name='branch_available_qty']" position="attributes">
+                <attribute name="invisible">not product_id</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="workshop_preparer_warehouse_form" model="ir.ui.view">
+        <field name="name">stock.warehouse.form.workshop.preparer</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="work_orders.view_warehouse_inherit_branch"/>
+        <field name="arch" type="xml">
+            <field name="branch_id" position="after">
+                <field name="workshop_preparer_id" options="{'no_create': True, 'no_open': True}"/>
+            </field>
+        </field>
+    </record>
+    <record id="workshop_quality_configuration" model="ir.ui.view">
+        <field name="name">car.workshop.tree.quality.configuration</field>
+        <field name="model">car.workshop</field>
+        <field name="inherit_id" ref="work_orders.car_workshop_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="branch_id" position="after">
+                <field name="quality_reviewer_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="final_check_item_ids" widget="many2many_tags" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+    <record id="service_quality_configuration" model="ir.ui.view">
+        <field name="name">product.product.form.workshop.quality.configuration</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product_form_service_components"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='service_components']/field[@name='service_part_ids']" position="before">
+                <group groups="work_orders.group_workshop_manager,work_orders.group_quality_manager">
+                    <field name="skip_task_quality"/>
+                    <field name="task_quality_check_item_ids" widget="many2many_tags" invisible="skip_task_quality"
+                           options="{'no_create': True}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -21,6 +21,15 @@ Only materials assigned to a configured vehicle part are operational service com
 
 ## Branch material availability
 
+### Appointment work orders
+
+- Confirm an appointment to create its work order with service parts and material requirements. The selected product and brand stay blank. Separately sold stock products retain their normal delivery.
+- After Check-in, the workshop manager assigns technicians and confirms the work order. Confirmation creates one preparation request per service with configured materials. Assign a **Workshop Materials Preparer** as the warehouse default or on the service task. The assigned user opens **Materials to Prepare** and sees the service, parts, and material inputs.
+- Choose an approved brand and stock product for each required part. Check the branch balance and enter the actual measurements or quantity. Mark the request **Materials Prepared**. A workshop manager can complete or reopen a request before starting the order. Services without materials do not create requests.
+- At **Start**, the balance is checked again and the assigned technicians can use **My Workshop Tasks**. Material preparation does not reserve or issue stock. Existing Finish logic records actual consumption and checks availability again.
+- Assign **Quality Reviewers** and **Final Workshop Checks** on each workshop. Add **Task Quality Checks** on service variants or use the existing product features. Use **Skip Task Quality** on a variant that does not need it. Reviewers use **Pending Task Quality**. Once tasks and required reviews are done, the workshop manager approves the separate general inspection.
+- The staged flow applies to newly created appointment work orders. Existing records keep their saved selections and the workflow they started with.
+
 The work order's Products tab shows **Available in Branch** in the row's UoM. This is unreserved stock under the branch warehouse's stock location, including its sublocations. It excludes other branches and follows the work order's company. A selected lot/serial restricts the balance to that exact lot. The optional **Material Warehouse** column identifies the warehouse used.
 
 Choosing a material or changing its used quantity, unit or lot displays an **Insufficient Branch Stock** warning when stock is insufficient. The **Stock Warning** column and highlighted rows retain the warning on saved orders. Demand includes other pending rows for the same product on the order (for a selected lot, other rows using that lot), so repeated parts cannot each assume the entire balance is available. Issued rows no longer contribute to pending demand.
