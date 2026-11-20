@@ -1,5 +1,4 @@
 from . import product_product
-from . import product_template
 from . import portal_partner
 from . import portal_loyalty_program
 from . import portal_testimony
@@ -19,5 +18,3 @@ from . import portal_home_slider
 from . import portal_terms_conditions
 from . import portal_return_change_policy
 from . import portal_theme
-from . import product_category
-from . import google_reviews

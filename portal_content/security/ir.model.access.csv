@@ -1,5 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-google_review_source_admin,Google review source admin,model_portal_google_review_source,base.group_system,1,1,1,1
 access_portal_partner_user,name_portal_partner_user,model_portal_partner,group_portal_content_manager,1,1,1,0
 access_portal_loyalty_program_user,name_portal_loyalty_program_user,model_portal_loyalty_program,group_portal_content_manager,1,1,1,0
 access_portal_testimony_user,name_portal_testimony_user,model_portal_testimony,group_portal_content_manager,1,1,1,0

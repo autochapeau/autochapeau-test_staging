@@ -31,11 +31,7 @@
                     <group>
                         <group>
                             <field name="name" />
-                            <field name="metric" />
-                            <field name="value" invisible="metric != 'manual'" />
-                            <field name="opening_value" invisible="metric == 'manual'" />
-                            <field name="count_from" invisible="metric == 'manual'" />
-                            <field name="car_count_mode" invisible="metric != 'cars'" />
+                            <field name="value" />
                         </group>
                     </group>
                 </sheet>

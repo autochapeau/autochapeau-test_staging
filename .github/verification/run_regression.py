@@ -50,8 +50,10 @@ sources = {
     "sales_region_commission": ["test_commission", "test_accounting", "test_user_access", "test_target_tiers", "test_rule_setup"],
     "workorder_service_components": ["test_service_materials"],
     "order_maintenance": ["test_maintenance_parts"],
-    "portal_api": ["test_website_release"],
 }
+# The feature suite applies only while the optional website release is deployed.
+if "website_card_price" in env["product.template"]._fields:
+    sources["portal_api"] = ["test_website_release"]
 for addon, names in sources.items():
     name = "odoo.addons." + addon + ".tests"
     path = root / "addon_tests" / addon
