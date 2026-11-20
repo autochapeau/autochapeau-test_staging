@@ -1,0 +1,75 @@
+name: Keep verified TEST website rollback in source history
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/workflows/website-rollback-sync.yml]
+permissions:
+  contents: write
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Preserve current ERP history and publish only the verified website rollback
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /home/admin/custom_addons
+          test "$(sudo docker service inspect autochapeau_staging_website_web --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}')" = autochapeau-frontend:staging-b35136f
+          mapfile -t paths < <(git diff --name-only 90613ba c9f1d0d -- portal_api portal_content partner_management)
+          git diff --quiet 90613ba -- "${paths[@]}"
+          git diff --cached --quiet
+          git bundle create /tmp/website-verified-rollback.bundle HEAD ^e80d51179beffdcab56aab9173159d97cc44f4fd
+          REMOTE
+          scp -P "$SSH_PORT" "$SSH_USER@$SSH_HOST:/tmp/website-verified-rollback.bundle" /tmp/website-verified-rollback.bundle
+          git fetch /tmp/website-verified-rollback.bundle HEAD:refs/remotes/test-server/rollback
+          git config user.name 'TEST website rollback'
+          git config user.email 'test-rollback@autochapeau.invalid'
+          git switch -c verified-website-rollback refs/remotes/test-server/rollback
+          SERVER=$(git rev-parse HEAD)
+          git merge --no-edit origin/main
+          # Newer remote ERP source must already be present on TEST; allow only verification metadata differences.
+          test -z "$(git diff --name-only "$SERVER" HEAD -- . ':(exclude).github/**')"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/verification/verify_staging.py');s=p.read_text()
+          if 'from odoo.modules.module import get_manifest' not in s:s=s.replace('from lxml import etree','from lxml import etree\nfrom odoo.modules.module import get_manifest')
+          s=s.replace('"partner_management": "17.0.1.6.5"','"partner_management": get_manifest("partner_management")["version"]')
+          s=s.replace('"partner_management": "17.0.1.6.4"','"partner_management": get_manifest("partner_management")["version"]');p.write_text(s)
+          p=Path('.github/verification/run_regression.py');s=p.read_text()
+          s=s.replace('    "portal_api": ["test_website_release"],\n','')
+          marker='for addon, names in sources.items():'
+          if 'if "website_card_price" in env["product.template"]._fields:' not in s:s=s.replace(marker,'# Optional website feature tests run only while that release is deployed.\nif "website_card_price" in env["product.template"]._fields:\n    sources["portal_api"] = ["test_website_release"]\n'+marker)
+          p.write_text(s)
+          PY
+          git add .github/verification/verify_staging.py .github/verification/run_regression.py
+          git commit -m 'Keep TEST verification aligned with requested website rollback [skip ci]'
+          git push origin HEAD:main
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          umask 022
+          cd /home/admin/custom_addons
+          before=$(git diff --binary -- . ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc' | sha256sum)
+          git fetch https://github.com/autochapeau/autochapeau-test_staging.git main
+          test -z "$(git diff --name-only HEAD FETCH_HEAD -- . ':(exclude).github/**')"
+          git merge --ff-only FETCH_HEAD
+          test "$before" = "$(git diff --binary -- . ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc' | sha256sum)"
+          echo WEBSITE_ROLLBACK_SOURCE_SYNC="$(git rev-parse HEAD)"
+          REMOTE
