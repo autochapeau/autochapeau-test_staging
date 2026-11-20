@@ -2,7 +2,7 @@
 set -euo pipefail
 umask 077
 DIR=/home/admin/website-rollback-20261121
-mkdir -p "$DIR"
+sudo install -d -m 700 -o "$(id -u)" -g "$(id -g)" "$DIR"
 cd /home/admin/custom_addons
 ODOO=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
 WEB=$(sudo docker ps --filter name=autochapeau_staging_website_web --format '{{.ID}}' | head -1)

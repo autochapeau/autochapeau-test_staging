@@ -7,7 +7,7 @@ root=Path('/tmp/website-rollback-export');root.mkdir(mode=0o700,exist_ok=True)
 report={'database':env.cr.dbname,'portal_tables':{},'fields':{},'parameters':{},'attachments':[]}
 env.cr.execute("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'portal_%' ORDER BY tablename")
 for (table,) in env.cr.fetchall():
-    env.cr.execute('SELECT row_to_json(t) FROM "'+table+'" t ORDER BY id')
+    env.cr.execute('SELECT row_to_json(t) FROM "'+table+'" t ORDER BY row_to_json(t)::text')
     report['portal_tables'][table]=[r[0] for r in env.cr.fetchall()]
 selected={'product_template':['website_card_price_enabled','website_card_price','website_card_price_label'],'product_category':['portal_image'],'maintenance_claim':['website_submitted','website_message'],'res_partner':[]}
 for table,wanted in selected.items():
@@ -44,6 +44,14 @@ dump=backup/'database.dump'
 if not dump.exists():
     subprocess.run([find_pg_tool('pg_dump'),'--no-owner','--format=c','--file='+str(dump),env.cr.dbname],env=exec_pg_environ(),check=True)
 subprocess.run([find_pg_tool('pg_restore'),'--list',str(dump)],stdout=subprocess.DEVNULL,check=True)
+links=backup/'filestore'
+if filestore.exists() and not links.exists():
+    links.mkdir(mode=0o700)
+    for source in filestore.rglob('*'):
+        assert not source.is_symlink()
+        target=links/source.relative_to(filestore)
+        if source.is_dir():target.mkdir(exist_ok=True)
+        elif source.is_file():os.link(source,target)
 for name in ('website-state.json','business-before.json'):(backup/name).write_bytes((root/name).read_bytes())
 env.cr.rollback()
 print('WEBSITE_ROLLBACK_AUDIT='+json.dumps({'database':env.cr.dbname,'backup_directory':str(backup),'dump_bytes':dump.stat().st_size,'portal_tables':{k:len(v) for k,v in report['portal_tables'].items()},'protected_tables':len(hashes),'attachment_count':len(attachments)}),flush=True)
