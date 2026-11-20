@@ -15,11 +15,12 @@ from lxml import etree
 
 from odoo import tools
 from odoo.tests import loader
-from odoo.modules.module import get_module_path
+from odoo.modules.module import get_manifest, get_module_path
 
 root = Path(os.environ["VIDEO_VERIFICATION_ROOT"]).resolve()
 component_module = env["ir.module.module"].search([("name", "=", "workorder_service_components")])
-assert component_module.state == "installed" and component_module.latest_version == "17.0.4.1.1"
+assert component_module.state == "installed"
+assert component_module.latest_version == get_manifest("workorder_service_components")["version"]
 for model, names in {
     "car.bom": {"usage_mode", "standard_length_in", "standard_width_in", "allowed_brand_ids"},
     "car.workorder.product": {"actual_length_in", "actual_width_in", "film_width_in", "material_brand_id", "dimension_warning"},
