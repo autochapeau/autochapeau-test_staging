@@ -11,7 +11,3 @@ class PortalAboutus(models.Model):
     name = fields.Char(string="Title", required=True, translate=True)
     summary = fields.Text(translate=True)
     details = fields.Html(translate=True)
-    secondary_image = fields.Image(
-        string="Small Image", max_width=1920, max_height=1920,
-        help="Independent image for the smaller frame on the About Us page.",
-    )

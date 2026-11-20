@@ -173,10 +173,7 @@ def format_search_read_result(search_result, fields, duration_fields, model_name
 
         for key in fields:
             value = item.get(key)
-            model_field = request.env[model_name]._fields.get(key) if model_name else None
-            is_binary = model_field and model_field.type == "binary"
-            is_url = isinstance(value, str) and value.startswith(("https://", "http://", "/portal/"))
-            if item.get("id") and model_name and value and not is_url and (is_binary or isinstance(value, bytes)):
+            if item.get("id") and model_name and isinstance(item[key], bytes):
                 processed_item[key] = get_binary_url(
                     model_name, item.get("id"), key)
             elif isinstance(value, tuple):

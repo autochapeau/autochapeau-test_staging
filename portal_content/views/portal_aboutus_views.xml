@@ -40,7 +40,6 @@
                                 widget='image'
                                 options='{"zoom": true, "preview_image":"image_128"}'
                             />
-                            <field name="secondary_image" widget="image" />
                         </group>
                     </group>
                 </sheet>

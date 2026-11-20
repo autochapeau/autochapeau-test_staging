@@ -36,7 +36,6 @@
                             <field name="summary" />
                             <field name="details" />
                             <field name="is_main" />
-                            <field name="product_id" options="{'no_create': True}" />
                         </group>
                         <group>
                             <field

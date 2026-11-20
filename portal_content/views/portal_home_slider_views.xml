@@ -19,18 +19,12 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="first_title" />
-                        <field name="second_title" />
-                        <field name="url" />
-                        <field name="overlay_opacity" />
                         <field
                             name="image_1920"
                             string="Image"
                             widget="image"
                             options='{"zoom": true, "preview_image": "image_128"}'
                         />
-                        <field name="image_ar" widget="image" />
-                        <field name="image_en" widget="image" />
                     </group>
                 </sheet>
             </form>
