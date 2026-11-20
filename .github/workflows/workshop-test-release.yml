@@ -39,9 +39,10 @@ jobs:
           done
           test -s ~/.ssh/known_hosts
           release_sha=$(git rev-list -1 HEAD -- work_orders workorder_service_components)
+          remote_result=$(mktemp)
           ssh -o BatchMode=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             -i ~/.ssh/workshop_test_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "bash -s -- $release_sha $GITHUB_SHA" <<'REMOTE'
+            "bash -s -- $release_sha $GITHUB_SHA" <<'REMOTE' | tee "$remote_result"
           set -euo pipefail
           umask 077
           release_sha=$1
@@ -85,7 +86,7 @@ jobs:
               dir=$(dirname -- "$dir")
             done
           done
-          sudo -n docker exec -i "$container" python3 -c '
+          sudo -n docker exec "$container" python3 -c '
           import sys
           from pathlib import Path
           for name in sys.argv[1:]:
@@ -98,7 +99,7 @@ jobs:
           sudo -n python3 "$scratch/scripts/odoo_maintenance.py" \
             --service "$service" --database "$database" \
             --modules work_orders,workorder_service_components --release-check \
-            --state-file "$project/$(git rev-parse --git-path workshop-test-maintenance.json)"
+            --state-file "$project/$(git rev-parse --git-path workshop-test-maintenance.json)" </dev/null
           for attempt in $(seq 1 40); do
             container=$(sudo -n docker ps --filter "label=com.docker.swarm.service.name=$service" --format '{{.ID}}' | head -1)
             if [ -n "$container" ] && sudo -n docker exec "$container" python3 -c \
@@ -110,3 +111,4 @@ jobs:
           done
           exit 1
           REMOTE
+          grep -qx 'TEST_WORKSHOP_HTTP_HEALTH_OK=true' "$remote_result"
