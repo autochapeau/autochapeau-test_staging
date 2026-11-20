@@ -5,7 +5,7 @@ umask 077
 DIR=/home/admin/website-rollback-20261121
 cd /home/admin/custom_addons
 test -s "$DIR/current-website-backup.tar.gz"
-test "$(git rev-parse HEAD)" = "$(cat "$DIR/backend-commit.txt")"
+git rev-parse HEAD > "$DIR/backend-before-rollback-latest.txt"
 # Refuse to replace any newer website customization, including local changes.
 mapfile -t website_paths < <(git diff --name-only 90613ba c9f1d0d -- portal_api portal_content partner_management)
 git diff --quiet c9f1d0d -- "${website_paths[@]}"

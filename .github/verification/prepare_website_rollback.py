@@ -5,7 +5,7 @@ import odoo
 from odoo.tools import config
 config.parse_config([])
 database='autochapeau_prod_test'
-before=json.loads(Path('/tmp/website-rollback-export/website-state.json').read_text())
+before=json.loads((Path(config['data_dir'])/'website-rollback-backups/20261121/website-state.json').read_text())
 original=json.loads(Path('/tmp/website-original-sms.json').read_text())
 assert before['database']==original['database']==database
 with odoo.sql_db.db_connect(database).cursor() as cr:

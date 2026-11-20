@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: website-test-deployment
+  group: odoo-test-deployment
   cancel-in-progress: false
 jobs:
   rollback:
