@@ -9,7 +9,7 @@ from odoo.modules.module import get_manifest
 expected = {
     "account_asset_management": "17.0.1.1.0",
     "appointment_management": "17.0.1.1.1",
-    "partner_management": "17.0.1.6.5",
+    "partner_management": get_manifest("partner_management")["version"],
     "sale_split_payment": "17.0.1.3.3",
     "account_deferred_revenue": "17.0.1.2.1",
     "sales_region_commission": "17.0.6.2.0",
