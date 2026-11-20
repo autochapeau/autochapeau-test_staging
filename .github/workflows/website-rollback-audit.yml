@@ -1,0 +1,42 @@
+name: Preserve website TEST before requested rollback
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/verification/website_rollback_audit.py, .github/verification/website_rollback_audit.sh, .github/workflows/website-rollback-audit.yml]
+permissions:
+  contents: read
+concurrency:
+  group: website-test-deployment
+  cancel-in-progress: false
+jobs:
+  preserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve TEST website code content settings and current frontend
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh backup
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' < .github/verification/website_rollback_audit.sh
+          scp -P "$SSH_PORT" "$SSH_USER@$SSH_HOST:/home/admin/website-rollback-20261121/current-website-backup.tar.gz" /tmp/current-website-backup.tar.gz
+          python3 -m pip install cryptography PyNaCl
+          python3 - <<'PY'
+          import importlib.util,pathlib
+          spec=importlib.util.spec_from_file_location('bundle','.github/verification/website_bundle.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          public=b'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID0qbEt/j4lNMJNd6CNlFp9fQkZz7++125+byUgfSSp0'
+          pathlib.Path('backup/current-website-backup.sealed').write_bytes(m.encrypt(pathlib.Path('/tmp/current-website-backup.tar.gz').read_bytes(),public))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-test-before-rollback-encrypted
+          path: backup/current-website-backup.sealed
+          retention-days: 30
