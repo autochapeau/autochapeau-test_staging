@@ -13,7 +13,7 @@ assert 'website_request_user_id' not in env['maintenance.claim']._fields
 assert 'portal.google.review.source' not in env.registry.models
 assert 'metric' not in env['portal.statistic']._fields
 assert not env['portal.offer'].search_count([('name','ilike','DEMO Website QA Offer')])
-assert not env['product.product'].search_count([('id','=',6902)])
+assert not env['product.product'].search_count([('name','=','DEMO Website QA Media Service')])
 before=json.loads((Path(config['data_dir'])/'website-rollback-backups/20261121/business-before.json').read_text())
 changed=[]
 for table,item in before.items():
