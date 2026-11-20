@@ -1,0 +1,44 @@
+name: Apply requested website rollback on TEST only
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/workflows/website-rollback-apply.yml]
+permissions:
+  contents: read
+concurrency:
+  group: website-test-deployment
+  cancel-in-progress: false
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore website code content and original frontend on TEST
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          python3 -m pip install cryptography PyNaCl
+          python3 - <<'PY'
+          import importlib.util,pathlib,os,re,base64,json
+          spec=importlib.util.spec_from_file_location('bundle','.github/verification/website_bundle.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          key=os.environ['SSH_PRIVATE_KEY'].encode()
+          original=json.loads(m.decrypt(pathlib.Path('.github/verification/website-sms-original.sealed').read_bytes(),key))
+          source=pathlib.Path('.github/workflows/sms-configure-test.yml').read_text()
+          sealed=re.search(r'SEALED_CREDENTIALS: (\S+)',source).group(1)
+          feature=json.loads(m.decrypt(base64.b64decode(sealed),key))
+          original['feature_configuration']={'infinito_client_id':feature['client'],'infinito_client_password':feature['password'],'portal_api.allow_test_otp':'0'}
+          p=pathlib.Path('/tmp/website-original-sms.json');p.write_text(json.dumps(original));p.chmod(0o600)
+          PY
+          scp -P "$SSH_PORT" /tmp/website-original-sms.json "$SSH_USER@$SSH_HOST:/tmp/website-original-sms.json"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' < .github/verification/apply_website_rollback.sh
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'rm -- /tmp/website-original-sms.json'
+          rm -- /tmp/website-original-sms.json

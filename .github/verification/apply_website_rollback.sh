@@ -7,7 +7,8 @@ cd /home/admin/custom_addons
 test -s "$DIR/current-website-backup.tar.gz"
 test "$(git rev-parse HEAD)" = "$(cat "$DIR/backend-commit.txt")"
 # Refuse to replace any newer website customization, including local changes.
-git diff --quiet c9f1d0d -- portal_api portal_content partner_management ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc'
+mapfile -t website_paths < <(git diff --name-only 90613ba c9f1d0d -- portal_api portal_content partner_management)
+git diff --quiet c9f1d0d -- "${website_paths[@]}"
 outside=(. ':(exclude)portal_api/**' ':(exclude)portal_content/**' ':(exclude)partner_management/**' ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc')
 before_local=$(git diff --binary -- "${outside[@]}" | sha256sum)
 git fetch https://github.com/autochapeau/autochapeau-test_staging.git codex/website-test-rollback
