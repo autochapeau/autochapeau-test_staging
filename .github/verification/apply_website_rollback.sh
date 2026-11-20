@@ -39,7 +39,17 @@ for path in "${website_paths[@]}"; do if [ -f "$path" ]; then chmod 644 -- "$pat
 git show "$ROLLBACK:.github/verification/verify_website_rollback.py" > "$DIR/verify_website_rollback.py"
 test "$before_local" = "$(git diff --binary -- "${outside[@]}" | sha256sum)"
 echo UNRELATED_LOCAL_SOURCE_PRESERVED=true
-sudo -n python3 .github/scripts/odoo_maintenance.py --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test --modules portal_content,portal_api,partner_management --state-file "$DIR/maintenance-state.json"
+if ! sudo docker exec -i "$ODOO" python3 - <<'PY'
+import odoo
+from odoo.tools import config
+config.parse_config([])
+with odoo.sql_db.db_connect('autochapeau_prod_test').cursor() as cr:
+    for name,version in [('portal_content','17.0.1.0.13'),('portal_api','17.0.1.0.31'),('partner_management','17.0.1.6.4')]:
+        cr.execute('SELECT state,latest_version FROM ir_module_module WHERE name=%s',[name]);assert cr.fetchone()==('installed',version)
+PY
+then
+  sudo -n python3 .github/scripts/odoo_maintenance.py --service autochapeau_staging_odoo_odoo --database autochapeau_prod_test --modules portal_content,portal_api,partner_management --state-file "$DIR/maintenance-state.json"
+fi
 ODOO=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
 test -n "$ODOO"
 healthy=false
@@ -48,13 +58,7 @@ for attempt in $(seq 1 40); do
   sleep 3
 done
 test "$healthy" = true
-sudo docker exec -i "$ODOO" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0 < "$DIR/verify_website_rollback.py"
-# Retain the current server's unrelated smoke checks and adjust only the rolled-back module version.
-python3 - <<'PY' | sudo docker exec -i "$ODOO" odoo shell -d autochapeau_prod_test --no-http --max-cron-threads=0
-from pathlib import Path
-s=Path('.github/verification/verify_staging.py').read_text()
-print(s.replace('"partner_management": "17.0.1.6.5"','"partner_management": "17.0.1.6.4"'))
-PY
+sudo docker exec -i "$ODOO" python3 - < "$DIR/verify_website_rollback.py"
 sudo docker service update --image autochapeau-frontend:staging-b35136f --no-resolve-image autochapeau_staging_website_web
 for attempt in $(seq 1 40); do
   IMAGE=$(sudo docker service ps autochapeau_staging_website_web --filter desired-state=running --format '{{.Image}}' | head -1)
