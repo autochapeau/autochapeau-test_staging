@@ -1,0 +1,47 @@
+name: Read-only audit of every removed website field
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/workflows/website-fields-audit.yml]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check complete added-field inventory without loading an ORM registry
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          python3 - <<'PY' > /tmp/audit-fields.py
+          from pathlib import Path
+          inventory=Path('.github/verification/website-feature-field-inventory.json').read_text()
+          print('inventory = '+repr(inventory))
+          print('''
+          import json,odoo
+          from odoo.tools import config
+          config.parse_config([])
+          fields=json.loads(inventory)
+          with odoo.sql_db.db_connect('autochapeau_prod_test').cursor() as cr:
+              cr.execute('SELECT current_database()');assert cr.fetchone()[0]=='autochapeau_prod_test'
+              left=[]
+              for x in fields:
+                  cr.execute('SELECT count(*) FROM ir_model_fields WHERE model=%s AND name=%s',[x['model'],x['field']])
+                  if cr.fetchone()[0]:left.append(x)
+              assert not left,left
+              cr.execute("SELECT required FROM ir_model_fields WHERE model='portal.banner' AND name='first_title'")
+              assert cr.fetchone()==(True,)
+              cr.rollback()
+          print('ALL_WEBSITE_FIELDS_AUDIT='+json.dumps({'added_fields_checked':len(fields),'remaining_added_fields':0,'original_banner_title_required':True,'readonly':True}))
+          ''')
+          PY
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'ODOO=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format "{{.ID}}" | head -1); test -n "$ODOO"; sudo docker exec -i "$ODOO" python3 -' < /tmp/audit-fields.py

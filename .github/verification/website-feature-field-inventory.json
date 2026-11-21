@@ -1,0 +1,192 @@
+[
+  {
+    "model": "maintenance.claim",
+    "field": "website_request_user_id",
+    "type": "Many2one"
+  },
+  {
+    "model": "portal.aboutus",
+    "field": "secondary_image",
+    "type": "Image"
+  },
+  {
+    "model": "portal.banner",
+    "field": "image_ar",
+    "type": "Image"
+  },
+  {
+    "model": "portal.banner",
+    "field": "image_en",
+    "type": "Image"
+  },
+  {
+    "model": "portal.banner",
+    "field": "text_align",
+    "type": "Selection"
+  },
+  {
+    "model": "portal.banner",
+    "field": "text_position",
+    "type": "Selection"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "active",
+    "type": "Boolean"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "client_id",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "client_secret",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "display_limit",
+    "type": "Integer"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "enabled",
+    "type": "Boolean"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "last_error",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "last_sync",
+    "type": "Datetime"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "location_name",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "maps_url",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "name",
+    "type": "Char"
+  },
+  {
+    "model": "portal.google.review.source",
+    "field": "refresh_token",
+    "type": "Char"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "first_title",
+    "type": "Char"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "image_ar",
+    "type": "Image"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "image_en",
+    "type": "Image"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "overlay_opacity",
+    "type": "Float"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "second_title",
+    "type": "Char"
+  },
+  {
+    "model": "portal.home.slider",
+    "field": "url",
+    "type": "Char"
+  },
+  {
+    "model": "portal.offer",
+    "field": "product_id",
+    "type": "Many2one"
+  },
+  {
+    "model": "portal.statistic",
+    "field": "car_count_mode",
+    "type": "Selection"
+  },
+  {
+    "model": "portal.statistic",
+    "field": "count_from",
+    "type": "Datetime"
+  },
+  {
+    "model": "portal.statistic",
+    "field": "metric",
+    "type": "Selection"
+  },
+  {
+    "model": "portal.statistic",
+    "field": "opening_value",
+    "type": "Integer"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "google_review_id",
+    "type": "Char"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "google_source_id",
+    "type": "Many2one"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "profile_image_url",
+    "type": "Char"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "rating",
+    "type": "Integer"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "review_time",
+    "type": "Datetime"
+  },
+  {
+    "model": "portal.testimony",
+    "field": "review_url",
+    "type": "Char"
+  },
+  {
+    "model": "product.category",
+    "field": "portal_image",
+    "type": "Image"
+  },
+  {
+    "model": "product.template",
+    "field": "website_card_price",
+    "type": "Monetary"
+  },
+  {
+    "model": "product.template",
+    "field": "website_card_price_enabled",
+    "type": "Boolean"
+  },
+  {
+    "model": "product.template",
+    "field": "website_card_price_label",
+    "type": "Char"
+  }
+]
