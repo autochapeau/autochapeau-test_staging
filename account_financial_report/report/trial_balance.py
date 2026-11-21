@@ -14,6 +14,24 @@ class TrialBalanceReport(models.AbstractModel):
     _description = "Trial Balance Report"
     _inherit = "report.account_financial_report.abstract_report"
 
+    def _get_filter_analytic_account(self, account_id, company):
+        accounts = self.env["account.analytic.account"]
+        if not account_id:
+            return accounts
+        account = accounts.browse(account_id).exists()
+        if not account:
+            raise UserError(_("Select an existing analytic account."))
+        account.check_access_rights("read")
+        account.check_access_rule("read")
+        if not company or (account.company_id and account.company_id != company):
+            raise UserError(_("Select an analytic account for the report company."))
+        return account
+
+    def _get_analytic_ml_domain(self, analytic_account_id):
+        if not analytic_account_id:
+            return []
+        return [("analytic_account_ids", "in", [analytic_account_id])]
+
     def _get_initial_balances_bs_ml_domain(
         self,
         account_ids,
@@ -181,6 +199,7 @@ class TrialBalanceReport(models.AbstractModel):
         only_posted_moves,
         show_partner_details,
         foreign_currency,
+        analytic_account_id=False,
     ):
         domain = self._get_initial_balance_fy_pl_ml_domain(
             account_ids,
@@ -190,7 +209,7 @@ class TrialBalanceReport(models.AbstractModel):
             fy_start_date,
             only_posted_moves,
             show_partner_details,
-        )
+        ) + self._get_analytic_ml_domain(analytic_account_id)
         initial_balances = self.env["account.move.line"].read_group(
             domain=domain,
             fields=["account_id", "balance", "amount_currency:sum"],
@@ -419,7 +438,9 @@ class TrialBalanceReport(models.AbstractModel):
         unaffected_earnings_account,
         fy_start_date,
         grouped_by,
+        analytic_account_id=False,
     ):
+        analytic_domain = self._get_analytic_ml_domain(analytic_account_id)
         accounts_domain = [("company_id", "=", company_id)]
         if account_ids:
             accounts_domain += [("id", "in", account_ids)]
@@ -444,6 +465,7 @@ class TrialBalanceReport(models.AbstractModel):
             only_posted_moves,
             show_partner_details,
         )
+        initial_domain_bs += analytic_domain
         tb_initial_acc_bs = self.env["account.move.line"].read_group(
             domain=initial_domain_bs,
             fields=["account_id", "balance", "amount_currency:sum"],
@@ -459,6 +481,7 @@ class TrialBalanceReport(models.AbstractModel):
             show_partner_details,
             fy_start_date,
         )
+        initial_domain_pl += analytic_domain
         tb_initial_acc_pl = self.env["account.move.line"].read_group(
             domain=initial_domain_pl,
             fields=["account_id", "balance", "amount_currency:sum"],
@@ -505,6 +528,7 @@ class TrialBalanceReport(models.AbstractModel):
             only_posted_moves,
             show_partner_details,
         )
+        period_domain += analytic_domain
         tb_period_acc = self.env["account.move.line"].read_group(
             domain=period_domain,
             fields=["account_id", "debit", "credit", "balance", "amount_currency:sum"],
@@ -594,6 +618,7 @@ class TrialBalanceReport(models.AbstractModel):
             only_posted_moves,
             show_partner_details,
             foreign_currency,
+            analytic_account_id=analytic_account_id,
         )
         if unaffected_id:
             total_amount[unaffected_id]["ending_balance"] += pl_initial_balance
@@ -877,7 +902,8 @@ class TrialBalanceReport(models.AbstractModel):
         only_posted_moves = data["only_posted_moves"]
         unaffected_earnings_account = data["unaffected_earnings_account"]
         fy_start_date = data["fy_start_date"]
-        grouped_by = data["grouped_by"]
+        analytic_account = self._get_filter_analytic_account(data.get("analytic_account_id"), company)
+        grouped_by = False if analytic_account else data["grouped_by"]
         total_amount, accounts_data, partners_data = self._get_data(
             account_ids,
             journal_ids,
@@ -892,7 +918,15 @@ class TrialBalanceReport(models.AbstractModel):
             unaffected_earnings_account,
             fy_start_date,
             grouped_by,
+            analytic_account_id=analytic_account.id,
         )
+        analytic_drilldown_domain = self._get_analytic_ml_domain(analytic_account.id)
+        if analytic_drilldown_domain:
+            analytic_drilldown_domain.append(("company_id", "=", company_id))
+            if journal_ids:
+                analytic_drilldown_domain.append(("journal_id", "in", journal_ids))
+            if partner_ids:
+                analytic_drilldown_domain.append(("partner_id", "in", partner_ids))
         trial_balance_grouped = False
         total_amount_grouped = False
         if grouped_by:
@@ -980,4 +1014,6 @@ class TrialBalanceReport(models.AbstractModel):
             "show_hierarchy_level": show_hierarchy_level,
             "currency_model": self.env["res.currency"],
             "grouped_by": grouped_by,
+            "filter_analytic_account_name": analytic_account.display_name,
+            "analytic_drilldown_domain": analytic_drilldown_domain,
         }

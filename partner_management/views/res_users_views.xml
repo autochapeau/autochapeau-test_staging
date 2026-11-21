@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_users_form_professional" model="ir.ui.view">
+        <field name="name">res.users.form.professional</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <page name="access_rights" position="after">
+                <page name="professional" string="Professional" groups="base.group_system">
+                    <div class="app_settings_block">
+                        <h2>Contact permissions</h2>
+                        <div class="row mt16 o_settings_container">
+                            <setting id="can_edit_existing_contacts" string="Allow editing existing contacts"
+                                     help="Let this user save changes to existing contacts they already have access to edit. The user's current creation permissions still apply.">
+                                <field name="can_edit_existing_contacts"/>
+                            </setting>
+                        </div>
+                    </div>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

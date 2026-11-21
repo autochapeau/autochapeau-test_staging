@@ -349,9 +349,16 @@ msgstr "???????????? ??????????????."
 #. module: account_financial_report
 #: model:ir.model.fields,field_description:account_financial_report.field_account_move_line__analytic_account_ids
 #: model:ir.model.fields.selection,name:account_financial_report.selection__trial_balance_report_wizard__grouped_by__analytic_account
-#, fuzzy
+#: model:ir.model.fields,field_description:account_financial_report.field_trial_balance_report_wizard__analytic_account_id
+#: model_terms:ir.ui.view,arch_db:account_financial_report.report_trial_balance_base
+#: code:addons/account_financial_report/report/trial_balance_xlsx.py:0
 msgid "Analytic Account"
-msgstr "?????????? ????????????????"
+msgstr "الحساب التحليلي"
+
+#. module: account_financial_report
+#: model_terms:ir.ui.view,arch_db:account_financial_report.trial_balance_wizard
+msgid "View Journal Items"
+msgstr "عرض حركات القيود"
 
 #. module: account_financial_report
 #. odoo-python

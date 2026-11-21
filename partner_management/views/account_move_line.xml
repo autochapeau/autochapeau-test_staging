@@ -19,6 +19,20 @@
         </field>
     </record>
 
+    <record id="view_journal_items_search_group_by" model="ir.ui.view">
+        <field name="name">account.move.line.search.journal.items.group.by</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_account_move_line_filter"/>
+        <field name="arch" type="xml">
+            <filter name="group_by_partner" position="after">
+                <filter string="Product Category" name="group_by_product_category"
+                        context="{'group_by': 'product_category_id'}"/>
+                <filter string="Salesperson" name="group_by_invoice_user"
+                        context="{'group_by': 'invoice_user_id'}"/>
+            </filter>
+        </field>
+    </record>
+
     <record id="account.action_account_moves_all" model="ir.actions.act_window">
         <field name="view_id" ref="view_journal_items_tree"/>
     </record>

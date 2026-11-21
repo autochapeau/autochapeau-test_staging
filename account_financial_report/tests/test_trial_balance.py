@@ -3,6 +3,7 @@
 # Copyright 2020 ForgeFlow S.L. (https://www.forgeflow.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
+from odoo import Command
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -197,6 +198,55 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
             "report.account_financial_report.trial_balance"
         ]._get_report_values(trial_balance, data)
         return res_data
+
+    def test_analytic_filter_matches_report_and_journal_items(self):
+        company = self.account200.company_id
+        plans = self.env["account.analytic.plan"].create([
+            {"name": "Trial Balance Test Plan"}, {"name": "Trial Balance Secondary Plan"},
+        ])
+        plan, other_plan = plans
+        selected, unrelated, secondary = self.env["account.analytic.account"].create([
+            {"name": name, "plan_id": analytic_plan.id, "company_id": company.id}
+            for name, analytic_plan in (("Selected", plan), ("Unrelated", plan), ("Secondary", other_plan))
+        ])
+        journal = self.company_data["default_journal_misc"]
+
+        def add_move(date, amount, distribution, posted=True):
+            move = self.env["account.move"].create({
+                "date": date, "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({"account_id": self.account200.id, "credit": amount,
+                                    "analytic_distribution": distribution}),
+                    Command.create({"account_id": self.account100.id, "debit": amount,
+                                    "partner_id": self.partner.id}),
+                ],
+            })
+            if posted:
+                move.action_post()
+            return move.line_ids.filtered(lambda line: line.account_id == self.account200)
+
+        add_move("2016-01-03", 25, {str(selected.id): 100})
+        included = add_move("2016-02-10", 40, {f"{selected.id},{secondary.id}": 100})
+        add_move("2016-02-11", 100, {str(unrelated.id): 100})
+        draft = add_move("2016-02-12", 15, {str(selected.id): 100}, posted=False)
+        wizard = self.env["trial.balance.report.wizard"].create({
+            "date_from": "2016-02-01", "date_to": "2016-02-29", "company_id": company.id,
+            "account_ids": [Command.set(self.account200.ids)],
+            "journal_ids": [Command.set(journal.ids)], "analytic_account_id": selected.id,
+            "grouped_by": "analytic_account",
+        })
+        report = self.env["report.account_financial_report.trial_balance"]
+        values = report._get_report_values(wizard, wizard._prepare_report_trial_balance())
+        self.assertFalse(values["trial_balance_grouped"])
+        amounts = self._get_account_lines(self.account200.id, values["trial_balance"])
+        self.assertEqual(amounts, {"initial_balance": -25, "debit": 0, "credit": 40, "final_balance": -65})
+        self.assertIn(("analytic_account_ids", "in", [selected.id]), values["analytic_drilldown_domain"])
+
+        action = wizard.action_view_analytic_journal_items()
+        journal_items = self.env["account.move.line"]
+        self.assertEqual(journal_items.search(action["domain"]), included)
+        wizard.target_move = "all"
+        self.assertEqual(journal_items.search(wizard.action_view_analytic_journal_items()["domain"]), included | draft)
 
     def check_account_in_report(self, account_id, trial_balance):
         account_in_report = False

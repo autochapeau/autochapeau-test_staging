@@ -34,6 +34,10 @@
             </div>
             <!-- Display filters -->
             <t t-call="account_financial_report.report_trial_balance_filters" />
+            <div t-if="filter_analytic_account_name" class="mt-2">
+                <strong>Analytic Account</strong>
+                <span t-out="filter_analytic_account_name"/>
+            </div>
             <div class="act_as_table list_table" style="margin-top: 10px;" />
             <!-- Display account lines -->
             <t t-set="aml_domain_extra" t-value="[]" />
@@ -260,6 +264,7 @@
             t-else=""
             t-value="[('parent_state', 'in', ('posted', 'draft'))]"
         />
+        <t t-set="aml_domain_common" t-value="aml_domain_common + analytic_drilldown_domain"/>
         <!-- # line -->
         <div class="act_as_row lines">
             <t t-if="not show_partner_details">

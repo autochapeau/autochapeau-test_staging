@@ -2,6 +2,7 @@ import logging
 import math
 import random
 import re
+from contextvars import ContextVar
 from urllib.parse import parse_qs
 import requests
 from odoo import _, api, fields, models
@@ -9,6 +10,7 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
+_contact_creation = ContextVar("partner_management_contact_creation", default=None)
 
 
 class ResPartner(models.Model):
@@ -563,7 +565,15 @@ class ResPartner(models.Model):
                     vals.setdefault("mobile_verified", False)
             if "mobile_otp_input" in vals:
                 vals["mobile_otp_input"] = False
-        partners = super().create(vals_list)
+        scope = _contact_creation.get()
+        token = None
+        if not scope or scope[:2] != (self.env.cr, self.env.uid):
+            token = _contact_creation.set((self.env.cr, self.env.uid, set()))
+        try:
+            partners = super().create(vals_list)
+        finally:
+            if token is not None:
+                _contact_creation.reset(token)
         # Use the resulting mobile so default_mobile and inherited defaults
         # receive exactly the same validation as explicitly supplied values.
         for partner in partners:
@@ -571,6 +581,32 @@ class ResPartner(models.Model):
             if normalized:
                 super(ResPartner, partner).write({"mobile_unique_key": normalized})
         return partners
+
+    def _create(self, data_list):
+        partners = super()._create(data_list)
+        scope = _contact_creation.get()
+        if scope and scope[:2] == (self.env.cr, self.env.uid):
+            scope[2].update(partners.ids)
+        return partners
+
+    def _may_edit_existing_contacts(self):
+        return self.env.su or self.env.user.sudo().can_edit_existing_contacts
+
+    def _only_new_contacts_in_creation(self):
+        # Odoo's contact creation writes back inherited address and language on the new records.
+        scope = _contact_creation.get()
+        return scope and scope[:2] == (self.env.cr, self.env.uid) and scope[2].issuperset(self.ids)
+
+    def _handle_first_contact_creation(self):
+        # Creating a child must not silently fill in an existing parent's address without permission.
+        if self._may_edit_existing_contacts() or self.parent_id._only_new_contacts_in_creation():
+            return super()._handle_first_contact_creation()
+
+    def check_access_rule(self, operation):
+        if operation == "write" and self and not self._may_edit_existing_contacts():
+            if not self._only_new_contacts_in_creation():
+                raise AccessError(_("You need the 'Allow editing existing contacts' permission to save changes to an existing contact."))
+        return super().check_access_rule(operation)
 
     def write(self, vals):
         vals = dict(vals)

@@ -71,6 +71,10 @@ class TrialBalanceReportWizard(models.TransientModel):
     grouped_by = fields.Selection(
         selection=[("analytic_account", "Analytic Account")], default=False
     )
+    analytic_account_id = fields.Many2one(
+        "account.analytic.account", string="Analytic Account",
+        help="Only include journal items assigned to this analytic account.",
+    )
 
     @api.onchange("grouped_by")
     def onchange_grouped_by(self):
@@ -132,6 +136,8 @@ class TrialBalanceReportWizard(models.TransientModel):
         self.only_one_unaffected_earnings_account = (
             self._only_one_unaffected_earnings_account()
         )
+        if self.analytic_account_id.company_id and self.analytic_account_id.company_id != self.company_id:
+            self.analytic_account_id = False
         if (
             self.company_id
             and self.date_range_id.company_id
@@ -274,8 +280,27 @@ class TrialBalanceReportWizard(models.TransientModel):
             "show_partner_details": self.show_partner_details,
             "unaffected_earnings_account": self.unaffected_earnings_account.id,
             "account_financial_report_lang": self.env.lang,
-            "grouped_by": self.grouped_by,
+            "grouped_by": False if self.analytic_account_id else self.grouped_by,
+            "analytic_account_id": self.analytic_account_id.id,
         }
+
+    def action_view_analytic_journal_items(self):
+        self.ensure_one()
+        self.check_access_rights("read")
+        self.check_access_rule("read")
+        if not self.analytic_account_id:
+            raise UserError(_("Select an analytic account to view its journal items."))
+        report = self.env["report.account_financial_report.trial_balance"]
+        account = report._get_filter_analytic_account(self.analytic_account_id.id, self.company_id)
+        domain = report._get_period_ml_domain(
+            self.account_ids.ids, self.journal_ids.ids, self.partner_ids.ids,
+            self.company_id.id, self.date_to, self.date_from,
+            self.target_move == "posted", self.show_partner_details,
+        ) + report._get_analytic_ml_domain(account.id)
+        action = self.env["ir.actions.actions"]._for_xml_id("account.action_account_moves_all")
+        action.update(name=_("Journal Items: %s", account.display_name),
+                      domain=domain, context={"create": False})
+        return action
 
     def _export(self, report_type):
         """Default export is PDF."""

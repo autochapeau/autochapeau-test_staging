@@ -1,5 +1,6 @@
 from . import res_city
 from . import res_partner
+from . import res_users
 from . import sale_order
 from . import fleet_vehicle
 from . import product_template

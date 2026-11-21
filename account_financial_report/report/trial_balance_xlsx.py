@@ -127,7 +127,7 @@ class TrialBalanceXslx(models.AbstractModel):
             return res
 
     def _get_report_filters(self, report):
-        return [
+        filters = [
             [
                 _("Date range filter"),
                 _("From: %(date_from)s To: %(date_to)s")
@@ -154,6 +154,9 @@ class TrialBalanceXslx(models.AbstractModel):
                 else _("No limit"),
             ],
         ]
+        if report.analytic_account_id:
+            filters.append([_("Analytic Account"), report.analytic_account_id.display_name])
+        return filters
 
     def _get_col_count_filter_name(self):
         return 2

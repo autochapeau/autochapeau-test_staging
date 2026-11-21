@@ -6,15 +6,8 @@
         <field name="model">trial.balance.report.wizard</field>
         <field name="arch" type="xml">
             <form>
-                <div
-                    class="alert alert-warning"
-                    role="alert"
-                    invisible="grouped_by!='analytic_account'"
-                >
-                    <i class="fa fa-exclamation-triangle mr-3" />
-                    Duplicate amounts may be shown because more than one analytical account may be defined in the journal items.
-                </div>
                 <group name="main_info">
+                    <field name="company_id" invisible="1" groups="!base.group_multi_company"/>
                     <field
                         name="company_id"
                         options="{'no_create': True}"
@@ -31,16 +24,17 @@
                         </group>
                         <group name="other_filters">
                             <field name="target_move" widget="radio" />
-                            <field name="grouped_by" invisible="1" />
                             <field
-                                name="grouped_by"
+                                name="analytic_account_id"
                                 groups="analytic.group_analytic_accounting"
+                                domain="[('company_id', 'in', [False, company_id])]"
+                                options="{'no_create': True}"
                             />
                             <field name="hide_account_at_0" />
-                            <field name="show_partner_details" invisible="grouped_by" />
+                            <field name="show_partner_details" />
                             <field
                                 name="show_hierarchy"
-                                invisible="show_partner_details == True or grouped_by"
+                                invisible="show_partner_details"
                             />
                             <field
                                 name="limit_hierarchy_level"
@@ -138,6 +132,9 @@
                             string="Export XLSX"
                             type="object"
                         />
+                        <button name="action_view_analytic_journal_items" string="View Journal Items"
+                                type="object" groups="analytic.group_analytic_accounting"
+                                invisible="not analytic_account_id"/>
                         or
                         <button string="Cancel" class="oe_link" special="cancel" />
                     </div>
