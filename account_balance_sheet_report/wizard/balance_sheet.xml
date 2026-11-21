@@ -83,14 +83,20 @@
                         <group>
                             <field name="account_report_id" domain="[('parent_id','=',False)]" />
                             <field name="enable_filter" />
+                            <field name="is_profit_loss" invisible="1"/>
+                            <field name="profit_loss_layout_id" invisible="not is_profit_loss"
+                                   domain="[('company_id', '=', company_id)]"
+                                   placeholder="Standard layout" options="{'no_create': True}"/>
+                            <field name="profit_loss_details" invisible="not is_profit_loss"/>
                             <field name="show_analytic_account"/>
-                            <field name="debit_credit" invisible="enable_filter == 'True'" />
-                            <field name="company_id" groups="base.group_multi_company" />
+                            <field name="debit_credit" invisible="enable_filter" />
+                            <field name="company_id" />
                         </group>
                         <group>
                             <field name="target_move" widget="radio" />
                             <field name="date_from" />
                             <field name="date_to" />
+                            <field name="journal_ids" widget="many2many_tags" invisible="not is_profit_loss"/>
                         </group>
                     </group>
                 <notebook colspan="4">
@@ -111,6 +117,8 @@
                     </page>
                 </notebook>
                       <footer>
+                     <button name="button_view_profit_loss" type="object" string="View Report"
+                             class="btn-primary" invisible="not is_profit_loss"/>
                      <button
                             name="button_export_pdf"
                             string="Print PDF"

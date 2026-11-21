@@ -1,5 +1,7 @@
 from odoo import _, models
 
+from .profit_loss import PROFIT_LOSS_REPORT
+
 HEADER_VALS1 = ["الحساب", "الدائن", "المدين", "الرصيد"]
 
 
@@ -11,6 +13,10 @@ class ReportFinancialXslx(models.AbstractModel):
     # pylint: disable=unused-argument,too-many-locals,too-complex,too-many-statements
     def generate_xlsx_report(self, workbook, data, lines):
         """Generate report xlsx."""
+        form = data["form"]
+        if form["account_report_id"][0] == self.env.ref(PROFIT_LOSS_REPORT).id:
+            report = self.env["account.profit.loss.report"]._get_values(form)
+            return self._write_profit_loss(workbook, report)
         docs = self.env["accounting.reporting"].browse(lines.id)
         docids = {}
         res_data = self.env["report.account_balance_sheet_report.report_financial"]._get_report_values(
@@ -166,6 +172,33 @@ class ReportFinancialXslx(models.AbstractModel):
                 prod_row = self._write_financial_line(
                     sheet, prod_row, line, debit_credit, formats
                 )
+
+    def _write_profit_loss(self, workbook, report):
+        sheet = workbook.add_worksheet("P&L")
+        if self.env.lang.startswith("ar"):
+            sheet.right_to_left()
+        sheet.set_column(0, 0, 48)
+        sheet.set_column(1, len(report["columns"]), 19)
+        title = workbook.add_format({"bold": True, "font_size": 16})
+        header = workbook.add_format({"bold": True, "bg_color": "#EAE6EE"})
+        minor = workbook.add_format({"indent": 1})
+        places = report["company"].currency_id.decimal_places
+        number_format = "#,##0" + ("." + "0" * places if places else "")
+        amount = workbook.add_format({"num_format": number_format})
+        total_amount = workbook.add_format({"num_format": number_format, "bold": True, "bg_color": "#EAE6EE"})
+        sheet.write_string(0, 0, _("Profit and Loss"), title)
+        sheet.write_string(1, 0, report["company"].name)
+        dates = [str(report["form"][key]) for key in ("date_from", "date_to") if report["form"].get(key)]
+        if dates:
+            sheet.write_string(2, 0, " – ".join(dates))
+        sheet.write_string(4, 0, _("Name"), header)
+        for col, (key, label) in enumerate(report["columns"], 1):
+            sheet.write_string(4, col, label, header)
+        sheet.freeze_panes(5, 1)
+        for index, row in enumerate(report["rows"], 5):
+            sheet.write_string(index, 0, row["name"], header if row.get("total") else (minor if row.get("detail") else None))
+            for col, (key, label) in enumerate(report["columns"], 1):
+                sheet.write_number(index, col, row[key], total_amount if row.get("total") else amount)
 
     def _line_level(self, line):
         level = line.get("level") or 0

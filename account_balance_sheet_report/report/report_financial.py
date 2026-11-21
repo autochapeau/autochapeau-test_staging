@@ -3,6 +3,8 @@ import time
 from odoo import _, api, models
 from odoo.exceptions import UserError
 
+from .profit_loss import PROFIT_LOSS_REPORT
+
 
 class ReportFinancial(models.AbstractModel):
     _name = "report.account_balance_sheet_report.report_financial"
@@ -298,12 +300,14 @@ class ReportFinancial(models.AbstractModel):
                 _("Form content is missing, this report cannot be printed."))
         model = self.env.context.get("active_model")
         docs = self.env[model].browse(self.env.context.get("active_id"))
-        report_lines = self.get_account_lines(data)
+        form = data["form"]
+        profit_loss = form["account_report_id"][0] == self.env.ref(PROFIT_LOSS_REPORT).id
         return {
             "doc_ids": self.ids,
             "doc_model": model,
-            "data": data["form"],
+            "data": form,
             "docs": docs,
             "time": time,
-            "get_account_lines": report_lines,
+            "get_account_lines": [] if profit_loss else self.get_account_lines(data),
+            "profit_loss": self.env["account.profit.loss.report"]._get_values(form) if profit_loss else False,
         }

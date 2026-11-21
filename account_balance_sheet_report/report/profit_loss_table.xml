@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="profit_loss_table">
+        <section class="mx-auto my-4 p-4 rounded border" style="max-width: 960px;">
+            <h2 class="mb-2">Profit and Loss</h2>
+            <div class="text-muted mb-4">
+                <span t-esc="report['company'].name"/>
+                <t t-if="report['form'].get('date_from')"> · <span t-esc="report['form']['date_from']"/></t>
+                <t t-if="report['form'].get('date_to')"> – <span t-esc="report['form']['date_to']"/></t>
+                <t t-if="report['form'].get('target_move') == 'all'"> · All Entries</t>
+                <t t-else=""> · All Posted Entries</t>
+            </div>
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th t-foreach="report['columns']" t-as="column" scope="col" class="text-end text-nowrap">
+                            <span t-esc="column[1]"/>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="report['rows']" t-as="row"
+                        t-att-class="'table-active fw-bold' if row.get('total') else ''">
+                        <th scope="row" t-att-class="'ps-4 small fw-normal text-muted' if row.get('detail') else ('fw-bold' if row.get('total') else 'fw-normal')">
+                            <span t-esc="row['name']"/>
+                        </th>
+                        <td t-foreach="report['columns']" t-as="column" class="text-end text-nowrap">
+                            <span t-esc="row[column[0]]" t-options="{'widget': 'monetary', 'display_currency': report['company'].currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </template>
+</odoo>

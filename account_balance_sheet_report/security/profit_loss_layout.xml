@@ -1,0 +1,12 @@
+<odoo>
+    <record id="profit_loss_layout_company_rule" model="ir.rule">
+        <field name="name">Profit and Loss Layout by Company</field>
+        <field name="model_id" ref="model_account_profit_loss_layout"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="profit_loss_layout_line_company_rule" model="ir.rule">
+        <field name="name">Profit and Loss Layout Line by Company</field>
+        <field name="model_id" ref="model_account_profit_loss_layout_line"/>
+        <field name="domain_force">[('layout_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

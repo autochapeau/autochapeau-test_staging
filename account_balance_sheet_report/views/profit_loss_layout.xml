@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="profit_loss_preview_form" model="ir.ui.view">
+        <field name="name">accounting.reporting.profit.loss.preview</field>
+        <field name="model">accounting.reporting</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="button_view_profit_loss" type="object" string="Refresh Report" class="btn-primary"/>
+                    <button name="button_export_pdf" type="object" string="Print PDF"/>
+                    <button name="button_export_xlsx" type="object" string="Print XLSX"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="profit_loss_layout_id" domain="[('company_id', '=', company_id)]"
+                                   placeholder="Standard layout" options="{'no_create': True}"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="profit_loss_details"/>
+                        </group>
+                        <group>
+                            <field name="target_move"/>
+                            <field name="journal_ids" widget="many2many_tags"/>
+                            <field name="show_analytic_account"/>
+                            <field name="analytic_account_ids" widget="many2many_tags" invisible="not show_analytic_account"/>
+                            <field name="enable_filter"/>
+                            <field name="debit_credit" invisible="enable_filter"/>
+                            <field name="label_filter" invisible="not enable_filter"/>
+                            <field name="filter_cmp" invisible="not enable_filter"/>
+                            <field name="date_from_cmp" invisible="not enable_filter or filter_cmp != 'filter_date'"
+                                   required="enable_filter and filter_cmp == 'filter_date'"/>
+                            <field name="date_to_cmp" invisible="not enable_filter or filter_cmp != 'filter_date'"
+                                   required="enable_filter and filter_cmp == 'filter_date'"/>
+                        </group>
+                    </group>
+                    <field name="profit_loss_preview" nolabel="1" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="profit_loss_layout_form" model="ir.ui.view">
+        <field name="name">account.profit.loss.layout.form</field>
+        <field name="model">account.profit.loss.layout</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name" placeholder="e.g. Management Income Statement"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                    <field name="line_ids" nolabel="1">
+                        <tree editable="bottom" create="0" delete="0">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="section" readonly="1" force_save="1"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="profit_loss_layout_tree" model="ir.ui.view">
+        <field name="name">account.profit.loss.layout.tree</field>
+        <field name="model">account.profit.loss.layout</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_profit_loss_layout" model="ir.actions.act_window">
+        <field name="name">Profit and Loss Layouts</field>
+        <field name="res_model">account.profit.loss.layout</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_profit_loss_layout" name="Profit and Loss Layouts" parent="account.menu_finance_configuration"
+              action="action_profit_loss_layout" groups="account.group_account_manager" sequence="70"/>
+</odoo>

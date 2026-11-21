@@ -2,6 +2,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.misc import get_lang
 
+from ..report.profit_loss import PROFIT_LOSS_REPORT
+
 
 class AccountingReport(models.TransientModel):
     show_analytic_account = fields.Boolean(string="Analytic Account")
@@ -57,15 +59,39 @@ class AccountingReport(models.TransientModel):
     journal_ids = fields.Many2many(
         comodel_name="account.journal",
         string="Journals",
-        required=True,
         default=lambda self: self.env["account.journal"].search(
-            [("company_id", "=", self.company_id.id)]),
+            [("company_id", "=", self.env.company.id)]),
         domain="[('company_id', '=', company_id)]",
     )
     analytic_account_ids = fields.Many2many(
         comodel_name="account.analytic.account",
         string="Analytic Accounts",
     )
+    is_profit_loss = fields.Boolean(compute="_compute_is_profit_loss")
+    profit_loss_layout_id = fields.Many2one("account.profit.loss.layout", string="Layout")
+    profit_loss_details = fields.Boolean(string="Show Account Details")
+    profit_loss_preview = fields.Html(readonly=True)
+
+    @api.depends("account_report_id")
+    def _compute_is_profit_loss(self):
+        report = self.env.ref(PROFIT_LOSS_REPORT)
+        for wizard in self:
+            wizard.is_profit_loss = wizard.account_report_id == report
+
+    def button_view_profit_loss(self):
+        self.ensure_one()
+        if not self.is_profit_loss:
+            raise ValidationError(_("Select Profit and Loss to open the preview."))
+        values = self.env["account.profit.loss.report"]._get_values(self._report_data()["form"])
+        self.profit_loss_preview = self.env["ir.qweb"]._render(
+            "account_balance_sheet_report.profit_loss_table", {"report": values},
+        )
+        return {
+            "type": "ir.actions.act_window", "name": _("Profit and Loss"),
+            "res_model": self._name, "res_id": self.id,
+            "views": [(self.env.ref("account_balance_sheet_report.profit_loss_preview_form").id, "form")],
+            "target": "current",
+        }
 
     def _build_comparison_context(self, data):
         result = {}
@@ -87,7 +113,7 @@ class AccountingReport(models.TransientModel):
         result["company_id"] = data["form"]["company_id"][0] or False
         return result
 
-    def _print_report(self, report_type):
+    def _report_data(self):
         self.ensure_one()
         data = {
             "form": self.read(
@@ -105,6 +131,9 @@ class AccountingReport(models.TransientModel):
                     "company_id",
                     "show_analytic_account",
                     "analytic_account_ids",
+                    "label_filter",
+                    "profit_loss_layout_id",
+                    "profit_loss_details",
                 ]
             )[0]
         }
@@ -113,6 +142,11 @@ class AccountingReport(models.TransientModel):
             used_context, lang=get_lang(self.env).code)
         comparison_context = self._build_comparison_context(data)
         data["form"]["comparison_context"] = comparison_context
+        return data
+
+    def _print_report(self, report_type):
+        self.ensure_one()
+        data = self._report_data()
 
         if report_type == "xlsx":
             report_name = "a_b_s.report_financial_xlsx"
@@ -128,7 +162,7 @@ class AccountingReport(models.TransientModel):
         if not report:
             raise ValidationError(_("Report not found: %s") % report_name)
 
-        return report.with_context(lang=self.env.lang).report_action(self, data=data)
+        return report.with_context(lang=self.env.lang, active_model=self._name, active_id=self.id).report_action(self, data=data)
 
     def button_export_pdf(self):
         self.ensure_one()

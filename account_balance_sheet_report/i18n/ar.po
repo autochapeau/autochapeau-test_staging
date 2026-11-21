@@ -16,6 +16,72 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Revenue"
+msgstr "الإيرادات"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Less Costs of Revenue"
+msgstr "ناقص تكلفة الإيرادات"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Gross Profit"
+msgstr "مجمل الربح"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Less Operating Expenses"
+msgstr "ناقص المصاريف التشغيلية"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Operating Income (or Loss)"
+msgstr "الربح أو الخسارة التشغيلية"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Plus Other Income"
+msgstr "زائد الإيرادات الأخرى"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Less Other Expenses"
+msgstr "ناقص المصاريف الأخرى"
+
+#. module: account_balance_sheet_report
+#: code:addons/account_balance_sheet_report/report/profit_loss.py:0
+msgid "Net Profit"
+msgstr "صافي الربح"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__profit_loss_layout_id
+msgid "Layout"
+msgstr "التنسيق"
+
+#. module: account_balance_sheet_report
+#: model:ir.model.fields,field_description:account_balance_sheet_report.field_accounting_reporting__profit_loss_details
+msgid "Show Account Details"
+msgstr "عرض تفاصيل الحسابات"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.accounting_report_view
+msgid "View Report"
+msgstr "عرض التقرير"
+
+#. module: account_balance_sheet_report
+#: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.profit_loss_preview_form
+msgid "Refresh Report"
+msgstr "تحديث التقرير"
+
+#. module: account_balance_sheet_report
+#: model:ir.actions.act_window,name:account_balance_sheet_report.action_profit_loss_layout
+#: model:ir.ui.menu,name:account_balance_sheet_report.menu_profit_loss_layout
+msgid "Profit and Loss Layouts"
+msgstr "تنسيقات قائمة الربح والخسارة"
+
+#. module: account_balance_sheet_report
 #: model_terms:ir.ui.view,arch_db:account_balance_sheet_report.report_financial
 msgid "<strong>Date from :</strong>"
 msgstr "<strong>التاريخ من :</strong>"
