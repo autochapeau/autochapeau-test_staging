@@ -98,6 +98,39 @@ class TestServiceAdvance(TransactionCase):
         invoice = wizard._create_invoices(order)
         self.assertFalse(invoice.invoice_line_ids.is_service_advance)
         self.assertNotEqual(invoice.invoice_line_ids.account_id, self.liability)
+        self.assertFalse(invoice.invoice_line_ids.sale_line_ids.service_advance_product_names)
+
+    def test_service_advance_names_products_in_each_tax_group(self):
+        order = self.order()
+        other_taxed, untaxed = self.env["product.product"].create([
+            {"name": name, "detailed_type": "service", "invoice_policy": "order",
+             "property_account_income_id": self.income.id}
+            for name in ("QA Additional Taxed Service", "QA Untaxed Service")
+        ])
+        order.order_line = [
+            Command.create({"product_id": product.id, "sequence": sequence, "product_uom_qty": 1,
+                "price_unit": price, "tax_id": [Command.set(taxes.ids)]})
+            for product, sequence, price, taxes in (
+                (other_taxed, 20, 200, self.tax), (self.product, 30, 100, self.tax),
+                (untaxed, 40, 300, self.env["account.tax"]),
+            )
+        ]
+        advance = self.advance(order, 359)
+        expected_names = {
+            self.tax: "QA Deferred Service, QA Additional Taxed Service",
+            self.env["account.tax"]: "QA Untaxed Service",
+        }
+        self.assertAlmostEqual(advance.amount_total, 359)
+        self.assertEqual(len(advance.invoice_line_ids), 2)
+        for line in advance.invoice_line_ids:
+            self.assertEqual(line.name, expected_names[line.tax_ids])
+            self.assertEqual(line.sale_line_ids.service_advance_product_names, line.name)
+            self.assertEqual(line.account_id, self.liability)
+        self.post(advance)
+        final = order.with_context(default_journal_id=self.journal.id)._create_invoices(final=True)
+        deductions = final.invoice_line_ids.filtered("is_service_advance")
+        self.assertEqual(set(deductions.mapped("name")), set(expected_names.values()))
+        self.assertAlmostEqual(advance.amount_total + final.amount_total, order.amount_total)
 
     def test_invalid_liability_account_rejected(self):
         with self.assertRaises(ValidationError), self.cr.savepoint():

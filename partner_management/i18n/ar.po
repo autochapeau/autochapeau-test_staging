@@ -18,3 +18,13 @@ msgstr "رقم الجوال مستخدم بالفعل لدى جهة اتصال �
 #, python-format
 msgid "Database protection for new mobile numbers could not be enabled."
 msgstr "تعذر تفعيل حماية قاعدة البيانات من تكرار أرقام الجوال الجديدة."
+
+#. module: partner_management
+#: model:ir.model.fields,field_description:partner_management.field_account_move_line__invoice_user_id
+msgid "Salesperson"
+msgstr "مندوب المبيعات"
+
+#. module: partner_management
+#: model:ir.model.fields,field_description:partner_management.field_account_move_line__product_category_id
+msgid "Product Category"
+msgstr "فئة المنتج"

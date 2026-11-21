@@ -1,7 +1,7 @@
 {
     "name": "Partner Management",
     "summary": "Contact type, city selection, customer mobile OTP, partner sequences, and related sale orders",
-    "version": "17.0.1.6.4",
+    "version": "17.0.1.6.5",
     "author": "Wellknot",
     "category": "Contacts",
     "depends": [
@@ -29,6 +29,7 @@
         "views/car_workorder_service_views.xml",
         "views/product_product_views.xml",
         "views/account_move.xml",
+        "views/account_move_line.xml",
         "views/team_analytic_views.xml",
     ],
     "assets": {

@@ -11,7 +11,7 @@ expected = {
     "appointment_management": "17.0.1.1.1",
     "partner_management": get_manifest("partner_management")["version"],
     "sale_split_payment": "17.0.1.3.3",
-    "account_deferred_revenue": "17.0.1.2.1",
+    "account_deferred_revenue": get_manifest("account_deferred_revenue")["version"],
     "sales_region_commission": "17.0.6.2.0",
     "account_move_print": "17.0.1.2.2",
     "commission": "17.0.1.3.0",
@@ -54,6 +54,27 @@ for model in ("account.asset", "account.journal", "account.payment", "sale.order
     result["views"].append(model)
 assert "sales_analytic_account_id" in env["crm.team"].get_view(view_type="form")["arch"], "The default Sales Team form must expose its analytic account."
 assert "create_deferred_service_invoice" in env["sale.order"].get_view(view_type="form")["arch"], "Service orders need a reachable advance invoice action."
+
+journal_action = env.ref("account.menu_action_account_moves_all").action
+journal_view_id, journal_view_type = journal_action.views[0]
+assert journal_view_type == "tree"
+journal_lines = env["account.move.line"]
+journal_arch = etree.fromstring(journal_lines.get_view(journal_view_id, journal_view_type)["arch"])
+journal_columns = ("invoice_user_id", "product_id", "product_category_id")
+for name in journal_columns:
+    assert len(journal_arch.xpath("./field[@name=$name][@optional='show']", name=name)) == 1, name
+sample = journal_lines.search([("parent_state", "=", "posted"), ("move_id.move_type", "=", "out_invoice"),
+    ("move_id.invoice_user_id", "!=", False), ("product_id", "!=", False)], limit=1)
+assert sample and sample.invoice_user_id == sample.move_id.invoice_user_id
+assert sample.product_category_id == sample.product_id.categ_id
+result["journal_items_columns"] = list(journal_columns)
+
+sale_arch = etree.fromstring(env["sale.order"].get_view(env.ref("sale.view_order_form").id, "form")["arch"])
+assert sale_arch.xpath("//field[@name='order_line']/tree/field[@name='service_advance_product_names']")
+backend_assets = env["ir.qweb"]._get_asset_bundle("web.assets_backend", css=False)
+templates = etree.fromstring(f"<templates>{backend_assets.xml()}</templates>".encode())
+assert templates.xpath("./t[@t-name='sale.SaleProductField']/span[@t-esc='props.record.data.service_advance_product_names']")
+result["service_advance_product_labels"] = True
 
 for model, xmlid in (
     ("sale.split.payment.wizard", "sale_split_payment.view_sale_split_payment_wizard_form"),

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="account_deferred_revenue.SaleProductField" t-inherit="sale.SaleProductField" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='props.readonly']" position="before">
+            <span t-if="props.record.data.service_advance_product_names"
+                  t-esc="props.record.data.service_advance_product_names"/>
+        </xpath>
+        <xpath expr="//t[@t-if='props.readonly']" position="attributes">
+            <attribute name="t-if"/>
+            <attribute name="t-elif">props.readonly</attribute>
+        </xpath>
+    </t>
+</templates>

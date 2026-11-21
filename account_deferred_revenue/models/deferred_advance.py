@@ -21,12 +21,51 @@ class SaleLine(models.Model):
     _inherit = "sale.order.line"
 
     service_advance_account_id = fields.Many2one("account.account", copy=False, check_company=True, readonly=True)
+    service_advance_product_names = fields.Char(compute="_compute_service_advance_product_names")
+
+    def _service_advance_tax_key(self):
+        self.ensure_one()
+        # Odoo groups advance lines by flattened taxes with fixed taxes removed.
+        taxes = self.tax_id.flatten_taxes_hierarchy()
+        return frozenset(tax.id for tax in taxes if tax.amount_type != "fixed")
+
+    @api.depends_context("lang")
+    @api.depends(
+        "is_downpayment", "display_type", "service_advance_account_id", "tax_id",
+        "order_id.partner_id.lang", "order_id.order_line.display_type",
+        "order_id.order_line.is_downpayment", "order_id.order_line.product_id.display_name",
+        "order_id.order_line.tax_id",
+    )
+    def _compute_service_advance_product_names(self):
+        self.service_advance_product_names = False
+        advances = self.filtered(
+            lambda line: line.is_downpayment and line.service_advance_account_id and not line.display_type
+        )
+        for order, advance_lines in advances.grouped("order_id").items():
+            product_lines = order.order_line.filtered(
+                lambda line: line.product_id and not line.display_type and not line.is_downpayment
+            ).with_context(lang=order._get_lang(), display_default_code=False)
+            all_names = {}
+            names_by_taxes = {}
+            for line in product_lines:
+                product = line.product_id
+                name = product.display_name
+                all_names[product.id] = name
+                names_by_taxes.setdefault(line._service_advance_tax_key(), {})[product.id] = name
+            for line in advance_lines:
+                names = names_by_taxes.get(line._service_advance_tax_key(), all_names)
+                line.service_advance_product_names = ", ".join(names.values())
+
+    def _get_sale_order_line_multiline_description_sale(self):
+        return self.service_advance_product_names or super()._get_sale_order_line_multiline_description_sale()
 
     def _prepare_invoice_line(self, **optional_values):
         values = super()._prepare_invoice_line(**optional_values)
         if self.service_advance_account_id and not self.display_type:
             # Retain the original liability even if the journal configuration changes.
             values.update(account_id=self.service_advance_account_id.id, is_service_advance=True)
+            if self.service_advance_product_names:
+                values["name"] = self.service_advance_product_names
         return values
 
 
