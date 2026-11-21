@@ -1,0 +1,83 @@
+name: Verify website rollback and preserve portable runtime
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/workflows/website-archive-verify.yml]
+permissions:
+  contents: read
+concurrency:
+  group: odoo-test-deployment
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read TEST source module metadata and save existing runtime images
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh backup
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          umask 077
+          DIR=/home/admin/website-rollback-20261121
+          cd /home/admin/custom_addons
+          mapfile -t paths < <(git diff --name-only 90613ba c9f1d0d -- portal_api portal_content partner_management)
+          git diff --quiet 90613ba -- "${paths[@]}"
+          test "$(sudo docker service inspect autochapeau_staging_website_web --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}')" = autochapeau-frontend:staging-b35136f
+          ODOO=$(sudo docker ps --filter name=autochapeau_staging_odoo_odoo --format '{{.ID}}' | head -1)
+          test -n "$ODOO"
+          sudo docker exec -i "$ODOO" python3 - <<'PY'
+          import json,odoo
+          from odoo.tools import config
+          config.parse_config([])
+          with odoo.sql_db.db_connect('autochapeau_prod_test').cursor() as cr:
+              cr.execute('SELECT current_database()');assert cr.fetchone()[0]=='autochapeau_prod_test'
+              versions={'portal_content':'17.0.1.0.13','portal_api':'17.0.1.0.31','partner_management':'17.0.1.6.4'}
+              for name,v in versions.items():
+                  cr.execute('SELECT state,latest_version FROM ir_module_module WHERE name=%s',[name]);assert cr.fetchone()==('installed',v)
+              removed=[('product.template','website_card_price'),('product.category','portal_image'),('maintenance.claim','website_request_user_id'),('portal.statistic','metric')]
+              for model,name in removed:
+                  cr.execute('SELECT count(*) FROM ir_model_fields WHERE model=%s AND name=%s',[model,name]);assert cr.fetchone()[0]==0
+              cr.execute("SELECT count(*) FROM ir_model WHERE model='portal.google.review.source'");assert cr.fetchone()[0]==0
+              cr.rollback()
+          print('FRESH_WEBSITE_ROLLBACK_AUDIT='+json.dumps({'database':'autochapeau_prod_test','versions':versions,'feature_fields_absent':True,'readonly':True}),flush=True)
+          PY
+          sudo docker image inspect autochapeau-frontend:staging-b35136f autochapeau-frontend:test-d04871693633 > "$DIR/runtime-images.json"
+          sudo docker save autochapeau-frontend:staging-b35136f autochapeau-frontend:test-d04871693633 | gzip -1 > "$DIR/frontend-runtime-images.tar.gz.partial"
+          gzip -t "$DIR/frontend-runtime-images.tar.gz.partial"
+          mv "$DIR/frontend-runtime-images.tar.gz.partial" "$DIR/frontend-runtime-images.tar.gz"
+          echo FRESH_WEBSITE_SOURCE_MATCHES_ORIGINAL=true
+          echo CURRENT_TEST_SOURCE="$(git rev-parse HEAD)"
+          REMOTE
+          scp -P "$SSH_PORT" "$SSH_USER@$SSH_HOST:/home/admin/website-rollback-20261121/frontend-runtime-images.tar.gz" /tmp/frontend-runtime-images.tar.gz
+          scp -P "$SSH_PORT" "$SSH_USER@$SSH_HOST:/home/admin/website-rollback-20261121/runtime-images.json" /tmp/runtime-images.json
+          python3 -m pip install cryptography PyNaCl
+          python3 - <<'PY'
+          import importlib.util,pathlib,os,base64,re,json
+          s=importlib.util.spec_from_file_location('bundle','.github/verification/website_bundle.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+          public=b'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID0qbEt/j4lNMJNd6CNlFp9fQkZz7++125+byUgfSSp0'
+          out=pathlib.Path('backup')
+          for name in ['frontend-runtime-images.tar.gz','runtime-images.json']:
+              (out/(name+'.sealed')).write_bytes(m.encrypt(pathlib.Path('/tmp',name).read_bytes(),public))
+          source=pathlib.Path('.github/workflows/sms-configure-test.yml').read_text()
+          cipher=re.search(r'SEALED_CREDENTIALS: (\S+)',source).group(1)
+          value=m.decrypt(base64.b64decode(cipher),os.environ['SSH_PRIVATE_KEY'].encode())
+          assert json.loads(value)['client'] and json.loads(value)['password']
+          (out/'website-sms-feature-local.sealed').write_bytes(m.encrypt(value,public))
+          print('PORTABLE_RUNTIME_AND_FEATURE_SMS_ENCRYPTED=true')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-website-runtime-encrypted
+          path: backup/*.sealed
+          retention-days: 30
