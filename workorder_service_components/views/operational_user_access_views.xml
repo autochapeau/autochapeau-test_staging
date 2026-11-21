@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="operational_user_access_form" model="ir.ui.view">
+        <field name="name">res.users.form.operational.access</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="after">
+                <page name="operational_access" string="صلاحيات التشغيل" groups="base.group_system" invisible="share">
+                    <field name="operational_salesperson_permission_available" invisible="1"/>
+                    <div class="table-responsive" dir="rtl">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">القسم</th>
+                                    <th scope="col">الصلاحية</th>
+                                    <th scope="col">تفعيل</th>
+                                    <th scope="col">بتعمل إيه</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">المخزون</th>
+                                    <td><label for="operational_material_preparer" string="تجهيز خامات الورشة"/></td>
+                                    <td><field name="operational_material_preparer" nolabel="1"/></td>
+                                    <td>المستخدم يقدر يجهّز الخامات للطلبات المتعيّنة له ويختار الرول ويسجّل المقاس الفعلي.</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">أوامر العمل</th>
+                                    <td><label for="operational_quality_reviewer" string="مراجعة جودة المهام"/></td>
+                                    <td><field name="operational_quality_reviewer" nolabel="1"/></td>
+                                    <td>المستخدم يقدر يراجع المهام المستنية فحص الجودة في الورش اللي متعيّن عليها.</td>
+                                </tr>
+                                <tr invisible="not operational_salesperson_permission_available">
+                                    <th scope="row">أوامر البيع</th>
+                                    <td><label for="operational_edit_salesperson" string="تغيير مندوب البيع"/></td>
+                                    <td><field name="operational_edit_salesperson" nolabel="1"/></td>
+                                    <td>المستخدم يقدر يغيّر مندوب البيع على عروض الأسعار والأوامر اللي يقدر يعدّلها. الصلاحية بتضيف كمان دخول المبيعات على مستنداته.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

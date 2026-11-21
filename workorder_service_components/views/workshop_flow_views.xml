@@ -152,7 +152,11 @@
         <field name="inherit_id" ref="work_orders.view_warehouse_inherit_branch"/>
         <field name="arch" type="xml">
             <field name="branch_id" position="after">
-                <field name="workshop_preparer_id" options="{'no_create': True, 'no_open': True}"/>
+                <label for="workshop_preparer_id"/>
+                <div>
+                    <field name="workshop_preparer_id" options="{'no_create': True, 'no_open': True}"/>
+                    <div class="text-muted" dir="rtl">اختار مين يستلم طلبات تجهيز الخامات الجديدة من فرع المستودع. لازم يكون عنده صلاحية تجهيز خامات الورشة.</div>
+                </div>
             </field>
         </field>
     </record>
@@ -175,6 +179,7 @@
             <xpath expr="//page[@name='service_components']/field[@name='service_part_ids']" position="before">
                 <group groups="work_orders.group_workshop_manager,work_orders.group_quality_manager">
                     <field name="skip_task_quality"/>
+                    <div class="text-muted" dir="rtl" colspan="2">لو علّمت هنا، مهمة الخدمة دي هتعدّي من غير فحص جودة عند المراجع. الفحص النهائي بتاع أمر الشغل لسه بيتطبق حسب إعداد الورشة.</div>
                     <field name="task_quality_check_item_ids" widget="many2many_tags" invisible="skip_task_quality"
                            options="{'no_create': True}"/>
                 </group>

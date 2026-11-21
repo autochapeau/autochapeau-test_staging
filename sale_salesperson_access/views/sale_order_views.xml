@@ -14,6 +14,7 @@
                        widget="many2one_avatar_user"
                        readonly="1"
                        groups="!sale_salesperson_access.group_edit_salesperson"/>
+                <div class="text-muted" dir="rtl" colspan="2">تغيير مندوب البيع متاح للحساب اللي عنده صلاحية تغيير مندوب البيع.</div>
             </xpath>
         </field>
     </record>

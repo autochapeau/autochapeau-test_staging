@@ -11,6 +11,7 @@ class Workshop(models.Model):
         "res.users", "car_workshop_quality_reviewer_rel", "workshop_id", "user_id",
         string="Quality Reviewers",
         domain=lambda self: [("groups_id", "in", self.env.ref("work_orders.group_quality_officer").ids)],
+        help="المستخدمين دول هيشوفوا مهام الورشة المستنية فحص الجودة ويقدروا يراجعوها.",
     )
     final_check_item_ids = fields.Many2many(
         "qa.check.item", "car_workshop_final_check_item_rel", "workshop_id", "item_id",

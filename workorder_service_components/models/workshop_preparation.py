@@ -25,7 +25,7 @@ class Warehouse(models.Model):
     workshop_preparer_id = fields.Many2one(
         "res.users", string="Workshop Materials Preparer",
         domain=lambda self: [("groups_id", "in", self.env.ref(_PREPARER).ids)],
-        help="Default preparer for service requests from this warehouse's branch.",
+        help="المستخدم ده هيتعيّن تلقائي على طلبات تجهيز الخامات الجديدة لفرع المستودع.",
     )
 
 

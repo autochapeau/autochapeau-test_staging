@@ -1,7 +1,7 @@
 {
     "name": "Sale Salesperson Access",
     "summary": "Only selected users can change the salesperson on a sales order",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.0.1",
     "author": "Wellknot",
     "category": "Sales",
     "depends": ["sale"],
