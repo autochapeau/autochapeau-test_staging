@@ -1,0 +1,42 @@
+name: Split encrypted website runtime for portable download
+on:
+  push:
+    branches: [codex/website-test-rollback]
+    paths: [.github/workflows/website-runtime-parts.yml]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Split existing encrypted artifact without contacting TEST
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' https://api.github.com/repos/autochapeau/autochapeau-test_staging/actions/artifacts/14694031179/zip -o runtime.zip
+          unzip -q runtime.zip -d export
+          mkdir -p part1 part2
+          split -b 320M export/frontend-runtime-images.tar.gz.sealed part1/frontend-runtime-images.tar.gz.sealed.part-
+          mv part1/frontend-runtime-images.tar.gz.sealed.part-ab part2/
+          cp export/runtime-images.json.sealed export/website-sms-feature-local.sealed part1/
+          python3 - <<'PY'
+          import pathlib,hashlib,json
+          source=pathlib.Path('export/frontend-runtime-images.tar.gz.sealed')
+          digest=hashlib.file_digest(source.open('rb'),'sha256').hexdigest()
+          pathlib.Path('part1/runtime-parts.json').write_text(json.dumps({'ordered_parts':['frontend-runtime-images.tar.gz.sealed.part-aa','frontend-runtime-images.tar.gz.sealed.part-ab'],'joined_name':source.name,'joined_bytes':source.stat().st_size,'joined_sha256':digest},indent=2))
+          print('Encrypted runtime split; checksum recorded')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-portable-runtime-part-1
+          path: part1/*
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-portable-runtime-part-2
+          path: part2/*
+          compression-level: 0
+          retention-days: 30
