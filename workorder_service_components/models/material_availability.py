@@ -101,7 +101,7 @@ class WorkOrderProduct(models.Model):
     @api.onchange("product_id", "quantity", "used_uom_id", "lot_id")
     def _onchange_warn_branch_stock(self):
         # Runs after the existing product onchange has selected the unit/quantity.
-        if self.material_stock_shortage:
+        if self.material_stock_shortage and not self.availability_warehouse_id.sudo().workshop_stock_warning_only:
             return {"warning": {
                 "title": _("Insufficient Branch Stock"),
                 "message": self.material_stock_warning,

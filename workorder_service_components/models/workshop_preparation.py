@@ -27,6 +27,11 @@ class Warehouse(models.Model):
         domain=lambda self: [("groups_id", "in", self.env.ref(_PREPARER).ids)],
         help="المستخدم ده هيتعيّن تلقائي على طلبات تجهيز الخامات الجديدة لفرع المستودع.",
     )
+    workshop_stock_warning_only = fields.Boolean(
+        string="Allow Workshop Start Before Stock Count",
+        groups="stock.group_stock_manager",
+        help="لحد ما الجرد يخلص، نقص الرصيد يظهر تنبيه وقت تجهيز الخامات وبدء الشغل. صرف الخامات لسه بيتحقق من الرصيد.",
+    )
 
 
 class WorkOrder(models.Model):
@@ -284,7 +289,9 @@ class WorkshopPreparation(models.Model):
         if lines.filtered(lambda line: line.quantity > 0 and line.product_id.tracking != "none" and not line.lot_id):
             raise UserError(_("Select the lot or serial number for each tracked material."))
         lines.invalidate_recordset(["branch_available_qty", "material_stock_shortage", "material_stock_warning"])
-        shortages = lines.filtered("material_stock_shortage")
+        shortages = lines.filtered("material_stock_shortage").filtered(
+            lambda line: not line.availability_warehouse_id.workshop_stock_warning_only
+        )
         if shortages:
             raise UserError("\n".join(shortages.mapped("material_stock_warning")))
 
@@ -361,7 +368,7 @@ class WorkshopPreparationLine(models.Model):
             preview.quantity = line.suggested_qty
         self.branch_available_qty = preview.branch_available_qty
         self.material_stock_warning = preview.material_stock_warning
-        if preview.material_stock_warning:
+        if preview.material_stock_warning and not preview.availability_warehouse_id.workshop_stock_warning_only:
             return {"warning": {"title": _("Material Availability"), "message": preview.material_stock_warning}}
 
     def _check_preparation_read_access(self):

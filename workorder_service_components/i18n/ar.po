@@ -257,3 +257,8 @@ msgstr ""
 "مخزون %(product)s في %(warehouse)s غير كافٍ. المطلوب لأمر الشغل %(required)s"
 " %(unit)s والمتاح %(available)s %(unit)s. اختر بديلًا متوفرًا أو وفّر "
 "المخزون قبل الصرف."
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_stock_warehouse__workshop_stock_warning_only
+msgid "Allow Workshop Start Before Stock Count"
+msgstr "السماح ببدء شغل الورشة قبل الجرد"

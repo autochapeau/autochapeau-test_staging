@@ -1150,9 +1150,13 @@ class TestServiceMaterials(TransactionCase):
                 part.product_id = alternative
                 part.actual_length_in = 16
         self.assertEqual(line.actual_length_in, 16)
+        self.env["stock.quant"]._update_available_quantity(alternative, self.warehouse.lot_stock_id, -3)
+        self.warehouse.workshop_stock_warning_only = True
         request.with_user(preparer).action_mark_prepared()
         self.assertTrue(order.material_preparation_ready)
-        self.assertEqual(self._available(alternative), 3)
+        self.assertTrue(line.material_stock_warning)
+        self.assertIsNone(order.product_ids._onchange_warn_branch_stock())
+        self.assertEqual(self._available(alternative), 0)
         order.action_progress()
         self.assertEqual(task.state, "ready")
         self.assertIn(second_technician, task.staff_ids.user_id)
@@ -1160,6 +1164,11 @@ class TestServiceMaterials(TransactionCase):
         visible_tasks = visible_to_second.search([("id", "=", task.id), ("staff_ids.user_id", "=", second_technician.id)])
         self.assertIn(task.id, visible_tasks.ids)
         task.with_user(technician).action_start()
+        with self.assertRaisesRegex(UserError, "Insufficient available stock"):
+            task.with_user(technician).action_finish()
+        self.assertEqual(task.state, "progress")
+        self.assertFalse(order.sudo().material_picking_ids)
+        self.env["stock.quant"]._update_available_quantity(alternative, self.warehouse.lot_stock_id, 3)
         task.with_user(technician).action_finish()
         self.assertEqual(task.state, "quality")
         simple_task.with_user(technician).action_start()

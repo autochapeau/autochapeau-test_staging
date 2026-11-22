@@ -157,6 +157,7 @@
                     <field name="workshop_preparer_id" options="{'no_create': True, 'no_open': True}"/>
                     <div class="text-muted" dir="rtl">اختار مين يستلم طلبات تجهيز الخامات الجديدة من فرع المستودع. لازم يكون عنده صلاحية تجهيز خامات الورشة.</div>
                 </div>
+                <field name="workshop_stock_warning_only"/>
             </field>
         </field>
     </record>
