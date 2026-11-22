@@ -268,19 +268,14 @@ class AccountMove(models.Model):
             move.loyalty_points_granted = points
             move.loyalty_earn_done = True
             try:
-                partner.loyalty_exchange_log_ids = [
-                    (
-                        0,
-                        0,
-                        {
-                            "type": "loyalty_invoice_earn",
-                            "points": points,
-                            "amount": base_amount,
-                            "card_destination_id": card.id,
-                            "order_id": order.id if order else False,
-                        },
-                    )
-                ]
+                self.env["loyalty.exchange.log"].create({
+                    "partner_id": partner.id,
+                    "type": "loyalty_invoice_earn",
+                    "points": points,
+                    "amount": base_amount,
+                    "card_destination_id": card.id,
+                    "order_id": order.id if order else False,
+                })
                 _logger.critical(
                     "%s success: granted=%s order=%s log created",
                     prefix,

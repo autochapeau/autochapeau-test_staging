@@ -48,6 +48,9 @@ class ResPartner(models.Model):
 
     def exchange_loyalty_points_to_wallet(self, points=0):
         self.ensure_one()
+        self.check_access_rights("write")
+        if not self._filter_access_rules_python("write"):
+            raise self.env["ir.rule"]._make_access_error("write", self)
         # use the value of discount in  the first reword in the program linked to partner loyalty card
         if not self.loyalty_card_id:
             raise UserError(_("No Loyalty card found for this customer"))
@@ -62,19 +65,14 @@ class ResPartner(models.Model):
         amount_wallet = exchange_points * (reward_id.discount)
         self.wallet_card_id.points += amount_wallet
         self.loyalty_card_id.points -= exchange_points
-        self.loyalty_exchange_log_ids = [
-            (
-                0,
-                0,
-                {
-                    "type": "loyalty_exchange",
-                    "points": points,
-                    "amount": amount_wallet,
-                    "card_source_id": self.loyalty_card_id.id,
-                    "card_destination_id": self.wallet_card_id.id,
-                },
-            )
-        ]
+        self.env["loyalty.exchange.log"].create({
+            "partner_id": self.id,
+            "type": "loyalty_exchange",
+            "points": points,
+            "amount": amount_wallet,
+            "card_source_id": self.loyalty_card_id.id,
+            "card_destination_id": self.wallet_card_id.id,
+        })
 
 
 class LoyaltyExchangeLog(models.Model):

@@ -184,7 +184,33 @@ class SaleOrder(models.Model):
                     "Link extras directly to the contract order."
                 ))
 
+    def _without_unchanged_owner_details(self, vals, owners):
+        # Forms can send the current owner details; only actual contact changes need an inverse.
+        contact_fields = {"subordinate_mobile": "mobile", "subordinate_email": "email"}
+        return {
+            field: value for field, value in vals.items()
+            if field not in contact_fields or not owners or any(
+                (owner[contact_fields[field]] or False) != (value or False) for owner in owners
+            )
+        }
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared = []
+        for vals in vals_list:
+            if "subordinate_mobile" in vals or "subordinate_email" in vals:
+                owner_id = vals["subordinate_id"] if "subordinate_id" in vals else self.default_get(
+                    ["subordinate_id"]
+                ).get("subordinate_id")
+                vals = self._without_unchanged_owner_details(vals, self.env["res.partner"].browse(owner_id))
+            prepared.append(vals)
+        return super().create(prepared)
+
     def write(self, vals):
+        if "subordinate_mobile" in vals or "subordinate_email" in vals:
+            owners = (self.env["res.partner"].browse(vals["subordinate_id"])
+                      if "subordinate_id" in vals else self.subordinate_id)
+            vals = self._without_unchanged_owner_details(vals, owners)
         if "pricelist_id" in vals:
             new_pricelist_id = vals.get("pricelist_id") or False
             if isinstance(new_pricelist_id, models.BaseModel):

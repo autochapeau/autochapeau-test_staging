@@ -76,3 +76,21 @@ class TestContactEditPermission(TransactionCase):
         self.assertEqual(contact.sudo().mobile_unique_key, contact._normalize_mobile(values["mobile"]))
         with self.assertRaisesRegex(AccessError, "Allow editing existing contacts"), self.cr.savepoint():
             contact.web_save({"name": "Change to a saved client"}, {"name": {}})
+
+    def test_contract_form_allows_unchanged_owner_details_but_blocks_changes(self):
+        self.creator.groups_id = [Command.link(self.env.ref("sales_team.group_sale_salesman").id)]
+        owner = self.Partner.create({"name": "Contract vehicle owner", "partner_type": "internal",
+                                    "email": "owner@example.test"})
+        customer = self.Partner.create({"name": "Contract customer", "partner_type": "contract"})
+        orders = self.env["sale.order"].with_user(self.creator).with_context(
+            default_subordinate_id=owner.id, tracking_disable=True,
+        )
+        values = {"order_type": "contract", "partner_id": customer.id, "subordinate_email": owner.email}
+        [saved] = orders.web_save(values, {"name": {}})
+        order = orders.browse(saved["id"])
+        self.assertEqual(order.subordinate_id, owner)
+        order.web_save({"subordinate_email": owner.email, "client_order_ref": "Reference"}, {"name": {}})
+        self.assertEqual(order.client_order_ref, "Reference")
+        with self.assertRaisesRegex(AccessError, "Allow editing existing contacts"), self.cr.savepoint():
+            order.web_save({"subordinate_email": "changed@example.test"}, {"name": {}})
+        self.assertEqual(owner.email, "owner@example.test")

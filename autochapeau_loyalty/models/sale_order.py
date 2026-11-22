@@ -287,19 +287,14 @@ class SaleOrder(models.Model):
         self.loyalty_points_redeemed = points
         self.loyalty_redeem_amount = amount
 
-        partner.loyalty_exchange_log_ids = [
-            (
-                0,
-                0,
-                {
-                    "type": "loyalty_so_redeem",
-                    "points": points,
-                    "amount": amount,
-                    "card_source_id": card.id,
-                    "order_id": self.id,
-                },
-            )
-        ]
+        self.env["loyalty.exchange.log"].create({
+            "partner_id": partner.id,
+            "type": "loyalty_so_redeem",
+            "points": points,
+            "amount": amount,
+            "card_source_id": card.id,
+            "order_id": self.id,
+        })
         return True
 
     def _reverse_loyalty_points_redeem(self):

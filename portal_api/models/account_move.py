@@ -48,16 +48,11 @@ class AccountMove(models.Model):
             )
             return False
 
-        partner.loyalty_exchange_log_ids = [
-            (
-                0,
-                0,
-                {
-                    "type": log_type,
-                    "points": base_amount,
-                    "amount": base_amount,
-                    "order_id": order.id if order else False,
-                },
-            )
-        ]
+        self.env["loyalty.exchange.log"].create({
+            "partner_id": partner.id,
+            "type": log_type,
+            "points": base_amount,
+            "amount": base_amount,
+            "order_id": order.id if order else False,
+        })
         return True

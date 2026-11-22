@@ -1,6 +1,6 @@
 {
     "name": "AutoChapeau Loyalty",
-    "version": "17.0.1.4.9",
+    "version": "17.0.1.4.10",
     "summary": "Loyalty points 7 days after invoice confirm; redeem on sale orders",
     "author": "Wellknot",
     "depends": [
