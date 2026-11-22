@@ -1,6 +1,7 @@
 from odoo import Command
 from odoo.exceptions import AccessError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools.safe_eval import safe_eval
 
 
 @tagged("post_install", "-at_install", "partner_contact_edit")
@@ -59,3 +60,19 @@ class TestContactEditPermission(TransactionCase):
             child.write({"street": "Change after creation"})
         with self.assertRaises(AccessError), self.cr.savepoint():
             self.Partner.with_user(self.reader).create({"name": "Missing create access"})
+
+    def test_client_form_saves_new_customer_with_mobile_without_edit_permission(self):
+        action = self.env.ref("partner_management.partner_customer_action")
+        client_form = self.Partner.with_user(self.creator).with_context(**safe_eval(action.context))
+        self.assertFalse(self.creator.can_edit_existing_contacts)
+        values = {
+            "name": "New client from form",
+            "country_id": self.env.ref("base.sa").id,
+            "mobile": "0599986770",
+        }
+        [saved] = client_form.web_save(values, {"name": {}, "mobile": {}, "contact_partner_type": {}})
+        self.assertEqual(saved["contact_partner_type"], "customer")
+        contact = client_form.browse(saved["id"])
+        self.assertEqual(contact.sudo().mobile_unique_key, contact._normalize_mobile(values["mobile"]))
+        with self.assertRaisesRegex(AccessError, "Allow editing existing contacts"), self.cr.savepoint():
+            contact.web_save({"name": "Change to a saved client"}, {"name": {}})

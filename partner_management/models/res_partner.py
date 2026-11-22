@@ -571,15 +571,15 @@ class ResPartner(models.Model):
             token = _contact_creation.set((self.env.cr, self.env.uid, set()))
         try:
             partners = super().create(vals_list)
+            # Keep the existing mobile-key initialization inside the new-contact scope.
+            # Read the resulting mobile so inherited and context defaults are included.
+            for partner in partners:
+                normalized = partner._normalize_mobile(partner.mobile)
+                if normalized:
+                    super(ResPartner, partner).write({"mobile_unique_key": normalized})
         finally:
             if token is not None:
                 _contact_creation.reset(token)
-        # Use the resulting mobile so default_mobile and inherited defaults
-        # receive exactly the same validation as explicitly supplied values.
-        for partner in partners:
-            normalized = partner._normalize_mobile(partner.mobile)
-            if normalized:
-                super(ResPartner, partner).write({"mobile_unique_key": normalized})
         return partners
 
     def _create(self, data_list):
