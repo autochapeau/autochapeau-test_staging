@@ -6,7 +6,7 @@ class ResUsers(models.Model):
 
     can_edit_existing_contacts = fields.Boolean(
         string="Allow editing existing contacts",
-        help="Allows this user to save changes to existing contacts within their current access rights. "
-        "The user's existing permissions determine whether they can create contacts.",
+        help="Allows editing contacts created by other users, within the user's existing access rights. "
+        "Users with contact write access can already edit contacts they created themselves.",
         groups="base.group_system",
     )

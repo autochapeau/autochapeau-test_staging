@@ -11,7 +11,7 @@
                         <h2>Contact permissions</h2>
                         <div class="row mt16 o_settings_container">
                             <setting id="can_edit_existing_contacts" string="Allow editing existing contacts"
-                                     help="Let this user save changes to existing contacts they already have access to edit. The user's current creation permissions still apply.">
+                                     help="Allow editing contacts created by other users, subject to normal contact access rights. Users can edit contacts they created if they have contact write access.">
                                 <field name="can_edit_existing_contacts"/>
                             </setting>
                         </div>

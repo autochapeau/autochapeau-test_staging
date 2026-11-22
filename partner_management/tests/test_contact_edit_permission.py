@@ -56,8 +56,9 @@ class TestContactEditPermission(TransactionCase):
         })
         self.assertEqual(child.street, "New address")
         self.assertFalse(self.existing.street)
-        with self.assertRaises(AccessError), self.cr.savepoint():
-            child.write({"street": "Change after creation"})
+        child.write({"street": "Change after creation"})
+        self.assertEqual(child.street, "Change after creation")
+        self.assertFalse(self.existing.street)
         with self.assertRaises(AccessError), self.cr.savepoint():
             self.Partner.with_user(self.reader).create({"name": "Missing create access"})
 
@@ -74,8 +75,21 @@ class TestContactEditPermission(TransactionCase):
         self.assertEqual(saved["contact_partner_type"], "customer")
         contact = client_form.browse(saved["id"])
         self.assertEqual(contact.sudo().mobile_unique_key, contact._normalize_mobile(values["mobile"]))
+        [updated] = contact.web_save({"name": "Change to a saved client"}, {"name": {}})
+        self.assertEqual(updated["name"], "Change to a saved client")
+
+    def test_creator_access_is_not_inherited_from_salesperson_and_keeps_base_acl(self):
+        own = self.Partner.with_user(self.creator).create({"name": "Created by test user"})
+        self.existing.user_id = self.creator
+        assigned = self.existing.with_user(self.creator)
+        self.assertEqual(assigned.user_id, self.creator)
+        self.assertNotEqual(assigned.create_uid, self.creator)
         with self.assertRaisesRegex(AccessError, "Allow editing existing contacts"), self.cr.savepoint():
-            contact.web_save({"name": "Change to a saved client"}, {"name": {}})
+            (own | assigned).write({"name": "Mixed contact edit"})
+        self.assertEqual(own.name, "Created by test user")
+        self.creator.groups_id = [Command.unlink(self.env.ref("base.group_partner_manager").id)]
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            own.write({"name": "Missing base write access"})
 
     def test_contract_form_allows_unchanged_owner_details_but_blocks_changes(self):
         self.creator.groups_id = [Command.link(self.env.ref("sales_team.group_sale_salesman").id)]

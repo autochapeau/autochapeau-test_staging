@@ -604,8 +604,9 @@ class ResPartner(models.Model):
 
     def check_access_rule(self, operation):
         if operation == "write" and self and not self._may_edit_existing_contacts():
-            if not self._only_new_contacts_in_creation():
-                raise AccessError(_("You need the 'Allow editing existing contacts' permission to save changes to an existing contact."))
+            unowned = self.sudo().filtered(lambda contact: contact.create_uid.id != self.env.uid)
+            if unowned and not unowned._only_new_contacts_in_creation():
+                raise AccessError(_("You need the 'Allow editing existing contacts' permission to edit a contact you did not create."))
         return super().check_access_rule(operation)
 
     def write(self, vals):
