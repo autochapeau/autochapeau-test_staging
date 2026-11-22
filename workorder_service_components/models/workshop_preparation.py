@@ -61,7 +61,7 @@ class WorkOrder(models.Model):
 
     def _prepare_part_material_values(self, task, component):
         vals = super()._prepare_part_material_values(task, component)
-        if self.material_preparation_enabled:
+        if self.material_preparation_enabled or self._can_adopt_legacy_preparation():
             category = component.material_category_id or component.product_id.categ_id
             vals.update(product_id=False, material_brand_id=False, tag_id=False, quantity=0,
                         material_category_id=category.id)
@@ -71,7 +71,10 @@ class WorkOrder(models.Model):
         self.flush_recordset()
         for order in self.sorted("id"):
             self.env.cr.execute("SELECT id FROM car_work_order WHERE id = %s FOR UPDATE", (order.id,))
-        self.invalidate_recordset(["state", "material_preparation_ids", "product_ids", "service_ids"])
+        self.invalidate_recordset([
+            "state", "material_preparation_enabled", "material_preparation_ids",
+            "product_ids", "service_ids", "picking_id", "material_picking_ids",
+        ])
 
     def _check_workshop_manager(self):
         if not (self.env.su or self.env.user.has_group(_MANAGER)):
@@ -86,15 +89,42 @@ class WorkOrder(models.Model):
             return self.env["stock.picking"]
         return super()._create_delivery_picking()
 
+    def _can_adopt_legacy_preparation(self):
+        self.ensure_one()
+        order = self.sudo()
+        if (order.state != "new" or not order.appointment_id or order.parent_id
+                or order.picking_id or order.material_picking_ids):
+            return False
+        if order.service_ids.filtered(
+            lambda task: task.state not in ("waiting", "ready", "cancel")
+            or task.date_start or task.materials_issued or task.material_picking_id
+        ):
+            return False
+        # Existing part rows can be reused as saved. A service material without a
+        # part cannot be matched automatically without risking a duplicate issue.
+        return not order.product_ids.filtered(
+            lambda line: line.material_move_id
+            or ((line.service_id or line.source_task_id) and not line.source_component_id)
+        )
+
     def action_confirm(self):
         self.ensure_one()
-        if not self.material_preparation_enabled:
+        if not (self.material_preparation_enabled or self._can_adopt_legacy_preparation()):
             return super().action_confirm()
         self._check_workshop_manager()
         self._lock_workshop_flow()
         if self.state != "new":
             raise UserError(_("Only a new work order can be confirmed."))
-        result = super(WorkOrder, self.with_context(workshop_flow_transition=_PREPARATION_EDIT)).action_confirm()
+        if not (self.material_preparation_enabled or self._can_adopt_legacy_preparation()):
+            return super().action_confirm()
+        order = self.with_context(workshop_flow_transition=_PREPARATION_EDIT)
+        with self.env.cr.savepoint():
+            if not order.material_preparation_enabled:
+                order.material_preparation_enabled = True
+            return order._confirm_with_material_preparation()
+
+    def _confirm_with_material_preparation(self):
+        result = super().action_confirm()
         tasks = self.service_ids.filtered(lambda task: task.state != "cancel")
         if tasks.filtered(lambda task: not task.staff_ids):
             raise UserError(_("Assign at least one technician to every service before confirming."))
@@ -154,8 +184,9 @@ class WorkOrder(models.Model):
         return super(WorkOrder, self.with_context(workshop_flow_transition=_PREPARATION_EDIT)).action_cancel()
 
     def write(self, vals):
-        if not self.env.su and "material_preparation_enabled" in vals:
-            raise AccessError(_("Material preparation is determined when the work order is created."))
+        if ("material_preparation_enabled" in vals and not self.env.su
+                and self.env.context.get("workshop_flow_transition") is not _PREPARATION_EDIT):
+            raise AccessError(_("Material preparation is determined by the workshop workflow."))
         if "state" in vals and not self.env.su and self.env.context.get("workshop_flow_transition") is not _PREPARATION_EDIT:
             changed = self.filtered(lambda order: order.material_preparation_enabled and order.state != vals["state"])
             if changed:

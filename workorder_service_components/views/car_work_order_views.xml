@@ -78,13 +78,13 @@
         <p class="text-muted">Film dimensions are in inches. Total lengths and widths are sums of all cuts. Film stock quantity uses cut area divided by the area represented by one raw-material stock unit. Exceeding the standard plus part tolerance is blocked. Total car budget warnings are advisory.</p>
       </xpath>
       <xpath expr="//field[@name='service_ids']/tree" position="inside">
-        <field name="material_total_length_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_total_width_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_tolerance_in" optional="hide" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_used_length_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_used_width_in" optional="show" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_used_area_m2" optional="hide" column_invisible="parent.material_preparation_enabled"/>
-        <field name="material_budget_warning" optional="show" column_invisible="parent.material_preparation_enabled"/>
+        <field name="material_total_length_in" optional="show" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_total_width_in" optional="show" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_tolerance_in" optional="hide" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_used_length_in" optional="show" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_used_width_in" optional="show" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_used_area_m2" optional="hide" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
+        <field name="material_budget_warning" optional="show" column_invisible="parent.state == 'new' or parent.material_preparation_enabled"/>
       </xpath>
       <xpath expr="//div[@name='button_box']" position="inside">
         <field name="materials_finished" invisible="1"/>

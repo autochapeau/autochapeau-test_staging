@@ -238,13 +238,72 @@ class TestServiceMaterials(TransactionCase):
             "vehicle_id": self.vehicle.id, "branch_id": self.branch.id, "car_checkin_id": checkin.id,
         })
         order = self._order()
+        saved_lines = order.product_ids
         order.appointment_id = appointment
         order.action_confirm()
         self.assertEqual(order.state, "confirmed")
-        self.assertFalse(order.picking_id.move_ids)
-        order.action_start_materials()
-        order.action_finish_materials()
+        self.assertTrue(order.material_preparation_enabled)
+        self.assertEqual(order.product_ids, saved_lines)
+        self.assertFalse(order.picking_id)
+        order.material_preparation_ids.action_mark_prepared()
+        order.action_progress()
+        order.service_ids.action_start()
+        order.service_ids.action_finish()
         self.assertEqual(self._available(self.film), 95)
+
+    def test_legacy_new_order_confirms_without_the_disallowed_default_brand(self):
+        recipe = self._film_recipe()
+        recipe.allowed_brand_ids = self.material_brand
+        order = self._order()
+        order.product_ids.unlink()
+        slot = self.env["car.appointment.slot"].create({
+            "date": "2099-01-16", "start_hour": 9, "duration": 1, "capacity": 5,
+        })
+        checkin = self.env["car.checkin"].create({
+            "partner_id": self.customer.id, "vehicle_id": self.vehicle.id,
+            "branch_id": self.branch.id, "state": "done",
+        })
+        order.appointment_id = self.env["car.appointment"].create({
+            "appointment_slot_id": slot.id, "partner_id": self.customer.id, "vehicle_id": self.vehicle.id,
+            "branch_id": self.branch.id, "car_checkin_id": checkin.id,
+        })
+        self.film.material_brand_id = self.env["car.material.brand"].create({"name": "Unapproved legacy film"})
+        approved = self.env["product.product"].create({
+            "name": "Allowed legacy replacement", "detailed_type": "product",
+            "material_brand_id": self.material_brand.id, "categ_id": self.film.categ_id.id,
+            "uom_id": self.film.uom_id.id, "uom_po_id": self.film.uom_id.id,
+            "film_width_in": 60, "roll_length_m": 15,
+        })
+        self.env["stock.quant"]._update_available_quantity(approved, self.warehouse.lot_stock_id, 1)
+        manager = new_test_user(self.env(context=dict(self.env.context, no_reset_password=True)),
+                                login="legacy_preparation_manager", groups="work_orders.group_workshop_manager")
+        order = order.with_user(manager)
+        with self.assertRaises(AccessError):
+            order.material_preparation_enabled = True
+        self.assertFalse(order.material_preparation_enabled)
+        self.assertFalse(order.product_ids)
+
+        # The normal form saves the assignment before the manager presses Confirm.
+        order.write({"service_ids": [Command.update(order.service_ids.id, {"staff_ids": [Command.set(self.staff.ids)]})]})
+        self.assertFalse(order.product_ids.product_id)
+        order.action_confirm()
+        self.assertEqual(order.state, "confirmed")
+        self.assertTrue(order.material_preparation_enabled)
+        self.assertFalse(order.product_ids.product_id)
+        self.assertFalse(order.product_ids.material_brand_id)
+        self.assertFalse(order.picking_id)
+        self.assertEqual(self._available(approved), 1)
+
+        request = order.material_preparation_ids
+        self.assertEqual(request.line_ids.part_id, recipe.part_id)
+        with self.assertRaises(UserError):
+            order.action_progress()
+        request.line_ids.write({"material_brand_id": self.material_brand.id, "product_id": approved.id})
+        request.action_mark_prepared()
+        order.action_progress()
+        self.assertEqual(order.state, "progress")
+        self.assertEqual(order.service_ids.state, "ready")
+        self.assertEqual(self._available(approved), 1)
 
     def test_manager_can_finish_without_stock_administrator_access(self):
         user = new_test_user(self.env, login="material_test_manager", groups="work_orders.group_workshop_manager")
