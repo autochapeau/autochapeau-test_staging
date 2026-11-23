@@ -31,8 +31,11 @@ def verify_validation(callback, words):
         with qa.cr.savepoint():
             callback()
             raise AssertionError("Expected an insufficient stock validation")
+    except AccessError:
+        raise
     except UserError as error:
         assert all(word in str(error).lower() for word in words), str(error)
+        return str(error)
 
 location = warehouse.lot_stock_id
 quant = qa["stock.quant"]
@@ -74,7 +77,7 @@ if not second:
 task = second.service_ids
 assert second.state == task.state == "progress"
 assert not quant._get_available_quantity(material, location)
-verify_validation(task.action_finish, ("insufficient available stock",))
+finish_message = verify_validation(task.action_finish, ("insufficient available stock",))
 viewer_can_finish = True
 try:
     verify_validation(task.with_user(viewer).action_finish, ("insufficient available stock",))
@@ -85,5 +88,7 @@ env.cr.commit()
 print("TEST_STOCK_VALIDATION_DEMO=" + json.dumps({
     "warehouse_id": warehouse.id, "prepare_order": first.name, "prepare_request_id": request.id,
     "finish_order": second.name, "finish_order_id": second.id, "finish_task_id": task.id,
-    "viewer_can_finish": viewer_can_finish,
+    "viewer_can_finish": viewer_can_finish, "finish_validation": finish_message,
+    "viewer_is_workshop_employee": viewer.has_group("work_orders.group_workshop_employee"),
+    "viewer_has_technician_profile": bool(viewer.employee_ids.filtered("is_technician")),
 }), flush=True)
