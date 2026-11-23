@@ -366,6 +366,7 @@ class WorkOrderService(models.Model):
             self.with_context(material_issue_token=_ISSUE_TOKEN).materials_issued = True
             return
         warehouse = order._get_branch_warehouse()
+        allow_shortage = warehouse.sudo().workshop_allow_stock_shortage_issue
         company = order.company_id
         location = warehouse.lot_stock_id
         required = {}
@@ -381,8 +382,9 @@ class WorkOrderService(models.Model):
             qty = uom._compute_quantity(line.quantity, product.uom_id)
             if product.tracking == "serial" and float_compare(qty, 1, precision_rounding=product.uom_id.rounding) != 0:
                 raise UserError(_("Each serial-numbered material line must consume exactly one unit."))
-            key = (product.id, line.lot_id.id)
-            required[key] = required.get(key, 0) + qty
+            if not allow_shortage:
+                key = (product.id, line.lot_id.id)
+                required[key] = required.get(key, 0) + qty
         Quant = self.env["stock.quant"].sudo().with_company(company)
         for (product_id, lot_id), qty in required.items():
             product = self.env["product.product"].browse(product_id)
@@ -420,19 +422,34 @@ class WorkOrderService(models.Model):
         # used on different vehicle parts.
         picking.move_ids._action_confirm(merge=False)
         picking.do_unreserve()
+        issued_with_shortage = False
         for line in lines:
             move = line.material_move_id.sudo()
             qty = move.product_uom._compute_quantity(move.product_uom_qty, move.product_id.uom_id)
             move._update_reserved_quantity(qty, location, lot_id=line.lot_id, strict=False)
-            if line.lot_id and any(ml.lot_id != line.lot_id for ml in move.move_line_ids):
-                raise UserError(_("The selected lot/serial could not be fully reserved. Review its available stock and retry."))
+            if line.lot_id:
+                other_lots = move.move_line_ids.filtered(lambda move_line: move_line.lot_id != line.lot_id)
+                if other_lots and not allow_shortage:
+                    raise UserError(_("The selected lot/serial could not be fully reserved. Review its available stock and retry."))
+                other_lots.unlink()
+            if allow_shortage and float_compare(
+                move.quantity, move.product_uom_qty, precision_rounding=move.product_uom.rounding
+            ) < 0:
+                # Express the unreserved remainder in the same unit as the stock move.
+                move_line_values = dict(move._prepare_move_line_vals(), lot_id=line.lot_id.id,
+                                        quantity=move.product_uom_qty - move.quantity)
+                move.move_line_ids.create(move_line_values)
+                issued_with_shortage = True
             if float_compare(move.quantity, move.product_uom_qty, precision_rounding=move.product_uom.rounding) != 0:
                 raise UserError(_("Stock could not be reserved completely. Review availability and retry."))
             move.picked = True
         picking._action_done()
         self.with_context(material_issue_token=_ISSUE_TOKEN).write({"material_picking_id": picking.id, "materials_issued": True})
         # The technician can finish their task without write access to the parent order.
-        order.sudo().message_post(body=_("Service materials issued: %s") % picking.name, subtype_xmlid="mail.mt_note")
+        message = _("Service materials issued: %s") % picking.name
+        if issued_with_shortage:
+            message = _("Service materials issued with insufficient stock: %s") % picking.name
+        order.sudo().message_post(body=message, subtype_xmlid="mail.mt_note")
 
 
 class StockPicking(models.Model):

@@ -34,7 +34,7 @@ The work order's Products tab shows **Available in Branch** in the row's UoM. Th
 
 Choosing a material or changing its used quantity, unit or lot displays an **Insufficient Branch Stock** warning when stock is insufficient. The **Stock Warning** column and highlighted rows retain the warning on saved orders. Demand includes other pending rows for the same product on the order (for a selected lot, other rows using that lot), so repeated parts cannot each assume the entire balance is available. Issued rows no longer contribute to pending demand.
 
-These are advisory checks: they do not reserve stock or block saving. Reload the order to refresh balances changed by other operations. The existing Finish checks still revalidate availability and prevent issuing a shortage. Missing branch/warehouse configuration is explained in the warning column without preventing historical orders from opening; legacy consumables do not produce stock shortage warnings.
+These are advisory checks: they do not reserve stock or block saving. Reload the order to refresh balances changed by other operations. Finish blocks shortages by default. A stock manager can enable **Allow Workshop Material Issue with Insufficient Stock** on the branch warehouse to finish tasks and record actual consumption even when this creates a negative balance. Missing branch/warehouse configuration is explained in the warning column without preventing historical orders from opening; legacy consumables do not produce stock shortage warnings.
 
 ## Main categories, batch variants and replacement materials
 

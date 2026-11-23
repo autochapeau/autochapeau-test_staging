@@ -30,7 +30,12 @@ class Warehouse(models.Model):
     workshop_stock_warning_only = fields.Boolean(
         string="Allow Workshop Start Before Stock Count",
         groups="stock.group_stock_manager",
-        help="لحد ما الجرد يخلص، نقص الرصيد يظهر تنبيه وقت تجهيز الخامات وبدء الشغل. صرف الخامات لسه بيتحقق من الرصيد.",
+        help="لحد ما الجرد يخلص، نقص الرصيد يظهر كتنبيه أثناء تجهيز الخامات وبدء الشغل.",
+    )
+    workshop_allow_stock_shortage_issue = fields.Boolean(
+        string="Allow Workshop Material Issue with Insufficient Stock",
+        groups="stock.group_stock_manager",
+        help="Allows tasks to finish and issue actual workshop materials from this warehouse even when stock is insufficient. The issue can create a negative stock balance.",
     )
 
 
@@ -42,8 +47,22 @@ class WorkOrder(models.Model):
         "car.workshop.preparation", "workorder_id", string="Material Preparation", copy=False,
         groups=_MANAGER,
     )
+    visible_material_preparation_ids = fields.Many2many(
+        "car.workshop.preparation", compute="_compute_visible_material_preparation",
+        groups=f"{_MANAGER},{_PREPARER}",
+    )
     material_preparation_ready = fields.Boolean(compute="_compute_preparation_status", compute_sudo=True)
     material_preparation_count = fields.Integer(compute="_compute_preparation_status", compute_sudo=True)
+
+    @api.depends("material_preparation_ids", "material_preparation_ids.user_id")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_visible_material_preparation(self):
+        # The work order link is manager-only. Apply the user's preparation rules to its request IDs.
+        request_ids = self.sudo().material_preparation_ids.ids
+        requests = self.env["car.workshop.preparation"].search([("id", "in", request_ids)])
+        requests_by_order = requests.grouped(lambda request: request.sudo().workorder_id.id)
+        for order in self:
+            order.visible_material_preparation_ids = requests_by_order.get(order.id, requests.browse())
 
     @api.depends("material_preparation_ids.state")
     def _compute_preparation_status(self):
@@ -273,9 +292,25 @@ class WorkshopPreparation(models.Model):
                              domain=lambda self: [("groups_id", "in", self.env.ref(_PREPARER).ids)])
     state = fields.Selection([("pending", "To Prepare"), ("prepared", "Prepared")],
                              default="pending", required=True, readonly=True)
+    workorder_state = fields.Selection(related="workorder_id.state", string="Work Order Status")
     line_ids = fields.One2many("car.workshop.preparation.line", "preparation_id", string="Parts")
 
     _sql_constraints = [("task_unique", "unique(task_id)", "A task can only have one preparation request.")]
+
+    def action_open_preparation(self):
+        self.ensure_one()
+        self.check_access_rights("read")
+        self.check_access_rule("read")
+        view = self.env.ref("workorder_service_components.workshop_material_preparation_form")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Material Preparation"),
+            "res_model": self._name,
+            "res_id": self.id,
+            "views": [(view.id, "form")],
+            "target": "new",
+            "context": {"dialog_size": "extra-large"},
+        }
 
     def _editable_request(self):
         self.ensure_one()

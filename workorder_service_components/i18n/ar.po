@@ -31,6 +31,43 @@ msgid "Work Order Service Components"
 msgstr "مكونات خدمة أمر العمل"
 
 #. module: workorder_service_components
+#: code:addons/workorder_service_components/models/workshop_preparation.py:0
+#: model:ir.actions.act_window,name:workorder_service_components.action_workshop_material_preparation
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.workshop_flow_work_order_form
+msgid "Material Preparation"
+msgstr "تحضير الخامات"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.workshop_flow_work_order_form
+msgid "Open Preparation"
+msgstr "فتح طلب التحضير"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.workshop_flow_work_order_form
+msgid "Complete material preparation before starting workshop work."
+msgstr "أكمل تحضير الخامات قبل بدء العمل في الورشة."
+
+#. module: workorder_service_components
+#: model:ir.model.fields.selection,name:workorder_service_components.selection__car_workshop_preparation__state__pending
+msgid "To Prepare"
+msgstr "بانتظار التحضير"
+
+#. module: workorder_service_components
+#: model:ir.model.fields.selection,name:workorder_service_components.selection__car_workshop_preparation__state__prepared
+msgid "Prepared"
+msgstr "تم التحضير"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.workshop_material_preparation_form
+msgid "Materials Prepared"
+msgstr "تأكيد تحضير الخامات"
+
+#. module: workorder_service_components
+#: model_terms:ir.ui.view,arch_db:workorder_service_components.workshop_material_preparation_form
+msgid "Reopen Preparation"
+msgstr "إعادة فتح التحضير"
+
+#. module: workorder_service_components
 #: model:ir.model.fields,field_description:workorder_service_components.field_product_template__service_component_ids
 #: model_terms:ir.ui.view,arch_db:workorder_service_components.product_form_service_components
 #: model_terms:ir.ui.view,arch_db:workorder_service_components.product_template_form_service_components
@@ -262,3 +299,19 @@ msgstr ""
 #: model:ir.model.fields,field_description:workorder_service_components.field_stock_warehouse__workshop_stock_warning_only
 msgid "Allow Workshop Start Before Stock Count"
 msgstr "السماح ببدء شغل الورشة قبل الجرد"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,field_description:workorder_service_components.field_stock_warehouse__workshop_allow_stock_shortage_issue
+msgid "Allow Workshop Material Issue with Insufficient Stock"
+msgstr "السماح بصرف خامات الورشة عند نقص الرصيد"
+
+#. module: workorder_service_components
+#: model:ir.model.fields,help:workorder_service_components.field_stock_warehouse__workshop_allow_stock_shortage_issue
+msgid "Allows tasks to finish and issue actual workshop materials from this warehouse even when stock is insufficient. The issue can create a negative stock balance."
+msgstr "يسمح بإنهاء المهام وصرف الخامات المستخدمة فعليًا من هذا المستودع عند نقص الرصيد. قد ينتج عن الصرف رصيد مخزون سالب."
+
+#. module: workorder_service_components
+#: code:addons/workorder_service_components/models/material_execution.py:0
+#, python-format
+msgid "Service materials issued with insufficient stock: %s"
+msgstr "تم صرف خامات الخدمة مع وجود نقص في الرصيد: %s"

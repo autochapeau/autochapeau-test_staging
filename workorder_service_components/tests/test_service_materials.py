@@ -326,6 +326,31 @@ class TestServiceMaterials(TransactionCase):
         self.assertFalse(order.material_picking_ids)
         self.assertEqual(order.service_ids.state, "progress")
 
+    def test_shortage_override_issues_full_consumption_on_selected_lot(self):
+        self.warehouse.workshop_allow_stock_shortage_issue = True
+        self.film.tracking = "lot"
+        lots = self.env["stock.lot"].create([
+            {"name": name, "product_id": self.film.id, "company_id": self.env.company.id}
+            for name in ("SELECTED-LOT", "OTHER-LOT")
+        ])
+        selected_lot, other_lot = lots
+        stock = self.env["stock.quant"]
+        location = self.warehouse.lot_stock_id
+        stock._update_available_quantity(self.film, location, -100)
+        stock._update_available_quantity(self.film, location, 1, lot_id=selected_lot)
+        stock._update_available_quantity(self.film, location, 100, lot_id=other_lot)
+        order = self._order()
+        order.product_ids.filtered(lambda line: line.product_id == self.film).lot_id = selected_lot
+        self._start(order)
+        order.action_finish_materials()
+        move_lines = order.material_picking_ids.move_line_ids.filtered(lambda line: line.product_id == self.film)
+        self.assertEqual(move_lines.lot_id, selected_lot)
+        self.assertEqual(sum(move_lines.mapped("quantity")), 5)
+        self.assertEqual(stock._get_available_quantity(
+            self.film, location, lot_id=selected_lot, strict=True, allow_negative=True,
+        ), -4)
+        self.assertEqual(stock._get_available_quantity(self.film, location, lot_id=other_lot, strict=True), 100)
+
     def test_legacy_completed_delivery_does_not_issue_again(self):
         order = self._order()
         order.product_ids.write({"source_task_id": False})
@@ -1199,6 +1224,18 @@ class TestServiceMaterials(TransactionCase):
         self.assertFalse(request.with_user(other_preparer).search([("id", "=", request.id)]))
         with self.assertRaises(AccessError):
             order.with_user(preparer).read(["partner_id"])
+        values = order.read(["visible_material_preparation_ids"])[0]
+        self.assertEqual(values["visible_material_preparation_ids"], request.ids)
+        work_order_viewer = self.env.ref("work_orders.group_work_order_viewer_all")
+        (preparer | other_preparer).write({"groups_id": [Command.link(work_order_viewer.id)]})
+        for user, visible_ids in [(preparer, request.ids), (other_preparer, [])]:
+            values = order.with_user(user).read(["visible_material_preparation_ids"])[0]
+            self.assertEqual(values["visible_material_preparation_ids"], visible_ids)
+        (preparer | other_preparer).write({"groups_id": [Command.unlink(work_order_viewer.id)]})
+        action = request.with_user(preparer).action_open_preparation()
+        self.assertEqual((action["target"], action["res_id"]), ("new", request.id))
+        with self.assertRaises(AccessError):
+            request.with_user(other_preparer).action_open_preparation()
         with self.assertRaises(UserError):
             order.action_progress()
         line = request.with_user(preparer).line_ids
@@ -1228,9 +1265,17 @@ class TestServiceMaterials(TransactionCase):
             task.with_user(technician).action_finish()
         self.assertEqual(task.state, "progress")
         self.assertFalse(order.sudo().material_picking_ids)
-        self.env["stock.quant"]._update_available_quantity(alternative, self.warehouse.lot_stock_id, 3)
+        self.warehouse.workshop_allow_stock_shortage_issue = True
         task.with_user(technician).action_finish()
         self.assertEqual(task.state, "quality")
+        picking = order.sudo().material_picking_ids
+        self.assertEqual(picking.state, "done")
+        self.assertAlmostEqual(picking.move_ids.quantity, line.quantity, places=6)
+        balance = self.env["stock.quant"]._get_available_quantity(
+            alternative, self.warehouse.lot_stock_id, allow_negative=True,
+        )
+        self.assertAlmostEqual(balance, -line.quantity, places=6)
+        self.env["stock.quant"]._update_available_quantity(alternative, self.warehouse.lot_stock_id, 3)
         simple_task.with_user(technician).action_start()
         simple_task.with_user(technician).action_finish()
         self.assertEqual(simple_task.state, "done")

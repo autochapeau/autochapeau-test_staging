@@ -18,19 +18,22 @@
         <field name="arch" type="xml">
             <form create="0" delete="0">
                 <header>
+                    <field name="workorder_state" invisible="1"/>
                     <button name="action_mark_prepared" string="Materials Prepared" type="object" class="oe_highlight"
-                            invisible="state != 'pending'"/>
+                            invisible="state != 'pending' or workorder_state != 'confirmed'"/>
                     <button name="action_reopen" string="Reopen Preparation" type="object"
-                            groups="work_orders.group_workshop_manager" invisible="state != 'prepared'"/>
+                            groups="work_orders.group_workshop_manager"
+                            invisible="state != 'prepared' or workorder_state != 'confirmed'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
                         <field name="service_id" options="{'no_open': True}"/>
                         <field name="user_id" groups="work_orders.group_workshop_manager"
-                               readonly="state != 'pending'" options="{'no_create': True, 'no_open': True}"/>
+                               readonly="state != 'pending' or workorder_state != 'confirmed'"
+                               options="{'no_create': True, 'no_open': True}"/>
                     </group>
-                    <field name="line_ids" readonly="state != 'pending'">
+                    <field name="line_ids" readonly="state != 'pending' or workorder_state != 'confirmed'">
                         <tree editable="bottom" create="0" delete="0" decoration-warning="material_stock_warning">
                             <field name="part_id" options="{'no_open': True}"/>
                             <field name="material_category_id" options="{'no_open': True}"/>
@@ -125,11 +128,28 @@
             <xpath expr="//button[@name='action_finish_materials']" position="attributes">
                 <attribute name="invisible" add="material_preparation_enabled" separator=" or "/>
             </xpath>
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_view_material_preparation" type="object" icon="fa-list" class="oe_stat_button"
-                        groups="work_orders.group_workshop_manager" invisible="not material_preparation_count">
-                    <field name="material_preparation_count" widget="statinfo" string="Material Preparation"/>
-                </button>
+            <xpath expr="//page[@name='services']" position="after">
+                <page name="material_preparation" string="Material Preparation"
+                      groups="workorder_service_components.group_workshop_material_preparer,work_orders.group_workshop_manager"
+                      invisible="not visible_material_preparation_ids">
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mx-3 mt-3 mb-2"
+                         role="status" groups="work_orders.group_workshop_manager"
+                         invisible="state != 'confirmed' or material_preparation_ready">
+                        <i class="fa fa-clock-o" aria-hidden="true"/>
+                        <span>Complete material preparation before starting workshop work.</span>
+                    </div>
+                    <field name="visible_material_preparation_ids" nolabel="1" readonly="1">
+                        <tree editable="bottom" create="0" delete="0" default_order="state, id">
+                            <field name="service_id" options="{'no_open': True}"/>
+                            <field name="user_id" groups="work_orders.group_workshop_manager"
+                                   options="{'no_open': True}"/>
+                            <field name="state" widget="badge"
+                                   decoration-warning="state == 'pending'" decoration-success="state == 'prepared'"/>
+                            <button name="action_open_preparation" type="object" string="Open Preparation"
+                                    class="btn btn-outline-primary btn-sm"/>
+                        </tree>
+                    </field>
+                </page>
             </xpath>
             <xpath expr="//field[@name='service_ids']/tree/field[@name='staff_ids']" position="after">
                 <field name="material_preparer_id" optional="hide" column_invisible="not parent.material_preparation_enabled"
@@ -158,6 +178,7 @@
                     <div class="text-muted" dir="rtl">اختار مين يستلم طلبات تجهيز الخامات الجديدة من فرع المستودع. لازم يكون عنده صلاحية تجهيز خامات الورشة.</div>
                 </div>
                 <field name="workshop_stock_warning_only"/>
+                <field name="workshop_allow_stock_shortage_issue"/>
             </field>
         </field>
     </record>
