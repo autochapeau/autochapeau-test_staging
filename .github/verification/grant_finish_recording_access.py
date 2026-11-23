@@ -40,7 +40,7 @@ if role not in old_groups:
     viewer.with_context(no_reset_password=True).write({"groups_id": [Command.link(role.id)]})
 assert viewer.groups_id == (old_groups | role)
 if employee not in task.staff_ids:
-    task.with_context(tracking_disable=True, mail_notrack=True).write({"staff_ids": [Command.link(employee.id)]})
+    task.with_context(contract_upsell_sync=True, tracking_disable=True, mail_notrack=True).write({"staff_ids": [Command.link(employee.id)]})
 
 task_for_viewer = task.with_user(viewer).with_company(company).with_context(lang="en_US")
 task_for_viewer.read(["state", "workorder_id"])
