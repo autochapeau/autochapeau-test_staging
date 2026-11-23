@@ -276,11 +276,12 @@ class WorkOrderProduct(models.Model):
                         raise ValidationError(_(
                             "The actual %(dimension)s for %(part)s cannot exceed %(limit).4f inches (standard plus part tolerance).",
                             dimension=label, part=line.part_id.display_name or _("this material"), limit=limit))
-            if line.material_brand_id and line.allowed_brand_ids and line.material_brand_id not in line.allowed_brand_ids:
-                raise ValidationError(_("Choose one of the allowed brands."))
+            # Temporarily skip the work order's allowed-brand checks until the material data is uploaded.
+            # if line.material_brand_id and line.allowed_brand_ids and line.material_brand_id not in line.allowed_brand_ids:
+            #     raise ValidationError(_("Choose one of the allowed brands."))
+            # if line.product_id and line.allowed_brand_ids and line.product_id.material_brand_id not in line.allowed_brand_ids:
+            #     raise ValidationError(_("The product must belong to an allowed brand."))
             if line.product_id:
-                if line.allowed_brand_ids and line.product_id.material_brand_id not in line.allowed_brand_ids:
-                    raise ValidationError(_("The product must belong to an allowed brand."))
                 if line.material_brand_id and line.product_id.material_brand_id != line.material_brand_id:
                     raise ValidationError(_("The selected product belongs to another brand."))
             if line.usage_mode == "roll" and line.product_id and line.actual_width_in > line.film_width_in:

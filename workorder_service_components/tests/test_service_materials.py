@@ -936,18 +936,19 @@ class TestServiceMaterials(TransactionCase):
         with self.assertRaises(UserError), self.env.cr.savepoint():
             order.service_ids.material_total_length_in = 200
 
-    def test_video_brand_restrictions_enforced_on_server(self):
+    def test_work_order_allows_brands_outside_the_list_during_material_upload(self):
         recipe = self._film_recipe(category_only=True)
         brands = self.env["car.material.brand"].create([{"name": "Marvel test"}, {"name": "Miracle test"}])
-        self.film.material_brand_id = brands[0]
+        self.film.material_brand_id = brands[1]
         recipe.allowed_brand_ids = brands[0]
         line = self._order().product_ids
-        with self.assertRaises(ValidationError), self.env.cr.savepoint():
-            line.material_brand_id = brands[1]
-        line.material_brand_id = brands[0]
+        line.material_brand_id = brands[1]
         line.product_id = self.film
+        self.assertEqual(line.material_brand_id, brands[1])
+        self.assertEqual(line.allowed_brand_ids, brands[0])
+        self.assertEqual(line.product_id, self.film)
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
-            line.product_id = self.liquid
+            line.material_brand_id = brands[0]
         with self.assertRaises(UserError), self.env.cr.savepoint():
             line.allowed_brand_ids = brands
 
