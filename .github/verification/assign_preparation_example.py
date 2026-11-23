@@ -1,7 +1,7 @@
 import json
 
 assert env.cr.dbname == "autochapeau_prod_test", "Only the TEST database may be changed"
-assert env["ir.config_parameter"].sudo().get_param("database.is_neutralized") == "True", "TEST database must be neutralized"
+assert env["ir.config_parameter"].sudo().get_param("database.is_neutralized").lower() in ("true", "1"), "TEST database must be neutralized"
 order = env["car.work.order"].sudo().browse(3416).exists()
 request = env["car.workshop.preparation"].sudo().browse(13).exists()
 assert order and order.name == "WO/03409" and (order.notes or "").startswith("DEMO TEST | Material Preparation")
