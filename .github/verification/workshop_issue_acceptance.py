@@ -8,18 +8,23 @@ from odoo.tests import loader
 
 assert env.cr.dbname == "autochapeau_prod_test"
 module = env["ir.module.module"].search([("name", "=", "workorder_service_components")])
-assert module.state == "installed" and module.latest_version == "17.0.5.0.4"
+assert module.state == "installed" and module.latest_version == "17.0.5.0.4", (module.state, module.latest_version)
 warehouse_model = env["stock.warehouse"].sudo()
 arch = etree.fromstring(warehouse_model.get_view(env.ref("stock.view_warehouse").id, "form")["arch"])
-assert arch.xpath("//field[@name='workshop_stock_warning_only']")
+assert arch.xpath("//field[@name='workshop_stock_warning_only']"), "Existing warehouse checkbox missing"
 
-assert arch.xpath("//field[@name='workshop_allow_stock_shortage_issue']")
+assert arch.xpath("//field[@name='workshop_allow_stock_shortage_issue']"), "New warehouse checkbox missing"
 assert not warehouse_model.with_context(active_test=False).search_count([
     ('workshop_allow_stock_shortage_issue', '=', True),
 ])
 orders = env['car.work.order'].sudo()
-work_order_form = orders.get_view(env.ref('workorder_service_components.workshop_flow_work_order_form').id, 'form')
-assert etree.fromstring(work_order_form['arch']).xpath("//page[@name='material_preparation']")
+view = env.ref('work_orders.car_work_order_view_form')
+assert view._get_combined_arch().xpath("//page[@name='material_preparation']"), "Preparation page missing from combined form"
+manager = env.ref('work_orders.group_workshop_manager').users.filtered('active')[:1]
+if manager:
+    manager_form = orders.with_user(manager).get_view(view.id, 'form')
+    assert etree.fromstring(manager_form['arch']).xpath("//page[@name='material_preparation']"), "Manager cannot see preparation page"
+
 
 requests = env['car.workshop.preparation'].sudo()
 original_requests = requests.search([])

@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Back up TEST, upgrade workshop modules offline, and verify
+      - name: Verify the already-upgraded TEST database without downtime
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
@@ -53,75 +53,14 @@ jobs:
           cd "$project"
           exec 9>"$(git rev-parse --git-path workshop-material-issue-release.lock)"
           flock -w 120 9
-          git diff --cached --quiet
+          test "$(git rev-parse HEAD)" = "$release_sha"
           git fetch --no-tags https://github.com/autochapeau/autochapeau-test_staging.git codex/workshop-material-issue-test
           test "$(git rev-parse FETCH_HEAD)" = "$verification_sha"
-          git merge-base --is-ancestor "$release_sha" "$verification_sha"
-          git diff --quiet HEAD "$release_sha" -- . ':(exclude)workorder_service_components' ':(exclude).github/**'
           container=$(sudo -n docker ps --filter "label=com.docker.swarm.service.name=$service" --format '{{.ID}}' | head -1)
           test -n "$container"
-          source_paths=(. ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc')
-          original_changes=$(git diff --binary -- "${source_paths[@]}" | sha256sum)
-          git diff --binary -- "${source_paths[@]}" > "$(git rev-parse --git-path "test-before-workshop-material-issue-$(date -u +%Y%m%dT%H%M%SZ).patch")"
-          scratch=$(mktemp -d)
-          trap 'rm -rf -- "$scratch"' EXIT
-          mkdir "$scratch/scripts" "$scratch/verification"
-          git show "$release_sha:.github/scripts/odoo_maintenance.py" > "$scratch/scripts/odoo_maintenance.py"
-          git show "$release_sha:.github/scripts/production_release_check.py" > "$scratch/scripts/production_release_check.py"
-          python3 - "$scratch/scripts/production_release_check.py" <<'PY'
-          from pathlib import Path
-          import sys
-          path = Path(sys.argv[1])
-          source = path.read_text()
-          anchor = 'TABLES = {\n'
-          assert source.count(anchor) == 1
-          entries = (
-              "    'car_workshop_preparation': None,\n"
-              "    'car_workshop_preparation_line': None,\n"
-              "    'stock_warehouse': ['id', 'workshop_stock_warning_only'],\n"
-          )
-          path.write_text(source.replace(anchor, anchor + entries, 1))
-          PY
-          git show "$verification_sha:.github/verification/workshop_issue_acceptance.py" > "$scratch/verification/verify_staging.py"
-          # The generic helper appends an extra TEST acceptance file. Keep this release scoped to workshops.
-          touch "$scratch/verification/commission_period_release_checks.py"
-          (umask 022; git merge --ff-only "$release_sha")
-          mapfile -d '' -t published_files < <(git diff-tree --no-commit-id -r --name-only -z --diff-filter=ACMRT \
-            "$release_sha" -- workorder_service_components)
-          test "${#published_files[@]}" -gt 0
-          for source in "${published_files[@]}"; do
-            test -f "$source" && test ! -L "$source"
-            chmod a+r -- "$source"
-            dir=$(dirname -- "$source")
-            while [ "$dir" != "." ]; do
-              chmod a+rx -- "$dir"
-              dir=$(dirname -- "$dir")
-            done
-          done
-          sudo -n docker exec "$container" python3 -c '
-          import sys
-          from pathlib import Path
-          for name in sys.argv[1:]:
-              with (Path("/mnt/extra-addons") / name).open("rb") as source:
-                  source.read(1)
-          ' "${published_files[@]}"
-          echo TEST_RELEASE_FILES_READABLE=true
-          test "$original_changes" = "$(git diff --binary -- "${source_paths[@]}" | sha256sum)"
-          echo TEST_LOCAL_SOURCE_CHANGES_PRESERVED=true
-          sudo -n python3 "$scratch/scripts/odoo_maintenance.py" \
-            --service "$service" --database "$database" \
-            --modules workorder_service_components --release-check \
-            --state-file "$project/$(git rev-parse --git-path workshop-material-issue-maintenance.json)" </dev/null
-          for attempt in $(seq 1 40); do
-            container=$(sudo -n docker ps --filter "label=com.docker.swarm.service.name=$service" --format '{{.ID}}' | head -1)
-            if [ -n "$container" ] && sudo -n docker exec "$container" python3 -c \
-              "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8069/web/health', timeout=5).status == 200"; then
-              echo TEST_WORKSHOP_ISSUE_HTTP_OK=true
-              exit 0
-            fi
-            sleep 3
-          done
-          exit 1
+          git show "$verification_sha:.github/verification/workshop_issue_acceptance.py" | sudo -n docker exec -i "$container" odoo shell -d "$database" --no-http --max-cron-threads=0
+          sudo -n docker exec "$container" python3 -c "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8069/web/health', timeout=5).status == 200"
+          echo TEST_WORKSHOP_ISSUE_HTTP_OK=true
           REMOTE
           grep -qx 'TEST_WORKSHOP_ISSUE_HTTP_OK=true' "$remote_result"
           grep -q '^TEST_WORKSHOP_ISSUE_REGRESSION=' "$remote_result"
