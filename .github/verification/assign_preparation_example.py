@@ -30,7 +30,13 @@ assert request.id in order_visible["visible_material_preparation_ids"]
 action = request.with_user(viewer).with_company(company).action_open_preparation()
 assert action["res_id"] == request.id and action["target"] == "new"
 
+view = env.ref("work_orders.car_work_order_view_form")
+arch = order.with_user(viewer).with_company(company).get_view(view.id, "form")["arch"]
+assert 'name="material_preparation"' in arch
+
 env.cr.commit()
+env.registry.clear_all_caches()
+env.registry.signal_changes()
 print("TEST_MATERIAL_ASSIGNMENT=" + json.dumps({
     "order": order.name, "order_id": order.id, "request_id": request.id,
     "preparer_permission": True, "assigned_to_requested_account": True,
