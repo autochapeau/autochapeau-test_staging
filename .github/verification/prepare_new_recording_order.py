@@ -46,8 +46,15 @@ def get_example(title, staff):
     return order
 
 prep = get_example("DEMO TEST | Full Workshop Recording", technician)
+assert prep.id == 3422 and prep.name == "WO/03415"
 assert prep.state == "confirmed" and prep.material_preparation_ids.state == "pending"
+assert viewer.active and viewer.name == "Eng Moamed Said" and company in viewer.company_ids
+manager = env.ref("work_orders.group_workshop_manager")
+if not viewer.has_group("work_orders.group_workshop_manager"):
+    viewer.with_context(no_reset_password=True).write({"groups_id": [Command.link(manager.id)]})
+assert viewer.has_group("work_orders.group_workshop_manager")
 assert prep.with_user(viewer).with_company(company).visible_material_preparation_ids
+prep.with_user(viewer).with_company(company).check_access_rights("write")
 prep.service_ids.with_user(viewer).with_company(company).read(["state"])
 location = warehouse.lot_stock_id
 quants = qa["stock.quant"]
@@ -56,6 +63,8 @@ required = prep.material_preparation_ids.line_ids.quantity
 if available < required:
     quants._update_available_quantity(material, location, required - available)
 env.cr.commit()
+env.registry.clear_all_caches()
+env.registry.signal_changes()
 print("TEST_NEW_PREP_RECORDING_ORDER=" + json.dumps({
     "work_order": prep.name, "order_id": prep.id,
     "request_id": prep.material_preparation_ids.id,
