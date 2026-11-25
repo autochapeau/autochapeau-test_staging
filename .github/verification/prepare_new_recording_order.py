@@ -16,6 +16,10 @@ original = original.with_env(qa)
 warehouse = original._get_branch_warehouse()
 material = qa["product.product"].search([("name", "=", "DEMO TEST | Window Tint Film")], limit=1)
 assert material and material.material_brand_id
+technician = qa["hr.employee"].search([
+    ("user_id", "=", viewer.id), ("company_id", "=", company.id), ("is_technician", "=", True),
+], limit=1)
+assert technician and viewer.has_group("work_orders.group_workshop_manager")
 
 def get_example(title, staff):
     order = qa["car.work.order"].search([("notes", "=", title)], limit=1)
@@ -41,12 +45,20 @@ def get_example(title, staff):
     assert lines.quantity > 0
     return order
 
-prep = get_example("DEMO TEST | Manual Materials Prepared take 3", original.service_ids.staff_ids)
+prep = get_example("DEMO TEST | Full Workshop Recording", technician)
 assert prep.state == "confirmed" and prep.material_preparation_ids.state == "pending"
 assert prep.with_user(viewer).with_company(company).visible_material_preparation_ids
+prep.service_ids.with_user(viewer).with_company(company).read(["state"])
+location = warehouse.lot_stock_id
+quants = qa["stock.quant"]
+available = quants._get_available_quantity(material, location, allow_negative=True)
+required = prep.material_preparation_ids.line_ids.quantity
+if available < required:
+    quants._update_available_quantity(material, location, required - available)
 env.cr.commit()
 print("TEST_NEW_PREP_RECORDING_ORDER=" + json.dumps({
     "work_order": prep.name, "order_id": prep.id,
     "request_id": prep.material_preparation_ids.id,
+    "task_id": prep.service_ids.id,
     "prepare_option_on": warehouse.workshop_stock_warning_only,
 }), flush=True)
