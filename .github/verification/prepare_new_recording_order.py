@@ -19,7 +19,7 @@ assert material and material.material_brand_id
 technician = qa["hr.employee"].search([
     ("user_id", "=", viewer.id), ("company_id", "=", company.id), ("is_technician", "=", True),
 ], limit=1)
-assert technician and viewer.has_group("work_orders.group_workshop_manager")
+assert technician, "No existing technician profile for the recording user in this Test company"
 
 def get_example(title, staff):
     order = qa["car.work.order"].search([("notes", "=", title)], limit=1)
@@ -60,5 +60,6 @@ print("TEST_NEW_PREP_RECORDING_ORDER=" + json.dumps({
     "work_order": prep.name, "order_id": prep.id,
     "request_id": prep.material_preparation_ids.id,
     "task_id": prep.service_ids.id,
+    "viewer_is_workshop_manager": viewer.has_group("work_orders.group_workshop_manager"),
     "prepare_option_on": warehouse.workshop_stock_warning_only,
 }), flush=True)
